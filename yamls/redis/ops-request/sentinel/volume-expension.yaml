@@ -1,0 +1,12 @@
+apiVersion: ops.kubedb.com/v1alpha1
+kind: RedisSentinelOpsRequest
+metadata:
+  name: rd-online-volume-expansion5
+  namespace: demo
+spec:
+  type: VolumeExpansion
+  databaseRef:
+    name: sen-demo
+  volumeExpansion:
+    mode: "Online"
+    redis: 13Gi

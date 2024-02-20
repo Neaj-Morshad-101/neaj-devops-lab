@@ -1,0 +1,23 @@
+apiVersion: addons.kubestash.com/v1alpha1
+kind: Addon
+metadata:
+  name: redis-addon
+spec:
+  backupTasks:
+  - name: redis-backup
+    singleton: true
+    function: redis-backup
+    driver: Restic
+    parameters:
+    - name: args
+      usage: Specifies the database args for taking backup
+      required: false
+  restoreTasks:
+  - name: redis-restore
+    singleton: true
+    function: redis-restore
+    driver: Restic
+    parameters:
+    - name: args
+      usage: Specifies the database args for restore
+      required: false

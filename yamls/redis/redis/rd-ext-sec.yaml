@@ -1,0 +1,25 @@
+apiVersion: kubedb.com/v1alpha2
+kind: Redis
+metadata:
+  name: sample-redis
+  namespace: demo
+spec:
+  mode: Cluster
+  authSecret:
+    name: mysecret
+    externallyManaged: true
+  cluster:
+    master: 3
+    replicas: 1
+  version: 6.2.5
+  disableAuth: false
+  storageType: Durable
+  storage:
+    storageClassName: "standard"
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+  terminationPolicy: WipeOut
+

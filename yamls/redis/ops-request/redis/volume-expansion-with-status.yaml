@@ -1,0 +1,48 @@
+apiVersion: ops.kubedb.com/v1alpha1
+kind: RedisOpsRequest
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"ops.kubedb.com/v1alpha1","kind":"RedisOpsRequest","metadata":{"annotations":{},"name":"rd-online-volume-expansion4","namespace":"demo"},"spec":{"databaseRef":{"name":"redis-standalone"},"type":"VolumeExpansion","volumeExpansion":{"mode":"Online","redis":"3Gi"}}}
+  creationTimestamp: "2023-08-03T09:24:23Z"
+  generation: 1
+  name: rd-online-volume-expansion4
+  namespace: demo
+  resourceVersion: "19857"
+  uid: ff583c72-ab97-4494-b5a0-5dbd7c6528bd
+spec:
+  apply: IfReady
+  databaseRef:
+    name: redis-standalone
+  type: VolumeExpansion
+  volumeExpansion:
+    mode: Online
+    redis: 3Gi
+status:
+  conditions:
+  - lastTransitionTime: "2023-08-03T09:24:23Z"
+    message: Redis ops request is expanding volume of database
+    observedGeneration: 1
+    reason: Progressing
+    status: "True"
+    type: Progressing
+  - lastTransitionTime: "2023-08-03T09:24:33Z"
+    message: Successfully Expanded Volume in Online Mode
+    observedGeneration: 1
+    reason: Online
+    status: "True"
+    type: Online
+  - lastTransitionTime: "2023-08-03T09:24:38Z"
+    message: StatefulSet is Recreated
+    observedGeneration: 1
+    reason: ReadyStatefulSets
+    status: "True"
+    type: ReadyStatefulSets
+  - lastTransitionTime: "2023-08-03T09:24:39Z"
+    message: Successfully Expanded Volume
+    observedGeneration: 1
+    reason: Successful
+    status: "True"
+    type: Successful
+  observedGeneration: 1
+  phase: Successful

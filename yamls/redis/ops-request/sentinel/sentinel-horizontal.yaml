@@ -1,0 +1,11 @@
+apiVersion: ops.kubedb.com/v1alpha1
+kind: RedisSentinelOpsRequest
+metadata:
+  name: horizontal-up
+  namespace: demo
+spec:
+  type: HorizontalScaling
+  databaseRef:
+    name: sen-demo
+  horizontalScaling:
+    replicas: 5

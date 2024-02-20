@@ -1,0 +1,12 @@
+apiVersion: ops.kubedb.com/v1alpha1
+kind: RedisOpsRequest
+metadata:
+  name: rd-online-volume-expansion2
+  namespace: demo
+spec:
+  type: VolumeExpansion
+  databaseRef:
+    name: sample-redis2
+  volumeExpansion:
+    mode: "Offline"
+    redis: "2Gi"

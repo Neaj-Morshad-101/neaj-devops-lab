@@ -1,0 +1,55 @@
+apiVersion: kubedb.com/v1alpha2
+kind: MsSQL
+metadata:
+  name: sql-server-instance
+  namespace: your-namespace
+spec:
+  version: "2019-CTP3.2-ubuntu-18.04"
+  replicas: 2
+  storageType: Durable
+  storage:
+    storageClassName: your-storage-class
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 10Gi
+  terminationPolicy: Pause
+  podTemplate:
+    spec:
+      securityContext:
+        fsGroup: 10001
+  init:
+    script: |
+      # Custom initialization script for SQL Server
+      # You can include additional SQL scripts or configurations here
+  configSecret: sql-server-config-secret
+  secrets:
+    - secretName: sa-secret
+      mountPath: /var/opt/mssql/secrets
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: your-node-label-key
+            operator: In
+            values:
+            - your-node-label-value
+  tolerations:
+    - key: node-role.kubernetes.io/master
+      operator: Exists
+      effect: NoSchedule
+  serviceTemplate:
+    metadata:
+      annotations:
+        your-service-annotation-key: your-service-annotation-value
+    spec:
+      ports:
+        - name: ms-sql
+          port: 1433
+          targetPort: 1433
+      type: LoadBalancer
+      loadBalancerIP: "your-loadbalancer-ip"
+      loadBalancerSourceRanges:
+        - "your-allowed-ip-range"

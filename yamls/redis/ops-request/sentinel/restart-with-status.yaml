@@ -1,0 +1,39 @@
+apiVersion: ops.kubedb.com/v1alpha1
+kind: RedisSentinelOpsRequest
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"ops.kubedb.com/v1alpha1","kind":"RedisSentinelOpsRequest","metadata":{"annotations":{},"name":"restart-sentinel-ops2","namespace":"demo"},"spec":{"databaseRef":{"name":"sen-demo"},"type":"Restart"}}
+  creationTimestamp: "2023-08-04T04:33:55Z"
+  generation: 1
+  name: restart-sentinel-ops2
+  namespace: demo
+  resourceVersion: "82647"
+  uid: e884dfa2-f970-4cdd-907d-804e1ecce580
+spec:
+  apply: IfReady
+  databaseRef:
+    name: sen-demo
+  type: Restart
+status:
+  conditions:
+  - lastTransitionTime: "2023-08-04T04:33:55Z"
+    message: Redis Sentinel ops request is restarting the database nodes
+    observedGeneration: 1
+    reason: Restart
+    status: "True"
+    type: Restart
+  - lastTransitionTime: "2023-08-04T04:36:00Z"
+    message: Successfully restarted pods
+    observedGeneration: 1
+    reason: RestartedPods
+    status: "True"
+    type: RestartedPods
+  - lastTransitionTime: "2023-08-04T04:36:00Z"
+    message: Successfully Restarted Database
+    observedGeneration: 1
+    reason: Successful
+    status: "True"
+    type: Successful
+  observedGeneration: 1
+  phase: Successful

@@ -1,0 +1,1 @@
+kubectl create secret generic encry-secret --from-literal=RESTIC_PASSWORD='changeit' -n demo

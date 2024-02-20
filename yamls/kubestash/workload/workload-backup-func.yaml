@@ -1,0 +1,13 @@
+apiVersion: addons.kubestash.com/v1alpha1
+kind: Function
+metadata:
+  name: workload-backup
+spec:
+  image: neajmorshad/workload:0c1dc11_linux_amd64
+  args:
+  - backup
+  - --scratch-dir=/tmp
+  - --namespace=${namespace:=default}
+  - --backupsession=${backupSession:=}
+  - --paths=${paths:=}
+  - --exclude=${exclude:=}

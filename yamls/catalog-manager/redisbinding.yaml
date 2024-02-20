@@ -1,0 +1,12 @@
+apiVersion: catalog.kubeware.dev/v1alpha1
+kind: RedisBinding
+metadata:
+  name: redis-binding
+  namespace: kubeware
+  annotations:
+    gateway.networking.k8s.io/name: kwg
+    gateway.networking.k8s.io/namespace: gateway
+spec:
+  sourceRef:
+    namespace: kubeware
+    name: redis

@@ -1,0 +1,49 @@
+apiVersion: kubedb.com/v1alpha2
+kind: MsSQL
+metadata:
+  name: mssql-sample
+spec:
+  version: "2019-CU10"
+  replicas: 3
+  topology:
+    mode: Standalone
+  storageType: Durable
+  storage:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+  authSecret:
+    name: mssql-auth-secret
+  init:
+    script: |
+      #!/bin/bash
+      # Your initialization script goes here
+  podTemplate:
+    metadata:
+      labels:
+        app: mssql
+    spec:
+      containers:
+      - name: mssql-container
+        image: your-mssql-image:tag
+        ports:
+        - containerPort: 1433
+          protocol: TCP
+        env:
+        - name: ACCEPT_EULA
+          value: "Y"
+        - name: SA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mssql-auth-secret
+              key: sa-password
+  serviceTemplates:
+  - metadata:
+      name: mssql-service
+    spec:
+      ports:
+      - name: mssql
+        port: 1433
+        targetPort: 1433

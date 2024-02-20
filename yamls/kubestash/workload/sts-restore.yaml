@@ -1,0 +1,21 @@
+apiVersion: core.kubestash.com/v1alpha1
+kind: RestoreSession
+metadata:
+  name: sample-restore-sts
+  namespace: demo
+spec:
+  target:
+    apiGroup: apps
+    kind: StatefulSet
+    name: sample-sts
+    namespace: demo
+  dataSource:
+    repository: demo-storage-1
+    snapshot: latest
+    encryptionSecret:
+      name: encry-secret
+      namespace: demo
+  addon:
+    name: workload-addon
+    tasks:
+    - name: restore-workload

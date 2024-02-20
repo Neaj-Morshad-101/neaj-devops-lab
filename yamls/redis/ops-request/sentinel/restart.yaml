@@ -1,0 +1,11 @@
+apiVersion: ops.kubedb.com/v1alpha1
+kind: RedisSentinelOpsRequest
+metadata:
+ name: restart-sentinel-ops3
+ namespace: demo
+spec:
+ type: Restart
+ databaseRef:
+  name: sen-demo
+
+# RedisSentinelOpsRequest Restart is not creating ........................... 

@@ -1,0 +1,50 @@
+apiVersion: ops.kubedb.com/v1alpha1
+kind: RedisOpsRequest
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"ops.kubedb.com/v1alpha1","kind":"RedisOpsRequest","metadata":{"annotations":{},"name":"replace-sentinel","namespace":"demo"},"spec":{"databaseRef":{"name":"rd-sentinel"},"sentinel":{"ref":{"name":"new-sentinel","namespace":"demo"},"removeUnusedSentinel":true},"type":"ReplaceSentinel"}}
+  creationTimestamp: "2023-08-04T12:16:56Z"
+  generation: 1
+  name: replace-sentinel
+  namespace: demo
+  resourceVersion: "491708"
+  uid: 922d23c4-aa2c-4f2e-be2f-9f765c5c9925
+spec:
+  apply: IfReady
+  databaseRef:
+    name: rd-sentinel
+  sentinel:
+    ref:
+      name: new-sentinel
+      namespace: demo
+    removeUnusedSentinel: true
+  type: ReplaceSentinel
+status:
+  conditions:
+  - lastTransitionTime: "2023-08-04T12:17:01Z"
+    message: Successfully Replaced Sentinel
+    observedGeneration: 1
+    reason: ReplaceSentinel
+    status: "True"
+    type: ReplaceSentinel
+  - lastTransitionTime: "2023-08-04T12:17:01Z"
+    message: Redis ops request is updating database version
+    observedGeneration: 1
+    reason: UpdateVersion
+    status: "True"
+    type: UpdateVersion
+  - lastTransitionTime: "2023-08-04T12:18:56Z"
+    message: Successfully restarted pods
+    observedGeneration: 1
+    reason: RestartPods
+    status: "True"
+    type: RestartPods
+  - lastTransitionTime: "2023-08-04T12:18:56Z"
+    message: Successfully Replaced Sentinel
+    observedGeneration: 1
+    reason: Successful
+    status: "True"
+    type: Successful
+  observedGeneration: 1
+  phase: Successful

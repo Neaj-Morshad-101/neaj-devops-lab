@@ -1,0 +1,32 @@
+apiVersion: addons.kubestash.com/v1alpha1
+kind: Addon
+metadata:
+  name: workload-addon
+  namespace: demo
+spec:
+  backupTasks:
+  - name: backup-workload
+    function: workload-backup
+    driver: Restic #Restic, WalG
+    executor: Job #Job, Sidecar, EphemeralContainer, MultiLevelJob
+    singleton: false
+    parameters:
+    - name: paths
+      usage: Specifies list of file paths to backup.
+      required: true
+    - name: exclude
+      usage: Specifies a list of patterns for the files that should be ignored during backup.
+      required: false
+  restoreTasks:
+  - name: restore-workload
+    function: workload-restore
+    driver: Restic
+    executor: Job
+    singleton: false
+    parameters:
+    - name: exclude
+      usage: Specifies a list of patterns for the files that should be ignored during restore.
+      required: false
+    - name: include
+      usage: Specifies a list of patterns for the files that should be restored
+      required: false

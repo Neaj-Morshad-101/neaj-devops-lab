@@ -1,0 +1,39 @@
+apiVersion: ops.kubedb.com/v1alpha1
+kind: RedisOpsRequest
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"ops.kubedb.com/v1alpha1","kind":"RedisOpsRequest","metadata":{"annotations":{},"name":"restart-redis-ops","namespace":"demo"},"spec":{"databaseRef":{"name":"redis-cluster"},"type":"Restart"}}
+  creationTimestamp: "2023-08-03T12:20:35Z"
+  generation: 1
+  name: restart-redis-ops
+  namespace: demo
+  resourceVersion: "30475"
+  uid: 48ee2f66-c1b2-47a1-83ec-97c8a96960e7
+spec:
+  apply: IfReady
+  databaseRef:
+    name: redis-cluster
+  type: Restart
+status:
+  conditions:
+  - lastTransitionTime: "2023-08-03T12:20:35Z"
+    message: Redis ops request is restarting the database nodes
+    observedGeneration: 1
+    reason: Restart
+    status: "True"
+    type: Restart
+  - lastTransitionTime: "2023-08-03T12:24:51Z"
+    message: Successfully restarted pods
+    observedGeneration: 1
+    reason: RestartedPods
+    status: "True"
+    type: RestartedPods
+  - lastTransitionTime: "2023-08-03T12:24:51Z"
+    message: Successfully Restarted Database
+    observedGeneration: 1
+    reason: Successful
+    status: "True"
+    type: Successful
+  observedGeneration: 1
+  phase: Successful

@@ -1,0 +1,9 @@
+apiVersion: catalog.kubeware.dev/v1alpha1
+kind: RedisBinding
+metadata:
+  name: redis-binding
+  namespace: default
+spec:
+  sourceRef:
+    namespace: demo
+    name: redis-standalone

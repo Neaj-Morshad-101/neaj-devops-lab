@@ -1,0 +1,39 @@
+apiVersion: core.kubestash.com/v1alpha1
+kind: BackupConfiguration
+metadata:
+  name: redis-bc
+  namespace: demo
+spec:
+  target:
+    apiGroup: kubedb.com
+    kind: Redis
+    namespace: demo
+    name: redis-standalone
+  backends:
+    - name: s3-backend
+      storageRef:
+        namespace: demo
+        name: s3-storage
+      retentionPolicy:
+        name: demo-retention-policy
+        namespace: demo
+  sessions:
+    - name: frequent-backup
+      sessionHistoryLimit: 3
+      scheduler:
+        schedule: "*/5 * * * *"
+        successfulJobsHistoryLimit: 1
+        failedJobsHistoryLimit: 1
+        jobTemplate:
+          backoffLimit: 1
+      repositories:
+        - name: s3-repo
+          backend: s3-backend
+          directory: /redis-demo
+          encryptionSecret:
+           name: encry-secret
+           namespace: demo
+      addon:
+        name: redis-addon
+        tasks:
+          - name: LogicalBackup

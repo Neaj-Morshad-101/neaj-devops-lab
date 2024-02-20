@@ -1,0 +1,48 @@
+apiVersion: core.kubestash.com/v1alpha1
+kind: BackupConfiguration
+metadata:
+  name: sample-backup-redis
+  namespace: demo
+spec:
+  target:
+    apiGroup: kubedb.com
+    kind: Redis
+    name: redis
+    namespace: demo
+  backends:
+  - name: s3-storage
+    storageRef:
+      apiGroup: storage.kubestash.com
+      namespace: demo
+      kind: BackupStorage
+      name: s3-storage
+    retentionPolicy:
+      name: demo-retention
+      namespace: demo
+  sessions:
+  - name: two-minute-backup-cycle
+    scheduler: # CronJob specification
+      schedule: "*/2 * * * *"
+      jobTemplate:
+        backoffLimit: 1
+    repositories:
+    - name: demo-storage-redis
+      backend: s3-storage
+      directory: /data/redis
+      encryptionSecret:
+        name: encry-secret
+        namespace: demo
+    addon:
+      name: redis-addon
+      tasks:
+      - name: backup-redis
+        targetVolumes:
+          volumeMounts:
+          - name: source-data
+            mountPath: /source/data
+        params:
+          paths: /source/data
+          exclude: /source/data/lost+found
+    retryConfig:
+      maxRetry: 2
+      delay: 1m

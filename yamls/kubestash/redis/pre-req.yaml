@@ -1,0 +1,42 @@
+
+---
+apiVersion: addons.kubestash.com/v1alpha1
+kind: Function
+metadata:
+  name: redis-backup-func
+spec: 
+  image: neajmorshad/redis:neaj-redis_linux_amd64
+  args:
+  - backup
+  - --scratch-dir=/tmp
+  - --enable-cache=${ENABLE_CACHE:=true}
+  - --namespace=${namespace:=default}
+  - --backupsession=${backupSession:=}
+
+---
+
+apiVersion: addons.kubestash.com/v1alpha1
+kind: Addon
+metadata:
+  name: redis-addon
+spec:
+  backupTasks:
+    - name: redis-backup
+      function:   redis-backup-func
+      singleton: true
+      driver: Restic
+      parameters:
+---
+
+apiVersion: storage.kubestash.com/v1alpha1
+kind: RetentionPolicy
+metadata:
+  name: demo-retention
+  namespace: demo
+spec:
+  maxRetentionPeriod: 2mo
+  successfulSnapshots:
+    last: 10
+  usagePolicy:
+    allowedNamespaces:
+      from: All

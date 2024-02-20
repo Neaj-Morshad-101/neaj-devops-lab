@@ -1,0 +1,21 @@
+apiVersion: core.kubestash.com/v1alpha1
+kind: RestoreSession
+metadata:
+  name: redis-restoresession
+  namespace: demo
+spec:
+  target:
+    name: rd-cluster-tls-res
+    namespace: demo
+    apiGroup: kubedb.com
+    kind: Redis
+  dataSource:
+    snapshot: latest
+    repository: s3-repo
+    encryptionSecret:
+      name: encry-secret 
+      namespace: demo
+  addon:
+    name: redis-addon
+    tasks:
+      - name: LogicalBackupRestore

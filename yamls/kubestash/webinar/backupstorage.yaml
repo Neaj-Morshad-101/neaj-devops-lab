@@ -1,0 +1,19 @@
+apiVersion: storage.kubestash.com/v1alpha1
+kind: BackupStorage
+metadata:
+  name: s3-storage
+  namespace: demo
+spec:
+  storage:
+    provider: s3  # gcs, azure
+    s3:
+      endpoint: us-east-1.linodeobjects.com
+      bucket: neaj-kubestash-webinar
+      region: us-east-1
+      prefix: webinar-demo
+      secret: s3-secret    # access credentials to access the bucket
+  usagePolicy:
+    allowedNamespaces:
+      from: All
+  default: true
+  deletionPolicy: WipeOut    # Delete, Wipeout  

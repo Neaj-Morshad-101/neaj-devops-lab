@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Secret
+data:
+  username: ZGVmYXVsdAo=
+  password: Z0tzWEo2djE2T19XcjAhdQo=
+type: Opaque
+metadata:
+  name: ex-auth-for-redis
+  namespace: demo

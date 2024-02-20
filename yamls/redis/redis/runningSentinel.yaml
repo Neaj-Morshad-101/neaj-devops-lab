@@ -1,0 +1,99 @@
+apiVersion: kubedb.com/v1alpha2
+kind: RedisSentinel
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"kubedb.com/v1alpha2","kind":"RedisSentinel","metadata":{"annotations":{},"name":"sen-demo","namespace":"demo"},"spec":{"replicas":3,"storage":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"1Gi"}},"storageClassName":"standard"},"storageType":"Durable","terminationPolicy":"WipeOut","version":"7.2.0"}}
+  creationTimestamp: "2023-10-12T05:35:28Z"
+  finalizers:
+  - kubedb.com
+  generation: 2
+  name: sen-demo
+  namespace: demo
+  resourceVersion: "1020894"
+  uid: 2b4aeedc-32c7-46c0-9157-77a40549490b
+spec:
+  authSecret:
+    name: sen-demo-auth
+  autoOps: {}
+  healthChecker:
+    failureThreshold: 1
+    periodSeconds: 10
+    timeoutSeconds: 10
+  podTemplate:
+    controller: {}
+    metadata: {}
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: sen-demo
+                  app.kubernetes.io/managed-by: kubedb.com
+                  app.kubernetes.io/name: redissentinels.kubedb.com
+              namespaces:
+              - demo
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: sen-demo
+                  app.kubernetes.io/managed-by: kubedb.com
+                  app.kubernetes.io/name: redissentinels.kubedb.com
+              namespaces:
+              - demo
+              topologyKey: failure-domain.beta.kubernetes.io/zone
+            weight: 50
+      resources:
+        limits:
+          memory: 1Gi
+        requests:
+          cpu: 500m
+          memory: 1Gi
+      serviceAccountName: sen-demo
+  replicas: 3
+  storage:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+    storageClassName: standard
+  storageType: Durable
+  terminationPolicy: WipeOut
+  version: 7.2.0
+status:
+  conditions:
+  - lastTransitionTime: "2023-10-12T05:35:28Z"
+    message: 'The KubeDB operator has started the provisioning of Redis: demo/sen-demo'
+    reason: DatabaseProvisioningStartedSuccessfully
+    status: "True"
+    type: ProvisioningStarted
+  - lastTransitionTime: "2023-10-12T05:36:02Z"
+    message: All desired replicas are ready.
+    reason: AllReplicasReady
+    status: "True"
+    type: ReplicaReady
+  - lastTransitionTime: "2023-10-12T05:36:32Z"
+    message: 'The Sentinel: demo/sen-demo is accepting client requests.'
+    observedGeneration: 2
+    reason: DatabaseAcceptingConnectionRequest
+    status: "True"
+    type: AcceptingConnection
+  - lastTransitionTime: "2023-10-12T05:36:32Z"
+    message: 'The Sentinel: demo/sen-demo is ready.'
+    observedGeneration: 2
+    reason: ReadinessCheckSucceeded
+    status: "True"
+    type: Ready
+  - lastTransitionTime: "2023-10-12T05:36:38Z"
+    message: 'The Redis: demo/sen-demo is successfully provisioned.'
+    observedGeneration: 2
+    reason: DatabaseSuccessfullyProvisioned
+    status: "True"
+    type: Provisioned
+  observedGeneration: 2
+  phase: Ready

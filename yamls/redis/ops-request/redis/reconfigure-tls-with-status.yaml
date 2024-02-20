@@ -1,0 +1,57 @@
+apiVersion: ops.kubedb.com/v1alpha1
+kind: RedisOpsRequest
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"ops.kubedb.com/v1alpha1","kind":"RedisOpsRequest","metadata":{"annotations":{},"name":"rd-add-tls","namespace":"demo"},"spec":{"databaseRef":{"name":"redis-standalone"},"tls":{"certificates":[{"alias":"client","subject":{"organizationalUnits":["client"],"organizations":["redis"]}}],"issuerRef":{"apiGroup":"cert-manager.io","kind":"Issuer","name":"redis-ca-issuer"}},"type":"ReconfigureTLS"}}
+  creationTimestamp: "2023-08-04T10:32:51Z"
+  generation: 1
+  name: rd-add-tls
+  namespace: demo
+  resourceVersion: "105255"
+  uid: d43c7acc-17b6-40bb-94dc-8d17814136c9
+spec:
+  apply: IfReady
+  databaseRef:
+    name: redis-standalone
+  tls:
+    certificates:
+    - alias: client
+      subject:
+        organizationalUnits:
+        - client
+        organizations:
+        - redis
+    issuerRef:
+      apiGroup: cert-manager.io
+      kind: Issuer
+      name: redis-ca-issuer
+  type: ReconfigureTLS
+status:
+  conditions:
+  - lastTransitionTime: "2023-08-04T10:32:51Z"
+    message: Redis ops request is reconfiguring TLS
+    observedGeneration: 1
+    reason: ReconfigureTLS
+    status: "True"
+    type: ReconfigureTLS
+  - lastTransitionTime: "2023-08-04T10:32:56Z"
+    message: Successfully synced all certificates
+    observedGeneration: 1
+    reason: CertificateSynced
+    status: "True"
+    type: CertificateSynced
+  - lastTransitionTime: "2023-08-04T10:33:09Z"
+    message: Successfully restarted pods
+    observedGeneration: 1
+    reason: RestartedPods
+    status: "True"
+    type: RestartedPods
+  - lastTransitionTime: "2023-08-04T10:33:11Z"
+    message: Successfully reconfigured TLS
+    observedGeneration: 1
+    reason: Successful
+    status: "True"
+    type: Successful
+  observedGeneration: 1
+  phase: Successful

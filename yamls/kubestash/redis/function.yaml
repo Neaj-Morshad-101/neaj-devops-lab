@@ -1,0 +1,29 @@
+apiVersion: addons.kubestash.com/v1alpha1
+kind: Function
+metadata:
+  name: redis-backup
+spec:
+  image: neajmorshad/redis:neaj-redis_linux_amd64
+  args:
+  - backup
+  - --scratch-dir=${scratchDir:=/tmp}
+  - --namespace=${namespace:=default}
+  - --backupsession=${backupSession:=}
+  - --redis-args=${args:=}
+
+--- 
+
+apiVersion: addons.kubestash.com/v1alpha1
+kind: Function
+metadata:
+  name: redis-restore
+spec:
+  image: neajmorshad/redis:neaj-redis_linux_amd64
+  args:
+  - restore
+  - --scratch-dir=${scratchDir:=/tmp}
+  - --namespace=${namespace:=default}
+  - --restoresession=${restoreSession:=}
+  - --snapshot=${snapshot:=}
+  - --redis-args=${args:=}
+
