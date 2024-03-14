@@ -11,8 +11,8 @@ spec:
   topology:
     mode: AvailabilityGroup
     availabilityGroup:
-      name: myAG
-      database: myAgDB
+      databases:
+        - AgDB1
   storageType: Durable
   storage:
     storageClassName: "standard"
@@ -21,4 +21,4 @@ spec:
     resources:
       requests:
         storage: 1Gi
-  terminationPolicy: Halt
+  terminationPolicy: Delete # Halt
