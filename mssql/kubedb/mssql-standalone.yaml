@@ -4,8 +4,11 @@ metadata:
   name: mssql-standalone
   namespace: demo
 spec:
-  version: "latest"  # Specify the desired version, e.g., "2019-CU12-GDR" or "2017-CU24-GDR"
-  replicas: 1        # Number of instances to deploy
+  version: "2022-cu12"  # Specify the desired version, e.g., "2019-CU12-GDR" or "2017-CU24-GDR"
+  replicas: 1
+  authSecret: 
+    name: mssql-standalone-auth
+    externallyManaged: true
   topology:
     mode: Standalone
   storageType: Durable

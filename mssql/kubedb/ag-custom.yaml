@@ -4,10 +4,17 @@ metadata:
   name: ag-custom
   namespace: demo
 spec:
-  version: "2022-cu12-ubuntu-22.04"  # Specify the desired version, e.g., "2019-CU12-GDR" or "2017-CU24-GDR"
+  version: "2022-cu12"  # Specify the desired version, e.g., "2019-CU12-GDR" or "2017-CU24-GDR"
   replicas: 2        # Number of instances to deploy
   authSecret:
     name: mssql-custom-auth
+    externallyManaged: true
+  internalAuth:
+    endpointCert:
+      issuerRef:
+        apiGroup: cert-manager.io
+        name: postgres-ca-issuer
+        kind: Issuer
   topology:
     mode: AvailabilityGroup
     availabilityGroup:

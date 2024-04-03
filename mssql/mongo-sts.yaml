@@ -1,0 +1,273 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  creationTimestamp: "2024-04-01T08:55:47Z"
+  generation: 1
+  labels:
+    app.kubernetes.io/component: database
+    app.kubernetes.io/instance: simple
+    app.kubernetes.io/managed-by: kubedb.com
+    app.kubernetes.io/name: mongodbs.kubedb.com
+    mongodb.kubedb.com/node.config: simple-configsvr
+  name: simple-configsvr
+  namespace: demo
+  ownerReferences:
+  - apiVersion: kubedb.com/v1alpha2
+    blockOwnerDeletion: true
+    controller: true
+    kind: MongoDB
+    name: simple
+    uid: 02536229-98e1-4937-955d-8bede83b95b5
+  resourceVersion: "3010"
+  uid: 3b0dfe58-ac82-442b-b54f-a9487d311265
+spec:
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  podManagementPolicy: OrderedReady
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: simple
+      app.kubernetes.io/managed-by: kubedb.com
+      app.kubernetes.io/name: mongodbs.kubedb.com
+      mongodb.kubedb.com/node.config: simple-configsvr
+  serviceName: simple-configsvr-pods
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app.kubernetes.io/component: database
+        app.kubernetes.io/instance: simple
+        app.kubernetes.io/managed-by: kubedb.com
+        app.kubernetes.io/name: mongodbs.kubedb.com
+        mongodb.kubedb.com/node.config: simple-configsvr
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: simple
+                  app.kubernetes.io/managed-by: kubedb.com
+                  app.kubernetes.io/name: mongodbs.kubedb.com
+                  mongodb.kubedb.com/node.config: simple-configsvr
+              namespaces:
+              - demo
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: simple
+                  app.kubernetes.io/managed-by: kubedb.com
+                  app.kubernetes.io/name: mongodbs.kubedb.com
+                  mongodb.kubedb.com/node.config: simple-configsvr
+              namespaces:
+              - demo
+              topologyKey: failure-domain.beta.kubernetes.io/zone
+            weight: 50
+      containers:
+      - args:
+        - --port=27017
+        - --clusterAuthMode=keyFile
+        - --keyFile=/data/configdb/key.txt
+        - --ipv6
+        - --bind_ip=::,0.0.0.0
+        - --dbpath=/data/db
+        - --auth
+        - --configsvr
+        - --replSet=cnfRepSet
+        - --tlsMode=disabled
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        image: ghcr.io/appscode-images/mongo:4.4.26@sha256:763add4a8432c2b34e4e26c82040f81e6339722315ae58bfeebec5b9fe762de9
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          postStart:
+            exec:
+              command:
+              - /bin/bash
+              - -c
+              - /init-scripts/peer-finder -on-start=/init-scripts/configdb.sh -service=simple-configsvr-pods
+                >> /proc/1/fd/1
+        livenessProbe:
+          exec:
+            command:
+            - bash
+            - -c
+            - "set -x; if [[ $(mongo admin --host=localhost  --username=$MONGO_INITDB_ROOT_USERNAME
+              --password=$MONGO_INITDB_ROOT_PASSWORD --authenticationDatabase=admin
+              --quiet --eval \"db.adminCommand('ping').ok\" ) -eq \"1\" ]]; then \n
+              \         exit 0\n        fi\n        exit 1"
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: mongodb
+        ports:
+        - containerPort: 27017
+          name: db
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - bash
+            - -c
+            - "set -x; if [[ $(mongo admin --host=localhost  --username=$MONGO_INITDB_ROOT_USERNAME
+              --password=$MONGO_INITDB_ROOT_PASSWORD --authenticationDatabase=admin
+              --quiet --eval \"db.adminCommand('ping').ok\" ) -eq \"1\" ]]; then \n
+              \         exit 0\n        fi\n        exit 1"
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        resources:
+          limits:
+            memory: 1Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 999
+          runAsNonRoot: true
+          runAsUser: 999
+          seccompProfile:
+            type: RuntimeDefault
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /work-dir
+          name: workdir
+        - mountPath: /data/configdb
+          name: config
+        - mountPath: /init-scripts
+          name: init-scripts
+        - mountPath: /data/db
+          name: datadir
+      - args:
+        - run
+        - --db-name=simple
+        - --db-kind=MongoDB
+        - --logtostderr=true
+        - --alsologtostderr=false
+        - --v=3
+        - --stderrthreshold=2
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: simple-auth
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: simple-auth
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        image: ghcr.io/kubedb/replication-mode-detector:v0.31.0@sha256:8b04057a117a5237d7009d254cfa213f643e53dde61bec1ed9c713161e949b05
+        imagePullPolicy: IfNotPresent
+        name: replication-mode-detector
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      initContainers:
+      - args:
+        - -c
+        - "\n\t\t\techo \"running install.sh\"\n\t\t\t/scripts/install.sh"
+        command:
+        - /bin/sh
+        env:
+        - name: SSL_MODE
+          value: disabled
+        image: ghcr.io/kubedb/mongodb-init:4.2-v9@sha256:af5dd1dff9692bc292f7f0e6f1830d08eb17b5c0534931cad6ba38bbbf7408e0
+        imagePullPolicy: IfNotPresent
+        name: copy-config
+        resources:
+          limits:
+            memory: 512Mi
+          requests:
+            cpu: 200m
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 999
+          runAsNonRoot: true
+          runAsUser: 999
+          seccompProfile:
+            type: RuntimeDefault
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /data/configdb
+          name: config
+        - mountPath: /init-scripts
+          name: init-scripts
+        - mountPath: /var/run/mongodb/tls
+          name: certdir
+        - mountPath: /keydir-readonly
+          name: keydir
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 999
+      serviceAccount: simple
+      serviceAccountName: simple
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - emptyDir: {}
+        name: config
+      - emptyDir: {}
+        name: init-scripts
+      - emptyDir: {}
+        name: certdir
+      - name: keydir
+        secret:
+          defaultMode: 420
+          secretName: simple-key
+      - emptyDir: {}
+        name: workdir
+  updateStrategy:
+    type: OnDelete
+  volumeClaimTemplates:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      creationTimestamp: null
+      name: datadir
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+      volumeMode: Filesystem
+    status:
+      phase: Pending
+status:
+  availableReplicas: 2
+  collisionCount: 0
+  currentReplicas: 2
+  currentRevision: simple-configsvr-7c7b98d85f
+  observedGeneration: 1
+  readyReplicas: 2
+  replicas: 2
+  updateRevision: simple-configsvr-7c7b98d85f
+  updatedReplicas: 2

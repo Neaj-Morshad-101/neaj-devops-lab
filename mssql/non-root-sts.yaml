@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: repl
+  namespace: demo
+  labels:
+    app: repl
+spec:
+  ports:
+  - port: 1433
+    name: repl
+  - port: 5022
+    name: mirror
+  clusterIP: None
+  selector:
+    app: repl
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: repl
+  namespace: demo
+spec:
+  serviceName: repl
+  replicas: 1
+  selector:
+    matchLabels:
+      app: repl
+  template:
+    metadata:
+      labels:
+        app: repl
+    spec:
+      securityContext:
+        fsGroup: 10001
+      containers:
+      - name: repl
+        image: mcr.microsoft.com/mssql/server:2022-CU12-ubuntu-22.04 # official image: mcr.microsoft.com/mssql/server:2022-latest
+        imagePullPolicy: IfNotPresent
+# $ id -g mssql
+# 10001
+# $ id -u mssql
+# 10001
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 10001
+          runAsNonRoot: true
+          runAsUser: 10001
+          seccompProfile:
+            type: RuntimeDefault
+        env:
+          - name: ACCEPT_EULA
+            value: "Y"
+          - name: MSSQL_SA_PASSWORD
+            value: "Pa55w0rd!"
+          - name: MSSQL_PID
+            value: "Developer"
+          - name: MSSQL_AGENT_ENABLED
+            value: "True"
+          - name: MSSQL_ENABLE_HADR
+            value: "1"
+        ports:
+        - containerPort: 1433
+          name: repl
+        - containerPort: 5022
+          name: mirror
+        volumeMounts:
+        - name: mssql
+          mountPath: /var/opt/mssql
+  volumeClaimTemplates:
+  - metadata:
+      name: mssql
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 2Gi
