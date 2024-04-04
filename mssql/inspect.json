@@ -1,0 +1,232 @@
+[
+    {
+        "Id": "f01999a224d4275b36067d56f447b9db875cea9305ea81091d7c2955f0ab362a",
+        "Created": "2024-04-04T04:53:53.649647037Z",
+        "Path": "/opt/mssql/bin/permissions_check.sh",
+        "Args": [
+            "/opt/mssql/bin/sqlservr"
+        ],
+        "State": {
+            "Status": "running",
+            "Running": true,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 65986,
+            "ExitCode": 0,
+            "Error": "",
+            "StartedAt": "2024-04-04T04:53:54.034476765Z",
+            "FinishedAt": "0001-01-01T00:00:00Z"
+        },
+        "Image": "sha256:66341bd0b098e8fe13bae380cd94a05ac9e9d6966cb4df911ba9af014a917a61",
+        "ResolvConfPath": "/var/lib/docker/containers/f01999a224d4275b36067d56f447b9db875cea9305ea81091d7c2955f0ab362a/resolv.conf",
+        "HostnamePath": "/var/lib/docker/containers/f01999a224d4275b36067d56f447b9db875cea9305ea81091d7c2955f0ab362a/hostname",
+        "HostsPath": "/var/lib/docker/containers/f01999a224d4275b36067d56f447b9db875cea9305ea81091d7c2955f0ab362a/hosts",
+        "LogPath": "/var/lib/docker/containers/f01999a224d4275b36067d56f447b9db875cea9305ea81091d7c2955f0ab362a/f01999a224d4275b36067d56f447b9db875cea9305ea81091d7c2955f0ab362a-json.log",
+        "Name": "/sqlpreview",
+        "RestartCount": 0,
+        "Driver": "overlay2",
+        "Platform": "linux",
+        "MountLabel": "",
+        "ProcessLabel": "",
+        "AppArmorProfile": "docker-default",
+        "ExecIDs": null,
+        "HostConfig": {
+            "Binds": null,
+            "ContainerIDFile": "",
+            "LogConfig": {
+                "Type": "json-file",
+                "Config": {}
+            },
+            "NetworkMode": "default",
+            "PortBindings": {
+                "1433/tcp": [
+                    {
+                        "HostIp": "",
+                        "HostPort": "1433"
+                    }
+                ]
+            },
+            "RestartPolicy": {
+                "Name": "no",
+                "MaximumRetryCount": 0
+            },
+            "AutoRemove": false,
+            "VolumeDriver": "",
+            "VolumesFrom": null,
+            "ConsoleSize": [
+                52,
+                211
+            ],
+            "CapAdd": null,
+            "CapDrop": null,
+            "CgroupnsMode": "private",
+            "Dns": [],
+            "DnsOptions": [],
+            "DnsSearch": [],
+            "ExtraHosts": null,
+            "GroupAdd": null,
+            "IpcMode": "private",
+            "Cgroup": "",
+            "Links": null,
+            "OomScoreAdj": 0,
+            "PidMode": "",
+            "Privileged": false,
+            "PublishAllPorts": false,
+            "ReadonlyRootfs": false,
+            "SecurityOpt": null,
+            "UTSMode": "",
+            "UsernsMode": "",
+            "ShmSize": 67108864,
+            "Runtime": "runc",
+            "Isolation": "",
+            "CpuShares": 0,
+            "Memory": 0,
+            "NanoCpus": 0,
+            "CgroupParent": "",
+            "BlkioWeight": 0,
+            "BlkioWeightDevice": [],
+            "BlkioDeviceReadBps": [],
+            "BlkioDeviceWriteBps": [],
+            "BlkioDeviceReadIOps": [],
+            "BlkioDeviceWriteIOps": [],
+            "CpuPeriod": 0,
+            "CpuQuota": 0,
+            "CpuRealtimePeriod": 0,
+            "CpuRealtimeRuntime": 0,
+            "CpusetCpus": "",
+            "CpusetMems": "",
+            "Devices": [],
+            "DeviceCgroupRules": null,
+            "DeviceRequests": null,
+            "MemoryReservation": 0,
+            "MemorySwap": 0,
+            "MemorySwappiness": null,
+            "OomKillDisable": null,
+            "PidsLimit": null,
+            "Ulimits": [],
+            "CpuCount": 0,
+            "CpuPercent": 0,
+            "IOMaximumIOps": 0,
+            "IOMaximumBandwidth": 0,
+            "MaskedPaths": [
+                "/proc/asound",
+                "/proc/acpi",
+                "/proc/kcore",
+                "/proc/keys",
+                "/proc/latency_stats",
+                "/proc/timer_list",
+                "/proc/timer_stats",
+                "/proc/sched_debug",
+                "/proc/scsi",
+                "/sys/firmware",
+                "/sys/devices/virtual/powercap"
+            ],
+            "ReadonlyPaths": [
+                "/proc/bus",
+                "/proc/fs",
+                "/proc/irq",
+                "/proc/sys",
+                "/proc/sysrq-trigger"
+            ]
+        },
+        "GraphDriver": {
+            "Data": {
+                "LowerDir": "/var/lib/docker/overlay2/1e542d0c5b6cdf8b9ded0358399a78cb03448589e9fa5cbc756c65b1c814806e-init/diff:/var/lib/docker/overlay2/ca0adab68807c97eb8d84274afc086933816a17cf667d79b63147727dbe76430/diff:/var/lib/docker/overlay2/a8e015704db16fbcc963e561372088c96d2b61766dba11ee13a26414ead184e7/diff:/var/lib/docker/overlay2/f2c2e5de2f2be21fd953ffa7c174770824bc5787a6e0d2bc42b174d6af05395c/diff",
+                "MergedDir": "/var/lib/docker/overlay2/1e542d0c5b6cdf8b9ded0358399a78cb03448589e9fa5cbc756c65b1c814806e/merged",
+                "UpperDir": "/var/lib/docker/overlay2/1e542d0c5b6cdf8b9ded0358399a78cb03448589e9fa5cbc756c65b1c814806e/diff",
+                "WorkDir": "/var/lib/docker/overlay2/1e542d0c5b6cdf8b9ded0358399a78cb03448589e9fa5cbc756c65b1c814806e/work"
+            },
+            "Name": "overlay2"
+        },
+        "Mounts": [],
+        "Config": {
+            "Hostname": "sqlpreview",
+            "Domainname": "",
+            "User": "mssql",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "ExposedPorts": {
+                "1433/tcp": {}
+            },
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "MSSQL_PID=Evaluation",
+                "ACCEPT_EULA=Y",
+                "MSSQL_SA_PASSWORD=Pa55w0rd!",
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "MSSQL_RPC_PORT=135",
+                "CONFIG_EDGE_BUILD="
+            ],
+            "Cmd": [
+                "/opt/mssql/bin/sqlservr"
+            ],
+            "Image": "mcr.microsoft.com/mssql/server:2022-CU12-ubuntu-22.04",
+            "Volumes": null,
+            "WorkingDir": "",
+            "Entrypoint": [
+                "/opt/mssql/bin/permissions_check.sh"
+            ],
+            "OnBuild": null,
+            "Labels": {
+                "com.microsoft.product": "Microsoft SQL Server",
+                "com.microsoft.version": "16.0.4115.5",
+                "org.opencontainers.image.ref.name": "ubuntu",
+                "org.opencontainers.image.version": "22.04",
+                "vendor": "Microsoft"
+            }
+        },
+        "NetworkSettings": {
+            "Bridge": "",
+            "SandboxID": "94ea54d2128822cddca4cca412de9f050c94f709f1b04d1d4b56f59546b5afa5",
+            "SandboxKey": "/var/run/docker/netns/94ea54d21288",
+            "Ports": {
+                "1433/tcp": [
+                    {
+                        "HostIp": "0.0.0.0",
+                        "HostPort": "1433"
+                    },
+                    {
+                        "HostIp": "::",
+                        "HostPort": "1433"
+                    }
+                ]
+            },
+            "HairpinMode": false,
+            "LinkLocalIPv6Address": "",
+            "LinkLocalIPv6PrefixLen": 0,
+            "SecondaryIPAddresses": null,
+            "SecondaryIPv6Addresses": null,
+            "EndpointID": "64d2c103e1f2112d9ce5028cbce9b5dc74d9c9644af915f0a719f599f446f139",
+            "Gateway": "172.17.0.1",
+            "GlobalIPv6Address": "",
+            "GlobalIPv6PrefixLen": 0,
+            "IPAddress": "172.17.0.2",
+            "IPPrefixLen": 16,
+            "IPv6Gateway": "",
+            "MacAddress": "02:42:ac:11:00:02",
+            "Networks": {
+                "bridge": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": null,
+                    "MacAddress": "02:42:ac:11:00:02",
+                    "NetworkID": "bea81d9870b3c8604b98e8e03f80b8c41ba7c34b4c8a7bf9f80df0083fad2be0",
+                    "EndpointID": "64d2c103e1f2112d9ce5028cbce9b5dc74d9c9644af915f0a719f599f446f139",
+                    "Gateway": "172.17.0.1",
+                    "IPAddress": "172.17.0.2",
+                    "IPPrefixLen": 16,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "DriverOpts": null,
+                    "DNSNames": null
+                }
+            }
+        }
+    }
+]

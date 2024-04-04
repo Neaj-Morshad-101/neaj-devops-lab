@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: repl
+  name: mymssql
   namespace: demo
   labels:
-    app: repl
+    app: mymssql
 spec:
   ports:
   - port: 1433
@@ -13,46 +13,40 @@ spec:
     name: mirror
   clusterIP: None
   selector:
-    app: repl
+    app: mymssql
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: repl
+  name: mymssql
   namespace: demo
 spec:
-  serviceName: repl
+  serviceName: mymssql
   replicas: 1
   selector:
     matchLabels:
-      app: repl
+      app: mymssql
   template:
     metadata:
       labels:
-        app: repl
+        app: mymssql
     spec:
-      securityContext:
-        fsGroup: 10001
+      # securityContext:
+      #   fsGroup: 10001
       containers:
-      - name: repl
-        image: mcr.microsoft.com/mssql/server:2022-CU12-ubuntu-22.04 # official image: mcr.microsoft.com/mssql/server:2022-latest
+      - name: mymssql
+        image: neajmorshad/sql22:tools-0.1 # mcr.microsoft.com/mssql/server:2022-CU12-ubuntu-22.04 
         imagePullPolicy: IfNotPresent
-# $ id -g mssql
-# 10001
-# $ id -u mssql
-# 10001
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-            add:
-            - NET_BIND_SERVICE
-          runAsGroup: 10001
-          runAsNonRoot: true
-          runAsUser: 10001
-          seccompProfile:
-            type: RuntimeDefault
+        # securityContext:
+        #   allowPrivilegeEscalation: false
+        #   capabilities:
+        #     drop:
+        #     - ALL
+        #   runAsGroup: 0
+        #   runAsNonRoot: true
+        #   runAsUser: 10001
+        #   seccompProfile:
+        #     type: RuntimeDefault
         env:
           - name: ACCEPT_EULA
             value: "Y"
