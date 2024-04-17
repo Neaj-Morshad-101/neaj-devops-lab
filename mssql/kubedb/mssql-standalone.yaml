@@ -9,6 +9,13 @@ spec:
   authSecret:
     name: mssql-standalone-auth
     externallyManaged: true
+  # internalAuth: {}
+  # internalAuth:
+  #   endpointCert:
+  #     issuerRef:
+  #       apiGroup: cert-manager.io
+  #       name: postgres-ca-issuer
+  #       kind: Issuer
   storageType: Durable
   storage:
     storageClassName: "standard"
