@@ -21,13 +21,7 @@ spec:
       databases:
         - AgDB1
         - AgDB2
-  # leaderElection:
-  #   period: 100ms
-  #   electionTick: 10
-  #   heartbeatTick: 1
-  #   transferLeadershipInterval: 1s
-  #   transferLeadershipTimeout: 60s
-  storageType: Durable
+  storageType: Ephemeral
   storage:
     storageClassName: "standard"
     accessModes:

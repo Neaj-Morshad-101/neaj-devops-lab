@@ -1,21 +1,14 @@
 apiVersion: kubedb.com/v1alpha2
-kind: MsSQL
+kind: MSSQL
 metadata:
   name: mssql-standalone
   namespace: demo
 spec:
-  version: "2022-cu12"  # Specify the desired version, e.g., "2019-CU12-GDR" or "2017-CU24-GDR"
+  version: "2022-cu12"
   replicas: 1
   authSecret:
     name: mssql-standalone-auth
     externallyManaged: true
-  # internalAuth: {}
-  # internalAuth:
-  #   endpointCert:
-  #     issuerRef:
-  #       apiGroup: cert-manager.io
-  #       name: postgres-ca-issuer
-  #       kind: Issuer
   storageType: Durable
   storage:
     storageClassName: "standard"
