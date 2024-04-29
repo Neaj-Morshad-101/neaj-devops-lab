@@ -1,5 +1,5 @@
 apiVersion: kubedb.com/v1alpha2
-kind: MSSQL
+kind: MSSQLServer
 metadata:
   name: mssql-standalone
   namespace: demo
@@ -11,7 +11,7 @@ spec:
     externallyManaged: true
   storageType: Durable
   storage:
-    storageClassName: "standard"
+#    storageClassName: "standard"
     accessModes:
     - ReadWriteOnce
     resources:

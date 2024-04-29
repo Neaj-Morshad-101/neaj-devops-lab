@@ -1,7 +1,7 @@
 apiVersion: kubedb.com/v1alpha2
 kind: MSSQL
 metadata:
-  name: ag-custom
+  name: ag
   namespace: demo
 spec:
   version: "2022-cu12"
@@ -13,7 +13,7 @@ spec:
     endpointCert:
       issuerRef:
         apiGroup: cert-manager.io
-        name: postgres-ca-issuer
+        name: mssql-ca-issuer
         kind: Issuer
   topology:
     mode: AvailabilityGroup
