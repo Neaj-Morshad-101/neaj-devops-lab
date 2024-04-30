@@ -2,25 +2,22 @@ apiVersion: kubedb.com/v1alpha2
 kind: MSSQLServer
 metadata:
   name: sqlserver-ag
-  namespace: demo
+  namespace: sample
 spec:
   version: "2022-cu12"
   replicas: 3
-  authSecret:
-    name: mssql-custom-auth
-    externallyManaged: true
-  internalAuth:
-    endpointCert:
-      issuerRef:
-        apiGroup: cert-manager.io
-        name: mssqlserver-ca-issuer
-        kind: Issuer
   topology:
     mode: AvailabilityGroup
     availabilityGroup:
       databases:
         - AgDB1
         - AgDB2
+  internalAuth:
+    endpointCert:
+      issuerRef:
+        apiGroup: cert-manager.io
+        name: mssqlserver-ca-issuer
+        kind: Issuer
   storageType: Durable
   storage:
     storageClassName: "standard"
