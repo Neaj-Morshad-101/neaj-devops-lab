@@ -2,6 +2,12 @@
 
 SELECT synchronization_health_desc from sys.dm_hadr_availability_group_states
 
+SELECT is_local, role_desc, synchronization_health_desc from sys.dm_hadr_availability_replica_states
+
+
+SELECT synchronization_health_desc from sys.dm_hadr_availability_replica_states WHERE is_local = 1 
+
+
 
 ALTER DATABASE AgDB1 SET HADR RESUME;
 
@@ -28,3 +34,13 @@ INSERT INTO Data(ID, Name, Age) VALUES (4, 'John Doe', 25);
 INSERT INTO Data(ID, Name, Age) VALUES (5, 'John Doe', 25);
 
 INSERT INTO Data(ID, Name, Age) VALUES (6, 'John Doe', 25);
+
+
+
+
+
+
+
+
+
+
