@@ -4,3 +4,27 @@ SELECT synchronization_health_desc from sys.dm_hadr_availability_group_states
 
 
 ALTER DATABASE AgDB1 SET HADR RESUME;
+
+select SERVERPROPERTY('IsSingleUser')
+
+
+
+
+
+CREATE TABLE Data (ID INT, NAME NVARCHAR(255), AGE INT);
+INSERT INTO Data(ID, Name, Age) VALUES (1, 'John Doe', 25), (2, 'Jane Smith', 30);                                                                                    
+GO 
+
+Select * from data
+go
+
+
+INSERT INTO Data(ID, Name, Age) VALUES (3, 'John Doe', 25);
+
+first fail-over: 
+INSERT INTO Data(ID, Name, Age) VALUES (4, 'John Doe', 25);
+
+2nd fail-over: 
+INSERT INTO Data(ID, Name, Age) VALUES (5, 'John Doe', 25);
+
+INSERT INTO Data(ID, Name, Age) VALUES (6, 'John Doe', 25);
