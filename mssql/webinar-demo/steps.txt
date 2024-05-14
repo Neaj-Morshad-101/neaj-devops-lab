@@ -1,0 +1,33 @@
+Create Kubernetes Cluster: 
+At first, you need to have a Kubernetes cluster, and the kubectl command-line tool must be configured to communicate with your cluster. If you do not already have a cluster, you can create one by using kind.
+
+Install KubeDB:
+in your cluster following the steps https://kubedb.com/docs/v2024.4.27/setup/.
+
+Create demo namespace:
+To keep things isolated, this tutorial uses a separate namespace called demo throughout this tutorial.
+
+Apply CR [Standalone]:
+
+
+
+
+Install cert-manger:
+v1.4.0 or later to your cluster to manage your SSL/TLS certificates.
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.5/cert-manager.yaml
+
+
+Create Issuer: 
+This Issuer is used to create certificates. Then we are going to deploy a MSSQLServer AG cluster 
+create an example issuer: 
+
+Start off by generating our ca-certificates using openssl,
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ./ca.key -out ./ca.crt -subj "/CN=MSSQLServer/O=kubedb"
+
+create a secret using the certificate files we have just generated,
+kubectl create secret tls mssqlserver-ca --cert=ca.crt  --key=ca.key --namespace=demo 
+
+Now, we are going to create an Issuer using the mssqlserver-ca secret that contains the ca-certificate we have just created. The YAML of the Issuer cr that we are going to create is, mssqlserver-ca-issuer.yaml 
+
+Let’s create the Issuer cr we have shown, 
+kubectl apply -f mssqlserver-ca-issuer.yaml

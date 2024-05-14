@@ -1,7 +1,7 @@
 apiVersion: kubedb.com/v1alpha2
 kind: MSSQLServer
 metadata:
-  name: sqlserver-standalone
+  name: mssqlserver-quickstart
   namespace: demo
 spec:
   version: "2022-cu12"
@@ -14,4 +14,4 @@ spec:
     resources:
       requests:
         storage: 1Gi
-  terminationPolicy: Delete
+  terminationPolicy: "WipeOut"

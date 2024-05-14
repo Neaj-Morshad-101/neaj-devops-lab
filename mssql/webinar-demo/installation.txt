@@ -1,0 +1,10 @@
+helm install kubedb oci://ghcr.io/appscode-charts/kubedb \
+  --version v2024.4.27 \
+  --namespace kubedb --create-namespace \
+  --set-file global.license=/path/to/the/license.txt \
+  --set global.featureGates.MSSQLServer=true \
+  --wait --burst-limit=10000 --debug
+
+
+
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.5/cert-manager.yaml
