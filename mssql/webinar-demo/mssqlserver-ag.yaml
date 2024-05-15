@@ -2,7 +2,7 @@ apiVersion: kubedb.com/v1alpha2
 kind: MSSQLServer
 metadata:
   name: mssqlserver-ag
-  namespace: sample
+  namespace: demo
 spec:
   version: "2022-cu12"
   replicas: 3
@@ -16,7 +16,7 @@ spec:
     endpointCert:
       issuerRef:
         apiGroup: cert-manager.io
-        name: mssqlserver-ca-issuer
+        name: mssqlserver-issuer
         kind: Issuer
   storageType: Durable
   storage:
