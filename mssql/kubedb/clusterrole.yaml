@@ -1,0 +1,14 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubedb-provisioner-new-cluster-role
+rules:
+- apiGroups:
+  - cacerts.csi.cert-manager.io
+  resources:
+  - caproviderclasses
+  verbs:
+  - list
+  - get
+  - watch
+  - create

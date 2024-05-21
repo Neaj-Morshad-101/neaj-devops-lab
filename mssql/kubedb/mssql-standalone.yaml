@@ -7,14 +7,14 @@ spec:
   version: "2022-cu12"
   replicas: 1
   authSecret:
-    name: mssql-standalone-auth
+    name: mssql-auth
     externallyManaged: true
   storageType: Durable
   storage:
-#    storageClassName: "standard"
+    storageClassName: "standard"
     accessModes:
     - ReadWriteOnce
     resources:
       requests:
-        storage: 1Gi
+        storage: 2Gi
   terminationPolicy: Delete
