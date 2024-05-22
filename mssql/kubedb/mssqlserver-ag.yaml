@@ -5,7 +5,10 @@ metadata:
   namespace: demo
 spec:
   version: "2022-cu12"
-  replicas: 1
+  replicas: 2
+  authSecret:
+    name: mssql-auth
+    externallyManaged: true
   topology:
     mode: AvailabilityGroup
     availabilityGroup:
@@ -18,6 +21,24 @@ spec:
         apiGroup: cert-manager.io
         name: mssqlserver-issuer
         kind: Issuer
+  tls:
+    issuerRef:
+      name: mssqlserver-issuer
+      kind: Issuer
+      apiGroup: "cert-manager.io"
+    certificates:
+      - alias: client
+        subject:
+          organizations:
+            - kubedb
+        emailAddresses:
+          - abc@appscode.com
+      - alias: server
+        subject:
+          organizations:
+            - kubedb
+        emailAddresses:
+          - abc@appscode.com
   storageType: Durable
   storage:
     storageClassName: "standard"
