@@ -7,6 +7,9 @@ kubectl create secret tls mssqlserver-ca --cert=ca.crt  --key=ca.key --namespace
 kubectl view-secret -n demo mssqlserver 
 kubectl view-secret -n demo mssqlserver-standalone-auth password
 
+init images: 
+neajmorshad/mssql-init-docker:tls
+
 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "
 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "Pa55w0rd!"
 

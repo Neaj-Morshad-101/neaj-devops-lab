@@ -28,6 +28,7 @@ spec:
             - kubedb
         emailAddresses:
           - abc@appscode.com
+    clientTLS: true
   storage:
     storageClassName: "standard"
     accessModes:
