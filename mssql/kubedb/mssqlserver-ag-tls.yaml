@@ -1,11 +1,11 @@
 apiVersion: kubedb.com/v1alpha2
 kind: MSSQLServer
 metadata:
-  name: mssqlserver-ag
+  name: mssqlserver-ag-tls
   namespace: demo
 spec:
   version: "2022-cu12"
-  replicas: 2
+  replicas: 3
   authSecret:
     name: mssql-auth
     externallyManaged: true
@@ -13,8 +13,8 @@ spec:
     mode: AvailabilityGroup
     availabilityGroup:
       databases:
-        - AgDB1
-        - AgDB2
+        - agdb1
+        - agdb2
   internalAuth:
     endpointCert:
       issuerRef:
