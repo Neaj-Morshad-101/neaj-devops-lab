@@ -1,7 +1,7 @@
 apiVersion: kubedb.com/v1alpha2
 kind: MSSQLServer
 metadata:
-  name: mssqlserver-ag
+  name: mssqlserver-ag-tls
   namespace: demo
 spec:
   version: "2022-cu12"
@@ -13,8 +13,8 @@ spec:
     mode: AvailabilityGroup
     availabilityGroup:
       databases:
-        - AgDB1
-        - AgDB2
+        - agdb1
+        - agdb2
   internalAuth:
     endpointCert:
       issuerRef:

@@ -12,30 +12,12 @@ spec:
   monitor:
     agent: prometheus.io/operator
     prometheus:
+      exporter:
+        port: 9399
       serviceMonitor:
         labels:
-          k8s-app: prometheus
-          # release: prometheus
+          release: prometheus
         interval: 10s
-      exporter:
-        # args:
-        # - --redis.password=$(REDIS_PASSWORD)
-        # env:
-        # - name: REDIS_PASSWORD
-        #   valueFrom:
-        #     secretKeyRef:
-        #       name: _name_of_secret_with_redis_password
-        #       key: password # key with the password
-        resources:
-          requests:
-            memory: 512Mi
-            cpu: 200m
-          limits:
-            memory: 512Mi
-            cpu: 250m
-        # securityContext:
-        #   runAsUser: 2000
-        #   allowPrivilegeEscalation: false
   storageType: Durable
   storage:
     storageClassName: "standard"

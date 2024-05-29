@@ -59,9 +59,19 @@ INSERT INTO Data(ID, Name, Age) VALUES (6, 'John Doe', 25);
 
 
 
+kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-prometheus 9090
+http://localhost:9090/targets?search=
+
+
+kubectl port-forward -n demo svc/ms-stand-monitor-stats 9399
+http://localhost:9399/metrics
 
 
 
-
-
-
+helm install kubedb oci://ghcr.io/appscode-charts/kubedb \
+    --version v2024.4.27 \
+    --namespace kubedb --create-namespace \
+    --set-file global.license=$HOME/Downloads/kubedb-license-74d1f70e-5bec-4239-9816-12b78551df36.txt \
+    --set global.featureGates.MSSQLServer=true \
+    --set global.featureGates.Kafka=true \
+    --wait --burst-limit=10000 --debug
