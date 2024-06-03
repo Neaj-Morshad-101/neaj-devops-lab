@@ -1,24 +1,18 @@
 apiVersion: kubedb.com/v1alpha2
 kind: MSSQLServer
 metadata:
-  name: ms-stand-monitor
+  name: mssql-standalone-tls
   namespace: demo
 spec:
   version: "2022-cu12"
   replicas: 1
-  authSecret:
-    name: mssql-auth
-    externallyManaged: true
-  monitor:
-    agent: prometheus.io/operator
-    prometheus:
-      exporter:
-        port: 9399
-      serviceMonitor:
-        labels:
-          release: prometheus
-        interval: 10s
   storageType: Durable
+  tls:
+    issuerRef:
+      name: mssqlserver-issuer
+      kind: Issuer
+      apiGroup: "cert-manager.io"
+    clientTLS: true
   storage:
     storageClassName: "standard"
     accessModes:

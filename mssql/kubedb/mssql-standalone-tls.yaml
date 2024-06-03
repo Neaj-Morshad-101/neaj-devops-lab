@@ -1,7 +1,7 @@
 apiVersion: kubedb.com/v1alpha2
 kind: MSSQLServer
 metadata:
-  name: mssql-standalone
+  name: mssql-standalone-tls
   namespace: demo
 spec:
   version: "2022-cu12"
@@ -25,7 +25,7 @@ spec:
             - kubedb
         emailAddresses:
           - abc@appscode.com
-    clientTLS: false
+    clientTLS: true
   storage:
     storageClassName: "standard"
     accessModes:

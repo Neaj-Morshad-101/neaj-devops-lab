@@ -1,31 +1,30 @@
 apiVersion: kubedb.com/v1alpha2
 kind: MSSQLServer
 metadata:
-  name: mssql-standalone
+  name: mssqlserver-ag
   namespace: demo
 spec:
   version: "2022-cu12"
-  replicas: 1
-  storageType: Durable
+  replicas: 3
+  topology:
+    mode: AvailabilityGroup
+    availabilityGroup:
+      databases:
+        - agdb1
+        - agdb2
+  internalAuth:
+    endpointCert:
+      issuerRef:
+        apiGroup: cert-manager.io
+        name: mssqlserver-issuer
+        kind: Issuer
   tls:
     issuerRef:
       name: mssqlserver-issuer
       kind: Issuer
       apiGroup: "cert-manager.io"
-    certificates:
-      - alias: client
-        subject:
-          organizations:
-            - kubedb
-        emailAddresses:
-          - abc@appscode.com
-      - alias: server
-        subject:
-          organizations:
-            - kubedb
-        emailAddresses:
-          - abc@appscode.com
     clientTLS: false
+  storageType: Durable
   storage:
     storageClassName: "standard"
     accessModes:

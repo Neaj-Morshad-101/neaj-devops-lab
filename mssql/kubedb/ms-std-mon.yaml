@@ -1,31 +1,30 @@
 apiVersion: kubedb.com/v1alpha2
 kind: MSSQLServer
 metadata:
-  name: mssql-standalone
+  name: ms-std-mon
   namespace: demo
 spec:
   version: "2022-cu12"
   replicas: 1
-  storageType: Durable
+  authSecret:
+    name: mssql-auth
+    externallyManaged: true
   tls:
     issuerRef:
       name: mssqlserver-issuer
       kind: Issuer
       apiGroup: "cert-manager.io"
-    certificates:
-      - alias: client
-        subject:
-          organizations:
-            - kubedb
-        emailAddresses:
-          - abc@appscode.com
-      - alias: server
-        subject:
-          organizations:
-            - kubedb
-        emailAddresses:
-          - abc@appscode.com
     clientTLS: false
+  monitor:
+    agent: prometheus.io/operator
+    prometheus:
+      exporter:
+        port: 9399
+      serviceMonitor:
+        labels:
+          release: prometheus
+        interval: 10s
+  storageType: Durable
   storage:
     storageClassName: "standard"
     accessModes:
