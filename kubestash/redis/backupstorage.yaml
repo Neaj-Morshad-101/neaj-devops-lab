@@ -8,10 +8,10 @@ spec:
     provider: s3
     s3:
       endpoint: us-east-1.linodeobjects.com
-      bucket: neaj-kubestash-test
+      bucket: neaj-kubestash
       region: us-east-1
-      prefix: backup-prefix
-      secret: s3-secret
+      prefix: backup
+      secretName: s3-secret
   usagePolicy:
     allowedNamespaces:
       from: All

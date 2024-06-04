@@ -9,13 +9,11 @@ spec:
     apiGroup: kubedb.com
     kind: Redis
     namespace: demo
-    name: rd-cluster-tls
+    name: rd-std
   backends:
     - name: s3-backend
       storageRef:
-        apiGroup: storage.kubestash.com
         namespace: demo
-        kind: BackupStorage
         name: s3-storage
       retentionPolicy:
         name: demo-retention-policy
