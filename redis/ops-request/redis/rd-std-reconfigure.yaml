@@ -1,12 +1,12 @@
 apiVersion: ops.kubedb.com/v1alpha1
 kind: RedisOpsRequest
 metadata:
-  name: rdops-reconfigure
+  name: rd-std-reconfigure
   namespace: demo
 spec:
   type: Reconfigure
   databaseRef:
-    name: sample-redis
+    name: rd-std
   configuration:
       configSecret:
         name: new-custom-config

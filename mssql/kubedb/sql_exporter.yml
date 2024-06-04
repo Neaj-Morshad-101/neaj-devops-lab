@@ -5,62 +5,106 @@ global:
   min_interval: 0s
   max_connections: 3
   max_idle_connections: 3
+  max_connection_lifetime: 5m
 
 # The target to monitor and the collectors to execute on it.
 target:
-  name: mssql_database
-  data_source_name: 'sqlserver://prom_user:prom_password@dbserver1.example.com:1433'
+  name: mssqlserver_database
+  data_source_name: 'server=ms-std-mon-0.ms-std-mon-pods.demo.svc;user id=sa;password=Pa55w0rd!;database=master;encrypt=true;TrustServerCertificate=true;'
+  # data_source_name: 'sqlserver://prom_user:prom_password@dbserver1.example.com:1433'
   collectors: [mssql_standard]
   enable_ping: true
 
-# Collectors and metrics definitions
+# A collector is a named set of related metrics that are collected together. It can be referenced by name, possibly
+# along with other collectors.
+#
+# Collectors may be defined inline (under `collectors`) or loaded from `collector_files` (one collector per file).
 collectors:
+  # A collector defining standard metrics for Microsoft SQL Server.
   - collector_name: mssql_standard
+
+    # Similar to global.min_interval, but applies to this collector only.
+    #min_interval: 0s
+
+    # A metric is a Prometheus metric with name, type, help text and (optional) additional labels, paired with exactly
+    # one query to populate the metric labels and values from.
+    #
+    # The result columns conceptually fall into two categories:
+    #  * zero or more key columns: their values will be directly mapped to labels of the same name;
+    #  * one or more value columns:
+    #     * if exactly one value column, the column name is ignored and its value becomes the metric value
+    #     * with multiple value columns, a `value_label` must be defined; the column name will populate this label and
+    #       the column value will populate the metric value.
     metrics:
+      # The metric name, type and help text, as exported to /metrics.
       - metric_name: mssql_log_growths
+        # This is a Prometheus counter (monotonically increasing value).
         type: counter
         help: 'Total number of times the transaction log has been expanded since last restart, per database.'
+        # Optional set of labels derived from key columns.
         key_labels:
+          # Populated from the `db` column of each row.
           - db
         static_labels:
+        # Arbitrary key/value pair
           env: dev
           region: europe
+        # Optional timestamp_value to point at the existing timestamp column to return a metric with an explicit
+        # timestamp.
+        # timestamp_value: CreatedAt
+        # This query returns exactly one value per row, in the `counter` column.
         values: [counter]
         query: |
           SELECT rtrim(instance_name) AS db, cntr_value AS counter
           FROM sys.dm_os_performance_counters
           WHERE counter_name = 'Log Growths' AND instance_name <> '_Total'
 
+      # A different metric, with multiple values produced from each result row.
       - metric_name: mssql_io_stall_seconds
         type: counter
         help: 'Stall time in seconds per database and I/O operation.'
         key_labels:
+          # Populated from the `db` column of the result.
           - db
+        # Label populated with the value column name, configured via `values` (e.g. `operation="io_stall_read_ms"`).
+        #
+        # Required when multiple value columns are configured.
         value_label: operation
+        # Multiple value columns: their name is recorded in the label defined by `attribute_label` (e.g.
+        # `operation="io_stall_read_ms"`).
         values:
           - io_stall_read
           - io_stall_write
         query_ref: io_stall
 
+      # Another metric, uses same named query (referenced through query_ref) as mssql_io_stall_seconds.
       - metric_name: mssql_io_stall_total_seconds
         type: counter
         help: 'Total stall time in seconds per database.'
         key_labels:
+          # Populated from the `db` column of the result.
           - db
+        # Only one value, populated from the `io_stall` column.
         values:
           - io_stall
         query_ref: io_stall
 
+      # Metric with a static value to retrieve string data.
       - metric_name: mssql_hostname
         type: gauge
         help: 'Database server hostname'
         key_labels:
+          # Populated from the `hostname` column of the result.
           - hostname
+        # Static value, always set to `1`.
         static_value: 1
         query: |
           SELECT @@SERVERNAME AS hostname
 
+
+    # Named queries, referenced by one or more metrics, through query_ref.
     queries:
+      # Populates `mssql_io_stall` and `mssql_io_stall_total`
       - query_name: io_stall
         query: |
           SELECT
@@ -73,6 +117,7 @@ collectors:
           INNER JOIN sys.master_files b ON a.database_id = b.database_id AND a.file_id = b.file_id
           GROUP BY a.database_id
 
+# Collector files specifies a list of globs. One collector definition per file.
 collector_files: 
   - "*.collector.yml"
 

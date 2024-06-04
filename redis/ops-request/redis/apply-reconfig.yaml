@@ -1,7 +1,7 @@
 apiVersion: ops.kubedb.com/v1alpha1
 kind: RedisOpsRequest
 metadata:
-  name: rdops-reconfig-apply-config
+  name: rdops-apply-reconfig
   namespace: demo
 spec:
   type: Reconfigure
@@ -10,6 +10,4 @@ spec:
   configuration:
     applyConfig:
       redis.conf: |-
-        maxclients 3000
-  timeout: 5m
-  apply: IfReady
+        maxclients 3000    

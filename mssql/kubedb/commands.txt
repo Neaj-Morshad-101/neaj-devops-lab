@@ -63,10 +63,13 @@ kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-prometheus 909
 http://localhost:9090/targets?search=
 
 
-kubectl port-forward -n demo svc/ms-stand-monitor-stats 9399
+kubectl port-forward -n demo svc/ms-std-mon-stats 9399
 http://localhost:9399/metrics
 
+data_source_name: 'server=ms-stand-monitor-0.ms-stand-monitor-pods.demo.svc;user id=sa;password=Pa55w0rd!;database=master;encrypt=true;TrustServerCertificate=true;'
 
+
+kubectl port-forward -n monitoring svc/prometheus-grafana 4000:80
 
 helm install kubedb oci://ghcr.io/appscode-charts/kubedb \
     --version v2024.4.27 \

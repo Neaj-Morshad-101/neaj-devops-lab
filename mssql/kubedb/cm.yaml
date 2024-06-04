@@ -1,0 +1,41 @@
+apiVersion: v1
+data:
+  sql_exporter.yml: "# Global settings and defaults.\nglobal:\n  scrape_timeout: 10s\n
+    \ scrape_timeout_offset: 500ms\n  min_interval: 0s\n  max_connections: 3\n  max_idle_connections:
+    3\n\n# The target to monitor and the collectors to execute on it.\ntarget:\n  name:
+    mssql_database\n  data_source_name: 'server=ms-stand-monitor-0.ms-stand-monitor-pods.demo.svc;user
+    id=sa;password=Pa55w0rd!;database=master;encrypt=true;TrustServerCertificate=true;'\n
+    \ collectors: [mssql_standard]\n  enable_ping: true\n\n# Collectors and metrics
+    definitions\ncollectors:\n  - collector_name: mssql_standard\n    metrics:\n      -
+    metric_name: mssql_log_growths\n        type: counter\n        help: 'Total number
+    of times the transaction log has been expanded since last restart, per database.'\n
+    \       key_labels:\n          - db\n        static_labels:\n          env: dev\n
+    \         region: europe\n        values: [counter]\n        query: |\n          SELECT
+    rtrim(instance_name) AS db, cntr_value AS counter\n          FROM sys.dm_os_performance_counters\n
+    \         WHERE counter_name = 'Log Growths' AND instance_name <> '_Total'\n\n
+    \     - metric_name: mssql_io_stall_seconds\n        type: counter\n        help:
+    'Stall time in seconds per database and I/O operation.'\n        key_labels:\n
+    \         - db\n        value_label: operation\n        values:\n          - io_stall_read\n
+    \         - io_stall_write\n        query_ref: io_stall\n\n      - metric_name:
+    mssql_io_stall_total_seconds\n        type: counter\n        help: 'Total stall
+    time in seconds per database.'\n        key_labels:\n          - db\n        values:\n
+    \         - io_stall\n        query_ref: io_stall\n\n      - metric_name: mssql_hostname\n
+    \       type: gauge\n        help: 'Database server hostname'\n        key_labels:\n
+    \         - hostname\n        static_value: 1\n        query: |\n          SELECT
+    @@SERVERNAME AS hostname\n\n    queries:\n      - query_name: io_stall\n        query:
+    |\n          SELECT\n            cast(DB_Name(a.database_id) as varchar) AS db,\n
+    \           sum(io_stall_read_ms) / 1000.0 AS io_stall_read,\n            sum(io_stall_write_ms)
+    / 1000.0 AS io_stall_write,\n            sum(io_stall) / 1000.0 AS io_stall\n
+    \         FROM\n            sys.dm_io_virtual_file_stats(null, null) a\n          INNER
+    JOIN sys.master_files b ON a.database_id = b.database_id AND a.file_id = b.file_id\n
+    \         GROUP BY a.database_id\n\ncollector_files: \n  - \"*.collector.yml\"\n"
+kind: ConfigMap
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","data":{"sql_exporter.yml":"# Global settings and defaults.\nglobal:\n  scrape_timeout: 10s\n  scrape_timeout_offset: 500ms\n  min_interval: 0s\n  max_connections: 3\n  max_idle_connections: 3\n\n# The target to monitor and the collectors to execute on it.\ntarget:\n  name: mssql_database\n  data_source_name: 'server=ms-stand-monitor-0.ms-stand-monitor-pods.demo.svc;user id=sa;password=Pa55w0rd!;database=master;encrypt=true;TrustServerCertificate=true;'\n  collectors: [mssql_standard]\n  enable_ping: true\n\n# Collectors and metrics definitions\ncollectors:\n  - collector_name: mssql_standard\n    metrics:\n      - metric_name: mssql_log_growths\n        type: counter\n        help: 'Total number of times the transaction log has been expanded since last restart, per database.'\n        key_labels:\n          - db\n        static_labels:\n          env: dev\n          region: europe\n        values: [counter]\n        query: |\n          SELECT rtrim(instance_name) AS db, cntr_value AS counter\n          FROM sys.dm_os_performance_counters\n          WHERE counter_name = 'Log Growths' AND instance_name \u003c\u003e '_Total'\n\n      - metric_name: mssql_io_stall_seconds\n        type: counter\n        help: 'Stall time in seconds per database and I/O operation.'\n        key_labels:\n          - db\n        value_label: operation\n        values:\n          - io_stall_read\n          - io_stall_write\n        query_ref: io_stall\n\n      - metric_name: mssql_io_stall_total_seconds\n        type: counter\n        help: 'Total stall time in seconds per database.'\n        key_labels:\n          - db\n        values:\n          - io_stall\n        query_ref: io_stall\n\n      - metric_name: mssql_hostname\n        type: gauge\n        help: 'Database server hostname'\n        key_labels:\n          - hostname\n        static_value: 1\n        query: |\n          SELECT @@SERVERNAME AS hostname\n\n    queries:\n      - query_name: io_stall\n        query: |\n          SELECT\n            cast(DB_Name(a.database_id) as varchar) AS db,\n            sum(io_stall_read_ms) / 1000.0 AS io_stall_read,\n            sum(io_stall_write_ms) / 1000.0 AS io_stall_write,\n            sum(io_stall) / 1000.0 AS io_stall\n          FROM\n            sys.dm_io_virtual_file_stats(null, null) a\n          INNER JOIN sys.master_files b ON a.database_id = b.database_id AND a.file_id = b.file_id\n          GROUP BY a.database_id\n\ncollector_files: \n  - \"*.collector.yml\"\n"},"kind":"ConfigMap","metadata":{"annotations":{},"name":"sql-exporter-config","namespace":"demo"}}
+  creationTimestamp: "2024-05-29T12:12:49Z"
+  name: sql-exporter-config
+  namespace: demo
+  resourceVersion: "18416"
+  uid: 20fef207-1ed4-413b-a047-4520d061dbed
