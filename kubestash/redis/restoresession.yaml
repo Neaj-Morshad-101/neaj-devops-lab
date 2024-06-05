@@ -5,7 +5,7 @@ metadata:
   namespace: demo
 spec:
   target:
-    name: rd-cluster-tls-res
+    name: rd-std-res
     namespace: demo
     apiGroup: kubedb.com
     kind: Redis
@@ -18,4 +18,4 @@ spec:
   addon:
     name: redis-addon
     tasks:
-      - name: LogicalBackupRestore
+      - name: logical-backup-restore

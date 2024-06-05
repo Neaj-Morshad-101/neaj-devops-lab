@@ -10,8 +10,10 @@ global:
 # The target to monitor and the collectors to execute on it.
 target:
   name: mssqlserver_database
-  data_source_name: 'server=ms-std-mon-0.ms-std-mon-pods.demo.svc;user id=sa;password=Pa55w0rd!;database=master;encrypt=true;TrustServerCertificate=true;'
+  # data_source_name: 'server=ms-std-mon-0.ms-std-mon-pods.demo.svc.cluster.local;user id=sa;password=Pa55w0rd!;database=master;encrypt=true;TrustServerCertificate=true;'
   # data_source_name: 'sqlserver://prom_user:prom_password@dbserver1.example.com:1433'
+  # data_source_name: 'sqlserver://sa:Pa55w0rd!@ms-std-mon-0.ms-std-mon-pods.demo.svc.cluster.local:1433'
+  data_source_name: 'sqlserver://sa:Pa55w0rd!@ms-std-mon-0.ms-std-mon-pods.demo.svc.cluster.local/master'
   collectors: [mssql_standard]
   enable_ping: true
 

@@ -7,9 +7,9 @@ spec:
   storage:
     provider: s3
     s3:
-      endpoint: us-east-1.linodeobjects.com
-      bucket: neaj-kubestash
-      region: us-east-1
+      endpoint: ap-south-1.linodeobjects.com
+      bucket: neaj-redis
+      region: ap-south-1
       prefix: backup
       secretName: s3-secret
   usagePolicy:

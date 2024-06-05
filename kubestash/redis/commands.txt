@@ -1,0 +1,10 @@
+kubectl create secret generic encry-secret --from-literal=RESTIC_PASSWORD='changeit' -n demo
+
+echo -n '999999999999999' > AWS_ACCESS_KEY_ID 
+
+echo -n '888888888888888888' > AWS_SECRET_ACCESS_KEY 
+
+kubectl create secret generic -n demo s3-secret\
+      --from-file=./AWS_ACCESS_KEY_ID\
+      --from-file=./AWS_SECRET_ACCESS_KEY
+

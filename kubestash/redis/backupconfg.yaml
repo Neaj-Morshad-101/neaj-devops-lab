@@ -37,5 +37,5 @@ spec:
       addon:
         name: redis-addon
         tasks:
-          - name: LogicalBackup
+          - name: logical-backup
 
