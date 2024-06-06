@@ -11,7 +11,7 @@ global:
 target:
   name: mssqlserver_database
   data_source_name: 'sqlserver://sa:Pa55w0rd!@ms-std-mon-0.ms-std-mon-pods.demo.svc.cluster.local:1433/master'
-  collectors: [mssql_standard]
+  collectors: [mssql_*]
   enable_ping: true
 
 # A collector is a named set of related metrics that are collected together. It can be referenced by name, possibly
@@ -20,7 +20,7 @@ target:
 # Collectors may be defined inline (under `collectors`) or loaded from `collector_files` (one collector per file).
 collectors:
   # A collector defining standard metrics for Microsoft SQL Server.
-  - collector_name: mssql_standard
+  - collector_name: mssql_sample
 
     # Similar to global.min_interval, but applies to this collector only.
     #min_interval: 0s
@@ -36,57 +36,6 @@ collectors:
     #       the column value will populate the metric value.
     metrics:
       # The metric name, type and help text, as exported to /metrics.
-      - metric_name: mssql_log_growths
-        # This is a Prometheus counter (monotonically increasing value).
-        type: counter
-        help: 'Total number of times the transaction log has been expanded since last restart, per database.'
-        # Optional set of labels derived from key columns.
-        key_labels:
-          # Populated from the `db` column of each row.
-          - db
-        static_labels:
-        # Arbitrary key/value pair
-          env: dev
-          region: europe
-        # Optional timestamp_value to point at the existing timestamp column to return a metric with an explicit
-        # timestamp.
-        # timestamp_value: CreatedAt
-        # This query returns exactly one value per row, in the `counter` column.
-        values: [counter]
-        query: |
-          SELECT rtrim(instance_name) AS db, cntr_value AS counter
-          FROM sys.dm_os_performance_counters
-          WHERE counter_name = 'Log Growths' AND instance_name <> '_Total'
-
-      # A different metric, with multiple values produced from each result row.
-      - metric_name: mssql_io_stall_seconds
-        type: counter
-        help: 'Stall time in seconds per database and I/O operation.'
-        key_labels:
-          # Populated from the `db` column of the result.
-          - db
-        # Label populated with the value column name, configured via `values` (e.g. `operation="io_stall_read_ms"`).
-        #
-        # Required when multiple value columns are configured.
-        value_label: operation
-        # Multiple value columns: their name is recorded in the label defined by `attribute_label` (e.g.
-        # `operation="io_stall_read_ms"`).
-        values:
-          - io_stall_read
-          - io_stall_write
-        query_ref: io_stall
-
-      # Another metric, uses same named query (referenced through query_ref) as mssql_io_stall_seconds.
-      - metric_name: mssql_io_stall_total_seconds
-        type: counter
-        help: 'Total stall time in seconds per database.'
-        key_labels:
-          # Populated from the `db` column of the result.
-          - db
-        # Only one value, populated from the `io_stall` column.
-        values:
-          - io_stall
-        query_ref: io_stall
 
       # Metric with a static value to retrieve string data.
       - metric_name: mssql_hostname
@@ -99,22 +48,6 @@ collectors:
         static_value: 1
         query: |
           SELECT @@SERVERNAME AS hostname
-
-
-    # Named queries, referenced by one or more metrics, through query_ref.
-    queries:
-      # Populates `mssql_io_stall` and `mssql_io_stall_total`
-      - query_name: io_stall
-        query: |
-          SELECT
-            cast(DB_Name(a.database_id) as varchar) AS db,
-            sum(io_stall_read_ms) / 1000.0 AS io_stall_read,
-            sum(io_stall_write_ms) / 1000.0 AS io_stall_write,
-            sum(io_stall) / 1000.0 AS io_stall
-          FROM
-            sys.dm_io_virtual_file_stats(null, null) a
-          INNER JOIN sys.master_files b ON a.database_id = b.database_id AND a.file_id = b.file_id
-          GROUP BY a.database_id
 
 # Collector files specifies a list of globs. One collector definition per file.
 collector_files: 
