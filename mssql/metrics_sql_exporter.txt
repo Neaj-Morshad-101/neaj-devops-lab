@@ -1,0 +1,63 @@
+Gauge Metrics:
+
+mssql_local_time_seconds
+Help: Local time in seconds since epoch (Unix time)
+
+mssql_connections
+Help: Number of active connections
+Key Labels: db
+
+mssql_page_life_expectancy_seconds
+Help: The minimum number of seconds a page will stay in the buffer pool on this node without references
+
+mssql_buffer_cache_hit_ratio
+Help: Ratio of requests that hit the buffer cache
+
+mssql_checkpoint_pages_sec
+Help: Checkpoint Pages Per Second
+
+mssql_resident_memory_bytes
+Help: SQL Server resident memory size (AKA working set)
+
+mssql_virtual_memory_bytes
+Help: SQL Server committed virtual memory size
+
+mssql_memory_utilization_percentage
+Help: The percentage of committed memory that is in the working set
+
+mssql_os_memory
+Help: OS physical memory, used and available
+Value Label: state (used, available)
+
+mssql_os_page_file
+Help: OS page file, used and available
+Value Label: state (used, available)
+
+Counter Metrics:
+
+mssql_deadlocks
+Help: Number of lock requests that resulted in a deadlock
+
+mssql_user_errors
+Help: Number of user errors
+
+mssql_kill_connection_errors
+Help: Number of severe errors that caused SQL Server to kill the connection
+
+mssql_batch_requests
+Help: Number of command batches received
+
+mssql_log_growths
+Help: Number of times the transaction log has been expanded, per database
+Key Labels: db
+
+mssql_io_stall_seconds
+Help: Stall time in seconds per database and I/O operation
+Key Labels: db, operation
+
+mssql_io_stall_total_seconds
+Help: Total stall time in seconds per database
+Key Labels: db
+
+mssql_page_fault_count
+Help: The number of page faults that were incurred by the SQL Server process

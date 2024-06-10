@@ -1,0 +1,31 @@
+Here are the metrics that are common between the two exporters:
+mssql_up: UP Status
+mssql_deadlocks: Number of lock requests per second that resulted in a deadlock since last restart
+mssql_user_errors: Number of user errors/sec since last restart
+mssql_kill_connection_errors: Number of kill connection errors/sec since last restart
+mssql_log_growths: Total number of times the transaction log for the database has been expanded last restart
+mssql_page_life_expectancy: Indicates the minimum number of seconds a page will stay in the buffer pool on this node without references
+mssql_io_stall: Wait time (ms) of stall since last restart
+mssql_io_stall_total: Wait time (ms) of stall since last restart
+mssql_batch_requests: Number of Transact-SQL command batches received per second
+mssql_page_fault_count: Number of page faults since last restart
+mssql_memory_utilization_percentage: Percentage of memory utilization
+mssql_total_physical_memory_kb: Total physical memory in KB
+mssql_available_physical_memory_kb: Available physical memory in KB
+mssql_total_page_file_kb: Total page file in KB
+mssql_available_page_file_kb: Available page file in KB
+
+
+Extra metrics available in the provided exporter:
+mssql_product_version: Instance version (Major.Minor)
+mssql_instance_local_time: Number of seconds since epoch on local instance
+mssql_connections: Number of active connections (with additional labels: database, state)
+mssql_client_connections: Number of active client connections (with additional labels: client, database)
+mssql_database_state: Databases states (with label: database)
+mssql_database_filesize: Physical sizes of files used by database in KB, their names and types
+mssql_page_read_total: Page reads/sec
+mssql_page_write_total: Page writes/sec
+mssql_lazy_write_total: Lazy writes/sec
+mssql_page_checkpoint_total: Checkpoint pages/sec
+mssql_transactions: Number of transactions started for the database per second (with label: database)
+These are the extra metrics provided by the exporter you provided that were not available in your exporter.
