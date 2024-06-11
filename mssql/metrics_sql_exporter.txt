@@ -33,6 +33,8 @@ mssql_os_page_file
 Help: OS page file, used and available
 Value Label: state (used, available)
 
+
+
 Counter Metrics:
 
 mssql_deadlocks
@@ -51,6 +53,11 @@ mssql_log_growths
 Help: Number of times the transaction log has been expanded, per database
 Key Labels: db
 
+mssql_page_fault_count
+Help: The number of page faults that were incurred by the SQL Server process
+
+// Not fixed yet 
+
 mssql_io_stall_seconds
 Help: Stall time in seconds per database and I/O operation
 Key Labels: db, operation
@@ -59,5 +66,3 @@ mssql_io_stall_total_seconds
 Help: Total stall time in seconds per database
 Key Labels: db
 
-mssql_page_fault_count
-Help: The number of page faults that were incurred by the SQL Server process
