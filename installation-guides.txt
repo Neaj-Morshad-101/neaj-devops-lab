@@ -13,8 +13,6 @@ helm install kubedb oci://ghcr.io/appscode-charts/kubedb \
     --namespace kubedb --create-namespace \
     --set-file global.license=$HOME/Downloads/kubedb-license-74d1f70e-5bec-4239-9816-12b78551df36.txt \
     --set global.featureGates.MSSQLServer=true \
-    --set global.featureGates.Redis=true \
-    --set global.featureGates.Memcached=true \
     --wait --burst-limit=10000 --debug
 
 
@@ -23,6 +21,8 @@ helm install kubedb oci://ghcr.io/appscode-charts/kubedb \
           --namespace kubedb --create-namespace \
           --set-file global.license=$HOME/Downloads/kubedb-license-19f27698-0986-4ab4-a35e-a3a1f4b0205b.txt \
           --set global.featureGates.MSSQLServer=true \
+          --set global.featureGates.MySQL=true \
+          --set global.featureGates.Postgres=true \
           --set global.featureGates.Redis=true \
           --set global.featureGates.Memcached=true \
           --wait --burst-limit=10000 --debug

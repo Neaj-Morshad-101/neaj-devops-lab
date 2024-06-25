@@ -12,25 +12,12 @@ spec:
       name: mssqlserver-issuer
       kind: Issuer
       apiGroup: "cert-manager.io"
-    certificates:
-      - alias: client
-        subject:
-          organizations:
-            - kubedb
-        emailAddresses:
-          - abc@appscode.com
-      - alias: server
-        subject:
-          organizations:
-            - kubedb
-        emailAddresses:
-          - abc@appscode.com
     clientTLS: true
   storage:
-    storageClassName: "standard"
+    # storageClassName: "standard"
     accessModes:
-    - ReadWriteOnce
+      - ReadWriteOnce
     resources:
       requests:
         storage: 1Gi
-  terminationPolicy: WipeOut
+  deletionPolicy: WipeOut

@@ -1,23 +1,26 @@
 apiVersion: kubedb.com/v1alpha2
 kind: MSSQLServer
 metadata:
-  name: mssqlserver
+  name: mssql-standalone-tls
   namespace: demo
 spec:
   version: "2022-cu12"
   replicas: 1
+  authSecret:
+    name: mssql-auth
+    externallyManaged: true
+  storageType: Durable
   tls:
     issuerRef:
       name: mssqlserver-issuer
       kind: Issuer
       apiGroup: "cert-manager.io"
-    clientTLS: false
-  storageType: Durable
+    clientTLS: true
   storage:
-    # storageClassName: "standard"
+    storageClassName: "standard"
     accessModes:
-      - ReadWriteOnce
+    - ReadWriteOnce
     resources:
       requests:
         storage: 1Gi
-  deletionPolicy: Delete
+  terminationPolicy: WipeOut
