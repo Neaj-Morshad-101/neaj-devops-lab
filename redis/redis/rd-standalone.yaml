@@ -1,13 +1,13 @@
 apiVersion: kubedb.com/v1alpha2
 kind: Redis
 metadata:
-  name: rd-std
+  name: rd-standalone
   namespace: demo
 spec:
   version: 7.2.3
   storageType: Durable
   storage:
-    storageClassName: "standard"
+    # storageClassName: "standard"
     accessModes:
     - ReadWriteOnce
     resources:
@@ -17,6 +17,6 @@ spec:
     spec:
       resources:
         requests:
-          cpu: "100m"
-          memory: "100Mi"
+          cpu: "150m"
+          memory: "150Mi"
   terminationPolicy: WipeOut

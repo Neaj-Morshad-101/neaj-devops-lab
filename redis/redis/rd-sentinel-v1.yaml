@@ -1,11 +1,15 @@
-apiVersion: kubedb.com/v1alpha2
-kind: RedisSentinel
+apiVersion: kubedb.com/v1
+kind: Redis
 metadata:
-  name: sen-demo
+  name: rd-sentinel-v1
   namespace: demo
 spec:
   version: 7.2.4
   replicas: 3
+  sentinelRef:
+    name: sen-demo
+    namespace: demo
+  mode: Sentinel
   storageType: Durable
   storage:
     resources:
@@ -13,11 +17,5 @@ spec:
         storage: 1Gi
 #    storageClassName: "standard"
     accessModes:
-    - ReadWriteOnce
-  podTemplate:
-    spec:
-      resources:
-        requests:
-          cpu: "150m"
-          memory: "150Mi"
+      - ReadWriteOnce
   terminationPolicy: WipeOut
