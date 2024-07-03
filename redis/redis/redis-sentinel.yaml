@@ -18,6 +18,11 @@ spec:
 #    storageClassName: "standard"
     accessModes:
       - ReadWriteOnce
+  coordinator:
+    resources:
+        requests:
+          cpu: "150m"
+          memory: "150Mi"
   podTemplate:
     spec:
       resources:

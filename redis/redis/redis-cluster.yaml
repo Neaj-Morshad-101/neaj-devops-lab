@@ -23,4 +23,4 @@ spec:
         requests:
           cpu: "150m"
           memory: "150Mi"
-  terminationPolicy: Halt
+  terminationPolicy: WipeOut
