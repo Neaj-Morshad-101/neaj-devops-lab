@@ -1,14 +1,14 @@
 apiVersion: kubedb.com/v1
 kind: Redis
 metadata:
-  name: redis-cluster-v1
+  name: redis-cluster-rc
   namespace: demo
 spec:
   version: 7.2.4
   mode: Cluster
   cluster:
     master: 3
-    replicas: 1
+    replicas: 2
   storageType: Durable
   storage:
     resources:
@@ -17,12 +17,4 @@ spec:
     # storageClassName: "standard"
     accessModes:
     - ReadWriteOnce
-  podTemplate:
-    spec:
-      containers:
-      - name: redis
-        resources:
-          requests:
-            cpu: 150m
-            memory: 150Mi
   deletionPolicy: WipeOut

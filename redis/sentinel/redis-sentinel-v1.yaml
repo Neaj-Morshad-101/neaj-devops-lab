@@ -1,26 +1,23 @@
 apiVersion: kubedb.com/v1
-kind: Redis
+kind: RedisSentinel
 metadata:
-  name: redis-cluster-v1
+  name: senitnel-v1
   namespace: demo
 spec:
   version: 7.2.4
-  mode: Cluster
-  cluster:
-    master: 3
-    replicas: 1
+  replicas: 3
   storageType: Durable
   storage:
     resources:
       requests:
         storage: 1Gi
-    # storageClassName: "standard"
+#    storageClassName: "standard"
     accessModes:
     - ReadWriteOnce
   podTemplate:
     spec:
       containers:
-      - name: redis
+      - name: redissentinel
         resources:
           requests:
             cpu: 150m
