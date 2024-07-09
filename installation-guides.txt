@@ -1,4 +1,4 @@
-# KubeDB 
+# KubeDB Installation Commands
 
 helm install kubedb oci://ghcr.io/appscode-charts/kubedb \
     --version v2024.6.4 \
@@ -17,7 +17,7 @@ helm install kubedb oci://ghcr.io/appscode-charts/kubedb \
           --set global.featureGates.Postgres=true \
           --set global.featureGates.Redis=true \
           --set global.featureGates.Memcached=true \
-          --wait --burst-limit=10000 --debug
+          --wait --burst-limit=10000 --debug -f https://raw.githubusercontent.com/kubedb/installer/master/charts/kubedb/ci/ci-values.yaml
 
 edit here: 
 helm upgrade kubedb oci://ghcr.io/appscode-charts/kubedb \
@@ -29,11 +29,12 @@ helm upgrade kubedb oci://ghcr.io/appscode-charts/kubedb \
           --set global.featureGates.Postgres=true \
           --set global.featureGates.Redis=true \
           --set global.featureGates.Memcached=true \
-          --wait --burst-limit=10000 --debug
+          --wait --burst-limit=10000 --debug -f https://raw.githubusercontent.com/kubedb/installer/master/charts/kubedb/ci/ci-values.yaml
 
 helm uninstall kubedb --namespace kubedb
 kubectl get crd -o name | grep kubedb.com | xargs kubectl delete
 
+restrict ns kubedb
 
 kubectl get ns kubedb -oyaml
 apiVersion: v1
