@@ -6,7 +6,6 @@ metadata:
 spec:
   type: HorizontalScaling
   databaseRef:
-    name: redis-cluster
+    name: redis-cluster-v1
   horizontalScaling:
-    master: 5
-    replicas: 1
+    shards: 3

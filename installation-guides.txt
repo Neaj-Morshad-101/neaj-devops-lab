@@ -19,9 +19,16 @@ helm install kubedb oci://ghcr.io/appscode-charts/kubedb \
           --set global.featureGates.Memcached=true \
           --wait --burst-limit=10000 --debug -f https://raw.githubusercontent.com/kubedb/installer/master/charts/kubedb/ci/ci-values.yaml
 
-edit here: 
+Upgrade:
+Latest: 
+kubectl apply -f https://raw.githubusercontent.com/kubedb/installer/master/crds/kubedb-catalog-crds.yaml
+
+kubectl apply -f https://github.com/kubedb/installer/raw/v2024.6.4/crds/kubedb-catalog-crds.yaml
+kubectl apply -f https://github.com/kubeops/petset/raw/v0.0.6/crds/apps.k8s.appscode.com_petsets.yaml
+kubectl apply -f https://github.com/kubeops/petset/raw/v0.0.6/crds/apps.k8s.appscode.com_placementpolicies.yaml
+
 helm upgrade kubedb oci://ghcr.io/appscode-charts/kubedb \
-          --version v2024.7.3-rc.0 \
+          --version v2024.7.11-rc.1 \
           --namespace kubedb --create-namespace \
           --set-file global.license=$HOME/Downloads/kubedb-license-e4a2bd85-5f84-4634-8995-a3e595ba71b7.txt \
           --set global.featureGates.MSSQLServer=true \
@@ -34,8 +41,11 @@ helm upgrade kubedb oci://ghcr.io/appscode-charts/kubedb \
 helm uninstall kubedb --namespace kubedb
 kubectl get crd -o name | grep kubedb.com | xargs kubectl delete
 
-restrict ns kubedb
 
+
+
+
+Restrict ns kubedb
 kubectl get ns kubedb -oyaml
 apiVersion: v1
 kind: Namespace
@@ -43,7 +53,7 @@ metadata:
   creationTimestamp: "2024-07-02T08:37:55Z"
   labels:
     kubernetes.io/metadata.name: kubedb
-    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce: restricted // add this label
   name: kubedb
   resourceVersion: "162779"
   uid: ea1f3ffd-ece6-4ce8-b5dd-6aa4b082810f
@@ -75,5 +85,6 @@ helm repo add prometheus-community https://prometheus-community.github.io/helm-c
 helm repo update
 helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring --create-namespace --wait --burst-limit=100
 
+helm uninstall prometheus -n monitoring
 
 

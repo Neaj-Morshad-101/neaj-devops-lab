@@ -6,7 +6,7 @@ metadata:
 spec:
   type: ReconfigureTLS
   databaseRef:
-    name: redis-standalone
+    name: rd-stand-v1
   tls:
     issuerRef:
       name: redis-ca-issuer
