@@ -9,7 +9,7 @@ spec:
     apiGroup: kubedb.com
     kind: Redis
     namespace: demo
-    name: rd-std
+    name: rd-stand-v1
   backends:
     - name: s3-backend
       storageRef:
@@ -22,7 +22,7 @@ spec:
     - name: frequent-backup
       sessionHistoryLimit: 3
       scheduler:
-        schedule: "*/2 * * * *"
+        schedule: "*/1 * * * *"
         successfulJobsHistoryLimit: 1
         failedJobsHistoryLimit: 1
         jobTemplate:

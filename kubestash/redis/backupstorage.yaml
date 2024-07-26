@@ -8,7 +8,7 @@ spec:
     provider: s3
     s3:
       endpoint: ap-south-1.linodeobjects.com
-      bucket: neaj-redis
+      bucket: neaj-new
       region: ap-south-1
       prefix: backup
       secretName: s3-secret

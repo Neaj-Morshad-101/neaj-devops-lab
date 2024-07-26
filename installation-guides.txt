@@ -88,3 +88,48 @@ helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring
 helm uninstall prometheus -n monitoring
 
 
+helm upgrade -i monitoring-operator oci://ghcr.io/appscode-charts/monitoring-operator \
+  --version v0.0.4 \
+  -n monitoring --create-namespace
+
+helm upgrade -i panopticon oci://ghcr.io/appscode-charts/panopticon \
+  --version v2024.2.5 \
+  -n monitoring --create-namespace \
+  --set-file license=$HOME/Downloads/kubedb-license-e4a2bd85-5f84-4634-8995-a3e595ba71b7.txt
+
+
+
+
+
+
+
+helm install kubestash oci://ghcr.io/appscode-charts/kubestash \
+        --version v2024.7.1 \
+        --namespace kubestash --create-namespace \
+        --set-file global.license=$HOME/Downloads/kubedb-license-e4a2bd85-5f84-4634-8995-a3e595ba71b7.txt \
+        --wait --burst-limit=10000 --debug
+
+
+
+
+Upgrade:
+# Update catalog CRDs
+$ kubectl apply -f https://github.com/kubestash/installer/raw/v2024.7.1/crds/kubestash-crds.yaml
+
+helm upgrade kubestash oci://ghcr.io/appscode-charts/kubestash \
+    --version v2024.7.1 \
+    --namespace kubestash \
+    --set-file global.license=/path/to/the/license.txt \
+    --wait --burst-limit=10000 --debug
+
+
+helm uninstall kubestash --namespace kubestash
+kubectl delete crd -l=app.kubernetes.io/name=kubestash
+
+kubectl delete crd -l=app.kubernetes.io/name=catalog
+
+
+DELETE STUCKED NAMESPACE: 
+kubectl get namespace "redis-clmr34" -o json \
+        | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
+        | kubectl replace --raw /api/v1/namespaces/redis-clmr34/finalize -f -
