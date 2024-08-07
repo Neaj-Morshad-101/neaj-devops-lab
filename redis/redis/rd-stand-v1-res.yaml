@@ -13,6 +13,11 @@ spec:
     resources:
       requests:
         storage: 1Gi
+  tls:
+    issuerRef:
+      apiGroup: "cert-manager.io"
+      kind: Issuer
+      name: redis-ca-issuer
   podTemplate:
     spec:
       containers:

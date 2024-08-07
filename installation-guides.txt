@@ -102,15 +102,12 @@ helm upgrade -i panopticon oci://ghcr.io/appscode-charts/panopticon \
 
 
 
-
+# Kubestash
 helm install kubestash oci://ghcr.io/appscode-charts/kubestash \
         --version v2024.7.1 \
         --namespace kubestash --create-namespace \
         --set-file global.license=$HOME/Downloads/kubedb-license-e4a2bd85-5f84-4634-8995-a3e595ba71b7.txt \
         --wait --burst-limit=10000 --debug
-
-
-
 
 Upgrade:
 # Update catalog CRDs
@@ -122,14 +119,23 @@ helm upgrade kubestash oci://ghcr.io/appscode-charts/kubestash \
     --set-file global.license=/path/to/the/license.txt \
     --wait --burst-limit=10000 --debug
 
-
 helm uninstall kubestash --namespace kubestash
 kubectl delete crd -l=app.kubernetes.io/name=kubestash
-
 kubectl delete crd -l=app.kubernetes.io/name=catalog
 
 
+#longhorn
+helm repo add longhorn https://charts.longhorn.io
+helm repo update
+kubectl create namespace longhorn-system
+helm install longhorn longhorn/longhorn --namespace longhorn-system
+
+ctl -n longhorn-system patch -p '{"value": "true"}' --type=merge lhs deleting-confirmation-flag
+helm uninstall longhorn -n longhorn-system
+kubectl delete namespace longhorn-system
+
+
 DELETE STUCKED NAMESPACE: 
-kubectl get namespace "redis-clmr34" -o json \
+kubectl get namespace "redis-ddr6q1" -o json \
         | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
-        | kubectl replace --raw /api/v1/namespaces/redis-clmr34/finalize -f -
+        | kubectl replace --raw /api/v1/namespaces/redis-ddr6q1/finalize -f -

@@ -5,4 +5,4 @@ metadata:
  namespace: demo
 spec:
  ca:
-   secretName: mssql-ca
+   secretName: mssqlserver-ca

@@ -1,0 +1,280 @@
+{
+  "apiVersion": "kubedb.com/v1",
+  "kind": "Redis",
+  "metadata": {
+    "creationTimestamp": "2024-07-30T20:00:14Z",
+    "deletionGracePeriodSeconds": 0,
+    "deletionTimestamp": "2024-07-30T20:06:52Z",
+    "generation": 2,
+    "labels": {
+      "app": "redis-e2e-zpjzwp"
+    },
+    "managedFields": [
+      {
+        "apiVersion": "kubedb.com/v1",
+        "fieldsType": "FieldsV1",
+        "fieldsV1": {
+          "f:metadata": {
+            "f:labels": {
+              ".": {},
+              "f:app": {}
+            }
+          },
+          "f:spec": {
+            ".": {},
+            "f:allowedSchemas": {
+              ".": {},
+              "f:namespaces": {
+                ".": {},
+                "f:from": {}
+              }
+            },
+            "f:autoOps": {},
+            "f:deletionPolicy": {},
+            "f:disableAuth": {},
+            "f:healthChecker": {
+              ".": {},
+              "f:failureThreshold": {},
+              "f:periodSeconds": {},
+              "f:timeoutSeconds": {}
+            },
+            "f:mode": {},
+            "f:podTemplate": {
+              ".": {},
+              "f:controller": {},
+              "f:metadata": {},
+              "f:spec": {
+                ".": {},
+                "f:containers": {},
+                "f:podPlacementPolicy": {}
+              }
+            },
+            "f:replicas": {},
+            "f:sentinelRef": {
+              ".": {},
+              "f:name": {},
+              "f:namespace": {}
+            },
+            "f:storage": {
+              ".": {},
+              "f:resources": {
+                ".": {},
+                "f:requests": {
+                  ".": {},
+                  "f:storage": {}
+                }
+              },
+              "f:storageClassName": {}
+            },
+            "f:storageType": {},
+            "f:version": {}
+          }
+        },
+        "manager": "e2e.test",
+        "operation": "Update",
+        "time": "2024-07-30T20:00:14Z"
+      },
+      {
+        "apiVersion": "kubedb.com/v1",
+        "fieldsType": "FieldsV1",
+        "fieldsV1": {
+          "f:metadata": {
+            "f:finalizers": {
+              ".": {}
+            }
+          }
+        },
+        "manager": "rd-operator",
+        "operation": "Update",
+        "time": "2024-07-30T20:00:15Z"
+      },
+      {
+        "apiVersion": "kubedb.com/v1",
+        "fieldsType": "FieldsV1",
+        "fieldsV1": {
+          "f:status": {
+            ".": {},
+            "f:conditions": {},
+            "f:observedGeneration": {},
+            "f:phase": {}
+          }
+        },
+        "manager": "rd-operator",
+        "operation": "Update",
+        "subresource": "status",
+        "time": "2024-07-30T20:11:23Z"
+      }
+    ],
+    "name": "redis-uonalh",
+    "namespace": "redis-ddr6q1",
+    "resourceVersion": "122443",
+    "uid": "273134e9-2ef3-4b52-8211-fdeeb3269187"
+  },
+  "spec": {
+    "allowedSchemas": {
+      "namespaces": {
+        "from": "Same"
+      }
+    },
+    "autoOps": {},
+    "deletionPolicy": "WipeOut",
+    "disableAuth": true,
+    "healthChecker": {
+      "failureThreshold": 1,
+      "periodSeconds": 10,
+      "timeoutSeconds": 10
+    },
+    "mode": "Sentinel",
+    "podTemplate": {
+      "controller": {},
+      "metadata": {},
+      "spec": {
+        "containers": [
+          {
+            "name": "redis",
+            "resources": {
+              "requests": {
+                "cpu": "500m",
+                "memory": "500Mi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "runAsGroup": 999,
+              "runAsNonRoot": true,
+              "runAsUser": 999,
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            }
+          },
+          {
+            "name": "rd-coordinator",
+            "resources": {
+              "limits": {
+                "memory": "256Mi"
+              },
+              "requests": {
+                "cpu": "200m",
+                "memory": "256Mi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "runAsGroup": 999,
+              "runAsNonRoot": true,
+              "runAsUser": 999,
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            }
+          }
+        ],
+        "initContainers": [
+          {
+            "name": "redis-init",
+            "resources": {
+              "limits": {
+                "memory": "512Mi"
+              },
+              "requests": {
+                "cpu": "200m",
+                "memory": "512Mi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "runAsGroup": 999,
+              "runAsNonRoot": true,
+              "runAsUser": 999,
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            }
+          }
+        ],
+        "podPlacementPolicy": {
+          "name": "default"
+        },
+        "securityContext": {
+          "fsGroup": 999
+        },
+        "serviceAccountName": "redis-uonalh"
+      }
+    },
+    "replicas": 3,
+    "sentinelRef": {
+      "name": "sentinel-o414rx",
+      "namespace": "redis-ddr6q1"
+    },
+    "storage": {
+      "resources": {
+        "requests": {
+          "storage": "1Gi"
+        }
+      },
+      "storageClassName": "linode-block-storage"
+    },
+    "storageType": "Durable",
+    "version": "7.0.15"
+  },
+  "status": {
+    "conditions": [
+      {
+        "lastTransitionTime": "2024-07-30T20:00:18Z",
+        "message": "The KubeDB operator has started the provisioning of Redis: redis-ddr6q1/redis-uonalh",
+        "reason": "DatabaseProvisioningStartedSuccessfully",
+        "status": "True",
+        "type": "ProvisioningStarted"
+      },
+      {
+        "lastTransitionTime": "2024-07-30T20:11:23Z",
+        "message": "All PetSets are not available. Desire number of PetSet: 1, Available: 0",
+        "reason": "SomeReplicasNotReady",
+        "status": "False",
+        "type": "ReplicaReady"
+      },
+      {
+        "lastTransitionTime": "2024-07-30T20:06:58Z",
+        "message": "The Redis: redis-ddr6q1/redis-uonalh is not accepting client requests. error: failed to connect to database: dial tcp: lookup redis-uonalh.redis-ddr6q1.svc on 10.128.0.10:53: no such host",
+        "observedGeneration": 2,
+        "reason": "DatabaseNotAcceptingConnectionRequest",
+        "status": "False",
+        "type": "AcceptingConnection"
+      },
+      {
+        "lastTransitionTime": "2024-07-30T20:06:58Z",
+        "message": "The Redis: redis-ddr6q1/redis-uonalh is not ready.",
+        "observedGeneration": 2,
+        "reason": "ReadinessCheckFailed",
+        "status": "False",
+        "type": "Ready"
+      },
+      {
+        "lastTransitionTime": "2024-07-30T20:02:16Z",
+        "message": "The Redis: redis-ddr6q1/redis-uonalh is successfully provisioned.",
+        "observedGeneration": 1,
+        "reason": "DatabaseSuccessfullyProvisioned",
+        "status": "True",
+        "type": "Provisioned"
+      }
+    ],
+    "observedGeneration": 1,
+    "phase": "Ready"
+  }
+}

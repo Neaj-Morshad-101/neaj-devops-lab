@@ -1,17 +1,17 @@
 apiVersion: kubedb.com/v1alpha2
 kind: MSSQLServer
 metadata:
-  name: ms-std-mon
+  name: mssqlserver-standalone
   namespace: demo
 spec:
   version: "2022-cu12"
   replicas: 1
-  authSecret:
-    name: mssql-auth
-    externallyManaged: true
+  # authSecret:
+  #   name: mssql-auth
+  #   externallyManaged: true
   tls:
     issuerRef:
-      name: mssqlserver-issuer
+      name: mssql-ca-issuer
       kind: Issuer
       apiGroup: "cert-manager.io"
     clientTLS: false

@@ -7,7 +7,7 @@ spec:
   version: 7.2.4
   replicas: 3
   sentinelRef:
-    name: senitnel-v1
+    name: sentinel-v1
     namespace: demo
   mode: Sentinel
   storageType: Durable
