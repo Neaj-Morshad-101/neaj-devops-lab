@@ -11,7 +11,7 @@ spec:
   #   externallyManaged: true
   tls:
     issuerRef:
-      name: mssql-ca-issuer
+      name: mssqlserver-ca-issuer
       kind: Issuer
       apiGroup: "cert-manager.io"
     clientTLS: false

@@ -9,7 +9,7 @@ spec:
     apiGroup: kubedb.com
     kind: Redis
     namespace: demo
-    name: rd-stand-v1
+    name: redis-cluster-v1 # rd-stand-v1
   backends:
     - name: s3-backend
       storageRef:
@@ -28,9 +28,9 @@ spec:
         jobTemplate:
           backoffLimit: 1
       repositories:
-        - name: s3-repo
+        - name: s3-repo-cluster
           backend: s3-backend
-          directory: /redis-dir
+          directory: /redis-dir-cluster
           encryptionSecret:
            name: encry-secret # some addon may not support encryption
            namespace: demo

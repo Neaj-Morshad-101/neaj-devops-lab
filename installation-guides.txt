@@ -85,6 +85,11 @@ helm repo add prometheus-community https://prometheus-community.github.io/helm-c
 helm repo update
 helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring --create-namespace --wait --burst-limit=100
 
+helm install prometheus prometheus-community/kube-prometheus-stack -n \
+monitoring --set grafana.image.tag=7.5.5 --create-namespace
+
+kubectl port-forward -n monitoring service/prometheus-grafana 3000:80
+
 helm uninstall prometheus -n monitoring
 
 
@@ -135,7 +140,8 @@ helm uninstall longhorn -n longhorn-system
 kubectl delete namespace longhorn-system
 
 
-DELETE STUCKED NAMESPACE: 
-kubectl get namespace "redis-ddr6q1" -o json \
+DELETE STUCKED NAMESPACE:
+kubectl get namespace "kubestash" -o json \
         | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
-        | kubectl replace --raw /api/v1/namespaces/redis-ddr6q1/finalize -f -
+        | kubectl replace --raw /api/v1/namespaces/kubestash/finalize -f -
+

@@ -1,0 +1,16 @@
+Monitoring:
+
+kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-prometheus 9090
+kubectl port-forward -n monitoring prometheus-prometheus-kube-prometheus-prometheus-0 9090
+
+http://localhost:9090/targets?search=
+
+
+kubectl port-forward -n demo svc/rd-stand-mon-stats 56790
+http://localhost:56790/metrics
+
+data_source_name: 'server=ms-stand-monitor-0.ms-stand-monitor-pods.demo.svc;user id=sa;password=Pa55w0rd!;database=master;encrypt=true;TrustServerCertificate=true;'
+
+
+kubectl port-forward -n monitoring svc/prometheus-grafana 3000:80
+http://localhost:3000/login
