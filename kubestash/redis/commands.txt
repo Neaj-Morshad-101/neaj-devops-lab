@@ -1,10 +1,27 @@
-redis: bucket bc, rs, 
+For Testing: Update
+install kubestash
 
+apply addon, functions for redis :   installer/catalog/kubestash/raw/redis/*
+neaj@neaj-desktop:~/g/s/k/installer|master✓
+➤ kubectl apply -f catalog/kubestash/raw/redis/.
+addon.addons.kubestash.com/redis-addon created
+function.addons.kubestash.com/redis-backup created
+function.addons.kubestash.com/redis-restore created
+
+create bucket
 
 kubectl create secret generic s3-secret --from-literal=AWS_ACCESS_KEY_ID=<****> --from-literal=AWS_SECRET_ACCESS_KEY=<****> -n demo
 
+apply backupstorage
 
 kubectl create secret generic encry-secret --from-literal=RESTIC_PASSWORD='changeit' -n demo
+
+kubectl apply -f retention-policy.yaml 
+
+apply bc
+apply rs 
+
+
 
 echo -n '999999999999999' > AWS_ACCESS_KEY_ID 
 

@@ -1,5 +1,7 @@
 # KubeDB Installation Commands
 
+kubectl get ns kube-system -o=jsonpath='{.metadata.uid}'
+
 helm install kubedb oci://ghcr.io/appscode-charts/kubedb \
     --version v2024.6.4 \
     --namespace kubedb --create-namespace \
@@ -83,10 +85,12 @@ helm upgrade -i \
 # kube-prometheus-stack
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
-helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring --create-namespace --wait --burst-limit=100
 
 helm install prometheus prometheus-community/kube-prometheus-stack -n \
 monitoring --set grafana.image.tag=7.5.5 --create-namespace
+
+helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring --create-namespace --wait --burst-limit=100
+
 
 kubectl port-forward -n monitoring service/prometheus-grafana 3000:80
 
@@ -107,41 +111,29 @@ helm upgrade -i panopticon oci://ghcr.io/appscode-charts/panopticon \
 
 
 
-# Kubestash
+# KubeStash Installation:
 helm install kubestash oci://ghcr.io/appscode-charts/kubestash \
         --version v2024.7.1 \
         --namespace kubestash --create-namespace \
-        --set-file global.license=$HOME/Downloads/kubedb-license-e4a2bd85-5f84-4634-8995-a3e595ba71b7.txt \
+        --set-file global.license=$HOME/Downloads/kubedb-license-51997c33-cf39-482c-a64e-1645f3b1d066.txt \
         --wait --burst-limit=10000 --debug
-
 Upgrade:
 # Update catalog CRDs
 $ kubectl apply -f https://github.com/kubestash/installer/raw/v2024.7.1/crds/kubestash-crds.yaml
-
 helm upgrade kubestash oci://ghcr.io/appscode-charts/kubestash \
     --version v2024.7.1 \
     --namespace kubestash \
     --set-file global.license=/path/to/the/license.txt \
     --wait --burst-limit=10000 --debug
-
 helm uninstall kubestash --namespace kubestash
+
 kubectl delete crd -l=app.kubernetes.io/name=kubestash
 kubectl delete crd -l=app.kubernetes.io/name=catalog
 
 
-#longhorn
-helm repo add longhorn https://charts.longhorn.io
-helm repo update
-kubectl create namespace longhorn-system
-helm install longhorn longhorn/longhorn --namespace longhorn-system
-
-ctl -n longhorn-system patch -p '{"value": "true"}' --type=merge lhs deleting-confirmation-flag
-helm uninstall longhorn -n longhorn-system
-kubectl delete namespace longhorn-system
 
 
-DELETE STUCKED NAMESPACE:
+DELETE STUCKED NAMESPACE: 
 kubectl get namespace "kubestash" -o json \
         | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
         | kubectl replace --raw /api/v1/namespaces/kubestash/finalize -f -
-

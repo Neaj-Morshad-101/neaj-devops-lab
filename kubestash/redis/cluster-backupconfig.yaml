@@ -1,7 +1,7 @@
 apiVersion: core.kubestash.com/v1alpha1
 kind: BackupConfiguration
 metadata:
-  name: redis-bc-stand
+  name: redis-bc-cluster
   namespace: demo
 spec:
   paused: true
@@ -9,7 +9,7 @@ spec:
     apiGroup: kubedb.com
     kind: Redis
     namespace: demo
-    name: rd-stand-v1 # redis-cluster-v1 # rd-stand-v1
+    name: redis-cluster-v1 # redis-cluster-v1 # rd-stand-v1
   backends:
     - name: s3-backend
       storageRef:
@@ -28,9 +28,9 @@ spec:
         jobTemplate:
           backoffLimit: 1
       repositories:
-        - name: s3-repo-stand # s3-repo-cluster
+        - name: s3-repo-cluster2 # s3-repo-stand # s3-repo-cluster
           backend: s3-backend
-          directory: /redis-dir-stand # /redis-dir-cluster
+          directory: /redis-dir-cluster2 # /redis-dir-stand # /redis-dir-cluster
           encryptionSecret:
            name: encry-secret # some addon may not support encryption
            namespace: demo

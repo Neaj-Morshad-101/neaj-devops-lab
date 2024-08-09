@@ -1,7 +1,7 @@
 apiVersion: kubedb.com/v1
 kind: Redis
 metadata:
-  name: rd-stand-v1-lh
+  name: rd-stand-v1
   namespace: demo
 spec:
   version: 7.2.4
@@ -9,7 +9,7 @@ spec:
   storage:
     # storageClassName: standard"
     # storageClassName: "linode-block-storage"
-    storageClassName: "longhorn"
+    # storageClassName: "longhorn"
     accessModes:
     - ReadWriteOnce
     resources:
