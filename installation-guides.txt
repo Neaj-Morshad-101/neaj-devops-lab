@@ -133,7 +133,13 @@ kubectl delete crd -l=app.kubernetes.io/name=catalog
 
 
 
+
+
 DELETE STUCKED NAMESPACE: 
 kubectl get namespace "kubestash" -o json \
         | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
         | kubectl replace --raw /api/v1/namespaces/kubestash/finalize -f -
+
+
+Kubernetes Metrics Server
+kubectl apply -f components.yaml
