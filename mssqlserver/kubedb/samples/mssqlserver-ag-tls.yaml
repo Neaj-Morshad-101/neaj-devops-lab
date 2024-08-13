@@ -16,7 +16,7 @@ spec:
     endpointCert:
       issuerRef:
         apiGroup: cert-manager.io
-        name: mssqlserver-issuer
+        name: mssqlserver-ca-issuer
         kind: Issuer
   tls:
     issuerRef:

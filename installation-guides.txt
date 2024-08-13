@@ -1,4 +1,4 @@
-# KubeDB Installation Commands
+###### KubeDB Installation Commands ############
 
 kubectl get ns kube-system -o=jsonpath='{.metadata.uid}'
 
@@ -30,7 +30,7 @@ kubectl apply -f https://github.com/kubeops/petset/raw/v0.0.6/crds/apps.k8s.apps
 kubectl apply -f https://github.com/kubeops/petset/raw/v0.0.6/crds/apps.k8s.appscode.com_placementpolicies.yaml
 
 helm upgrade kubedb oci://ghcr.io/appscode-charts/kubedb \
-          --version v2024.7.11-rc.1 \
+          --version v2024.7.11-rc.2 \
           --namespace kubedb --create-namespace \
           --set-file global.license=$HOME/Downloads/kubedb-license-e4a2bd85-5f84-4634-8995-a3e595ba71b7.txt \
           --set global.featureGates.MSSQLServer=true \
@@ -43,11 +43,7 @@ helm upgrade kubedb oci://ghcr.io/appscode-charts/kubedb \
 helm uninstall kubedb --namespace kubedb
 kubectl get crd -o name | grep kubedb.com | xargs kubectl delete
 
-
-
-
-
-Restrict ns kubedb
+Restrict ns KubeDB
 kubectl get ns kubedb -oyaml
 apiVersion: v1
 kind: Namespace
@@ -67,12 +63,17 @@ status:
 
 
 
+
+
+
+
+
+########### TLS Stuff ###########
 # Cert-Manager
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.0/cert-manager.yaml
 
 
 # CSI-Driver-CACerts
-
 helm repo add appscode https://charts.appscode.com/stable/
 helm repo update
 helm upgrade -i \
@@ -82,6 +83,9 @@ helm upgrade -i \
 
 
 
+
+
+####### Monitoring Stuff 
 # kube-prometheus-stack
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
@@ -90,7 +94,6 @@ helm install prometheus prometheus-community/kube-prometheus-stack -n \
 monitoring --set grafana.image.tag=7.5.5 --create-namespace
 
 helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring --create-namespace --wait --burst-limit=100
-
 
 kubectl port-forward -n monitoring service/prometheus-grafana 3000:80
 
@@ -107,11 +110,17 @@ helm upgrade -i panopticon oci://ghcr.io/appscode-charts/panopticon \
   --set-file license=$HOME/Downloads/kubedb-license-e4a2bd85-5f84-4634-8995-a3e595ba71b7.txt
 
 
+####Kubernetes Metrics Server
+kubectl apply -f components.yaml
 
 
 
 
-# KubeStash Installation:
+
+
+
+
+###### KubeStash Installation ###########
 helm install kubestash oci://ghcr.io/appscode-charts/kubestash \
         --version v2024.7.1 \
         --namespace kubestash --create-namespace \
@@ -135,11 +144,14 @@ kubectl delete crd -l=app.kubernetes.io/name=catalog
 
 
 
-DELETE STUCKED NAMESPACE: 
+
+
+####### Storage ###########
+helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace
+
+
+
+#####Delete stucked namespace: 
 kubectl get namespace "kubestash" -o json \
         | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
         | kubectl replace --raw /api/v1/namespaces/kubestash/finalize -f -
-
-
-Kubernetes Metrics Server
-kubectl apply -f components.yaml
