@@ -4,7 +4,7 @@ metadata:
   name: rd-sentinel-v1
   namespace: demo
 spec:
-  version: 7.2.4
+  version: 7.4.0
   replicas: 3
   sentinelRef:
     name: sentinel-v1
@@ -15,7 +15,7 @@ spec:
     resources:
       requests:
         storage: 1Gi
-#    storageClassName: "standard"
+    storageClassName: "standard"
     accessModes:
       - ReadWriteOnce
   podTemplate:

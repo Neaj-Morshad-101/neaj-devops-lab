@@ -72,7 +72,6 @@ kubectl port-forward -n demo svc/ms-std-mon-stats 9399
 http://localhost:9399/metrics
 http://localhost:9399/sql_exporter_metrics
 
-data_source_name: 'server=ms-stand-monitor-0.ms-stand-monitor-pods.demo.svc;user id=sa;password=Pa55w0rd!;database=master;encrypt=true;TrustServerCertificate=true;'
 
 
 kubectl port-forward -n monitoring svc/prometheus-grafana 4000:80
