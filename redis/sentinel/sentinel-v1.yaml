@@ -1,14 +1,16 @@
 apiVersion: kubedb.com/v1
-kind: Redis
+kind: RedisSentinel
 metadata:
-  name: redis-cluster-v1
+  name: sentinel-v1-tls
   namespace: demo
 spec:
   version: 7.4.0
-  mode: Cluster
-  cluster:
-    shards: 3
-    replicas: 2
+  replicas: 3
+  tls:
+    issuerRef:
+      apiGroup: "cert-manager.io"
+      kind: Issuer
+      name: redis-ca-issuer
   storageType: Durable
   storage:
     resources:
@@ -20,21 +22,9 @@ spec:
   podTemplate:
     spec:
       containers:
-      - name: redis
+      - name: redissentinel
         resources:
           requests:
             cpu: 150m
             memory: 150Mi
   deletionPolicy: WipeOut
-  monitor:
-    agent: prometheus.io/operator
-    prometheus:
-      exporter:
-        resources:
-          requests:
-            cpu: "150m"
-            memory: "150Mi"
-      serviceMonitor:
-        labels:
-          release: prometheus
-        interval: 10s

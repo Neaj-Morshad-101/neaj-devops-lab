@@ -1,3 +1,16 @@
+COMMANDS: 
+keys * 
+cluster nodes 
+cluster info
+info 
+
+redis-cli --tls --cert "/certs/client.crt" --key "/certs/client.key" --cacert "/certs/ca.crt"
+
+
+
+
+
+
 Monitoring:
 
 kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-prometheus 9090

@@ -4,12 +4,19 @@ metadata:
   name: rd-stand-v1
   namespace: demo
 spec:
-  version: 7.4.0
+  version: 7.2.4
+  # authSecret:
+  #   name: mysecret
+  #   externallyManaged: true
+
+  # tls:
+  #   issuerRef:
+  #     apiGroup: "cert-manager.io"
+  #     kind: Issuer
+  #     name: redis-ca-issuer
   storageType: Durable
   storage:
     storageClassName: "standard"
-    # storageClassName: "linode-block-storage"
-    # storageClassName: "longhorn"
     accessModes:
     - ReadWriteOnce
     resources:
@@ -23,4 +30,20 @@ spec:
           requests:
             cpu: 150m
             memory: 150Mi
+          limits:
+            cpu: "300m"
+            memory: "300Mi"
+  # monitor:
+  #   agent: prometheus.io/operator
+  #   prometheus:
+  #     exporter:
+  #       resources:
+  #         requests:
+  #           cpu: "150m"
+  #           memory: "150Mi"
+  #     serviceMonitor:
+  #       labels:
+  #         release: prometheus
+  #       interval: 10s
   deletionPolicy: WipeOut
+

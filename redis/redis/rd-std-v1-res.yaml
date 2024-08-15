@@ -1,7 +1,7 @@
 apiVersion: kubedb.com/v1
 kind: Redis
 metadata:
-  name: rd-stand-v1-res
+  name: rd-std-v1-res
   namespace: demo
 spec:
   version: 7.2.4
