@@ -31,8 +31,8 @@ spec:
             cpu: 150m
             memory: 150Mi
           limits:
-            cpu: "300m"
-            memory: "300Mi"
+            cpu: "200m"
+            memory: "200Mi"
   # monitor:
   #   agent: prometheus.io/operator
   #   prometheus:

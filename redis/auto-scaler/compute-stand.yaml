@@ -5,18 +5,18 @@ metadata:
   namespace: demo
 spec:
   databaseRef:
-    name: rd-standalone
+    name: rd-stand-v1
   opsRequestOptions:
     timeout: 3m
     apply: IfReady
   compute:
     standalone:
       trigger: "On"
-      podLifeTimeThreshold: 1m
+      podLifeTimeThreshold: 5m
       resourceDiffPercentage: 10
       minAllowed:
         cpu: 500m
-        memory: 600Mi
+        memory: 500Mi
       maxAllowed:
         cpu: 1
         memory: 1Gi
