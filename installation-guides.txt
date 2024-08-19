@@ -44,25 +44,8 @@ helm upgrade kubedb oci://ghcr.io/appscode-charts/kubedb \
 helm uninstall kubedb --namespace kubedb
 kubectl get crd -o name | grep kubedb.com | xargs kubectl delete
 
-Restrict ns KubeDB
-kubectl get ns kubedb -oyaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  creationTimestamp: "2024-07-02T08:37:55Z"
-  labels:
-    kubernetes.io/metadata.name: kubedb
-    pod-security.kubernetes.io/enforce: restricted // add this label
-  name: kubedb
-  resourceVersion: "162779"
-  uid: ea1f3ffd-ece6-4ce8-b5dd-6aa4b082810f
-spec:
-  finalizers:
-  - kubernetes
-status:
-  phase: Active
-
-
+kubectl label ns demo pod-security.kubernetes.io/enforce=restricted
+kubectl label ns kubedb pod-security.kubernetes.io/enforce=restricted
 
 
 

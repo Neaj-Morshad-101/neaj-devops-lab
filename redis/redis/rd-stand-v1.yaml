@@ -4,19 +4,19 @@ metadata:
   name: rd-stand-v1
   namespace: demo
 spec:
-  version: 7.2.4
+  version: 7.4.0
   # authSecret:
   #   name: mysecret
   #   externallyManaged: true
 
-  # tls:
-  #   issuerRef:
-  #     apiGroup: "cert-manager.io"
-  #     kind: Issuer
-  #     name: redis-ca-issuer
+  tls:
+    issuerRef:
+      apiGroup: "cert-manager.io"
+      kind: Issuer
+      name: redis-ca-issuer
   storageType: Durable
   storage:
-    storageClassName: "standard"
+    storageClassName: "standard" # "longhorn"
     accessModes:
     - ReadWriteOnce
     resources:

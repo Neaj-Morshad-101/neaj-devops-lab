@@ -1,0 +1,24 @@
+apiVersion: autoscaling.kubedb.com/v1alpha1
+kind: RedisSentinelAutoscaler
+metadata:
+  name: sen-as
+  namespace: demo
+spec:
+  databaseRef:
+    name: sentinel-v1-tls
+  opsRequestOptions:
+    timeout: 3m
+    apply: IfReady
+  compute:
+    sentinel:
+      trigger: "On"
+      podLifeTimeThreshold: 5m
+      resourceDiffPercentage: 20
+      minAllowed:
+        cpu: 500m
+        memory: 500Mi
+      maxAllowed:
+        cpu: 1
+        memory: 1Gi
+      controlledResources: ["cpu", "memory"]
+      containerControlledValues: "RequestsAndLimits"

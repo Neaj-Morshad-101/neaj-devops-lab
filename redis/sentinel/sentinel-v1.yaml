@@ -4,7 +4,7 @@ metadata:
   name: sentinel-v1-tls
   namespace: demo
 spec:
-  version: 7.4.0
+  version: 7.2.4
   replicas: 3
   tls:
     issuerRef:
@@ -27,4 +27,7 @@ spec:
           requests:
             cpu: 150m
             memory: 150Mi
+          limits:
+            cpu: "200m"
+            memory: "200Mi"
   deletionPolicy: WipeOut
