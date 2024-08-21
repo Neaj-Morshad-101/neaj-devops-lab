@@ -140,19 +140,3 @@ kubectl get namespace "kubestash" -o json \
         | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
         | kubectl replace --raw /api/v1/namespaces/kubestash/finalize -f -
 
-
-
-
-
-
-
-30 sec lage petset create hoite, for standalone: 2:30 lage ready hoite 
-
-
-
-
-0813 10:34:31.440187       1 secret.go:381] "Secret: demo/mssqlserver-ag-dbm-login created" mssqlserver="demo/mssqlserver-ag"
-I0813 10:34:31.446465       1 client.go:84] Creating /v1, Kind=Secret demo/mssqlserver-ag-master-key.
-I0813 10:34:31.454100       1 secret.go:381] "Secret: demo/mssqlserver-ag-master-key created" mssqlserver="demo/mssqlserver-ag"
-I0813 10:35:12.233541       1 client.go:84] Creating apps.k8s.appscode.com/v1, Kind=PetSet demo/mssqlserver-ag.
-I0813 10:35:12.263051       1 petset.go:162] "PetSet demo/mssqlserver-ag created" mssqlserver="demo/mssqlserver-ag"
