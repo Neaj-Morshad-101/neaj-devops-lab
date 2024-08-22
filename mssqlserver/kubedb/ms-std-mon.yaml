@@ -11,7 +11,7 @@ spec:
       name: mssqlserver-ca-issuer
       kind: Issuer
       apiGroup: "cert-manager.io"
-    clientTLS: false
+    clientTLS: true
   monitor:
     agent: prometheus.io/operator
     prometheus:
@@ -23,7 +23,7 @@ spec:
         interval: 10s
   storageType: Durable
   storage:
-    storageClassName: "linode-block-storage" # "standard"
+    storageClassName: "standard" # "linode-block-storage" # 
     accessModes:
     - ReadWriteOnce
     resources:

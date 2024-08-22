@@ -1,3 +1,87 @@
+Pod Dashboard: 
+Pod Name (md, mg)
+Uptime (md mg 
+Version (md)
+QPS(md mg 
+Latency mg
+Buffer pool size md 
+CPU 
+Memory 
+Open file descriptors
+Connections md mg 
+Command Operations Queries mg 
+Networks
+Aborted Connections 
+Client Thread Activity 
+Thread Cache 
+Last Scrape Durations / Other Scrapes 
+
+Pod Status Running 
+Role (master, slave) 
+My master 
+My slaves 
+
+
+
+
+Database Dashboard:
+instance , pod, podname
+UP, Uptime
+QPS(md mg 
+Latency mg
+Buffer pool size md 
+CPU 
+Memory 
+Open file descriptors
+Connections md mg 
+Command Operations Queries mg 
+Networks
+Aborted Connections 
+
+Cluster Name, 
+Cluster Members 
+Primary Node 
+Replication Delay / Latency / Lag 
+Cluster Size by each pod (joined with how my nodes)
+Cluster Status (Prmary, Secondary, Secondary to pods)
+Last Election 
+
+ 
+Pod Status Running 
+Podwise Role (master, slave) 
+My slaves
+Mode 
+
+
+
+Postgres Pod: 
+up,
+role,
+connections  
+cpu
+memory 
+file descriptors
+
+
+Postgres DB: (By selecting one database)
+QPS
+Transactions 
+Active Sessions 
+Rows 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
