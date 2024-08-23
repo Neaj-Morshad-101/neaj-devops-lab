@@ -1,13 +1,13 @@
 apiVersion: kubedb.com/v1
 kind: Redis
 metadata:
-  name: rd-sentinel-v1-tls
+  name: rd-sentinel-v1
   namespace: demo
 spec:
   version: 7.4.0
   replicas: 3
   sentinelRef:
-    name: sentinel-v1-tls
+    name: sentinel-v1
     namespace: demo
   mode: Sentinel
   tls:
@@ -20,7 +20,7 @@ spec:
     resources:
       requests:
         storage: 1Gi
-    storageClassName: "standard"
+    storageClassName: "linode-block-storage" # "standard" # "longhorn"
     accessModes:
       - ReadWriteOnce
   podTemplate:

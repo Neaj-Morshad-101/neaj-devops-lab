@@ -1,0 +1,163 @@
+# HELP mssql_batch_requests Number of command batches received.
+# TYPE mssql_batch_requests counter
+mssql_batch_requests{target="mssql_database"} 18689
+
+
+# HELP mssql_buffer_cache_hit_ratio Ratio of requests that hit the buffer cache
+# TYPE mssql_buffer_cache_hit_ratio gauge
+mssql_buffer_cache_hit_ratio{target="mssql_database"} 170
+
+
+# HELP mssql_checkpoint_pages_sec Checkpoint Pages Per Second
+# TYPE mssql_checkpoint_pages_sec gauge
+mssql_checkpoint_pages_sec{target="mssql_database"} 81
+
+
+# HELP mssql_connections Number of active connections.
+# TYPE mssql_connections gauge
+mssql_connections{db="master",target="mssql_database"} 61
+mssql_connections{db="msdb",target="mssql_database"} 3
+
+
+# HELP mssql_deadlocks Number of lock requests that resulted in a deadlock.
+# TYPE mssql_deadlocks counter
+mssql_deadlocks{target="mssql_database"} 0
+
+
+# HELP mssql_hostname Database server hostname
+# TYPE mssql_hostname gauge
+mssql_hostname{hostname="ms-ag-mon-1",target="mssql_database"} 1
+
+
+# HELP mssql_io_stall_seconds Stall time in seconds per database and I/O operation.
+# TYPE mssql_io_stall_seconds counter
+mssql_io_stall_seconds{db="agdb1",operation="read",target="mssql_database"} 0.611
+mssql_io_stall_seconds{db="agdb1",operation="write",target="mssql_database"} 0.04
+mssql_io_stall_seconds{db="agdb2",operation="read",target="mssql_database"} 0.46
+mssql_io_stall_seconds{db="agdb2",operation="write",target="mssql_database"} 0.052
+mssql_io_stall_seconds{db="kubedb_system",operation="read",target="mssql_database"} 0.015
+mssql_io_stall_seconds{db="kubedb_system",operation="write",target="mssql_database"} 0.141
+mssql_io_stall_seconds{db="master",operation="read",target="mssql_database"} 0.107
+mssql_io_stall_seconds{db="master",operation="write",target="mssql_database"} 0.077
+mssql_io_stall_seconds{db="model",operation="read",target="mssql_database"} 0.155
+mssql_io_stall_seconds{db="model",operation="write",target="mssql_database"} 0.017
+mssql_io_stall_seconds{db="msdb",operation="read",target="mssql_database"} 0.195
+mssql_io_stall_seconds{db="msdb",operation="write",target="mssql_database"} 0.018
+mssql_io_stall_seconds{db="tempdb",operation="read",target="mssql_database"} 0.05
+mssql_io_stall_seconds{db="tempdb",operation="write",target="mssql_database"} 0.006
+
+
+# HELP mssql_io_stall_total_seconds Total stall time in seconds per database.
+# TYPE mssql_io_stall_total_seconds counter
+mssql_io_stall_total_seconds{db="agdb1",target="mssql_database"} 0.651
+mssql_io_stall_total_seconds{db="agdb2",target="mssql_database"} 0.512
+mssql_io_stall_total_seconds{db="kubedb_system",target="mssql_database"} 0.156
+mssql_io_stall_total_seconds{db="master",target="mssql_database"} 0.184
+mssql_io_stall_total_seconds{db="model",target="mssql_database"} 0.172
+mssql_io_stall_total_seconds{db="msdb",target="mssql_database"} 0.213
+mssql_io_stall_total_seconds{db="tempdb",target="mssql_database"} 0.056
+
+
+
+# HELP mssql_kill_connection_errors Number of severe errors that caused SQL Server to kill the connection.
+# TYPE mssql_kill_connection_errors counter
+mssql_kill_connection_errors{target="mssql_database"} 0
+
+
+
+# HELP mssql_local_time_seconds Local time in seconds since epoch (Unix time).
+# TYPE mssql_local_time_seconds gauge
+mssql_local_time_seconds{target="mssql_database"} 1.724388803e+09
+
+
+
+# HELP mssql_log_growths Number of times the transaction log has been expanded, per database.
+# TYPE mssql_log_growths counter
+mssql_log_growths{db="agdb1",target="mssql_database"} 0
+mssql_log_growths{db="agdb2",target="mssql_database"} 0
+mssql_log_growths{db="kubedb_system",target="mssql_database"} 0
+mssql_log_growths{db="master",target="mssql_database"} 0
+mssql_log_growths{db="model",target="mssql_database"} 0
+mssql_log_growths{db="model_msdb",target="mssql_database"} 3
+mssql_log_growths{db="model_replicatedmaster",target="mssql_database"} 6
+mssql_log_growths{db="msdb",target="mssql_database"} 0
+mssql_log_growths{db="mssqlsystemresource",target="mssql_database"} 0
+mssql_log_growths{db="tempdb",target="mssql_database"} 0
+mssql_log_growths{db="agdb1",env="dev",region="europe",target="mssql_database"} 0
+mssql_log_growths{db="agdb2",env="dev",region="europe",target="mssql_database"} 0
+mssql_log_growths{db="kubedb_system",env="dev",region="europe",target="mssql_database"} 0
+mssql_log_growths{db="master",env="dev",region="europe",target="mssql_database"} 0
+mssql_log_growths{db="model",env="dev",region="europe",target="mssql_database"} 0
+mssql_log_growths{db="model_msdb",env="dev",region="europe",target="mssql_database"} 3
+mssql_log_growths{db="model_replicatedmaster",env="dev",region="europe",target="mssql_database"} 6
+mssql_log_growths{db="msdb",env="dev",region="europe",target="mssql_database"} 0
+mssql_log_growths{db="mssqlsystemresource",env="dev",region="europe",target="mssql_database"} 0
+mssql_log_growths{db="tempdb",env="dev",region="europe",target="mssql_database"} 0
+
+
+
+# HELP mssql_memory_utilization_percentage The percentage of committed memory that is in the working set.
+# TYPE mssql_memory_utilization_percentage gauge
+mssql_memory_utilization_percentage{target="mssql_database"} 100
+
+
+
+# HELP mssql_os_memory OS physical memory, used and available.
+# TYPE mssql_os_memory gauge
+mssql_os_memory{state="available",target="mssql_database"} 2.817949696e+09
+mssql_os_memory{state="used",target="mssql_database"} 1.0058563584e+10
+
+
+
+# HELP mssql_os_page_file OS page file, used and available.
+# TYPE mssql_os_page_file gauge
+mssql_os_page_file{state="available",target="mssql_database"} 2.817949696e+09
+mssql_os_page_file{state="used",target="mssql_database"} 1.0058563584e+10
+
+
+
+# HELP mssql_page_fault_count The number of page faults that were incurred by the SQL Server process.
+# TYPE mssql_page_fault_count counter
+mssql_page_fault_count{target="mssql_database"} 0
+
+
+
+# HELP mssql_page_life_expectancy_seconds The minimum number of seconds a page will stay in the buffer pool on this node without references.
+# TYPE mssql_page_life_expectancy_seconds gauge
+mssql_page_life_expectancy_seconds{target="mssql_database"} 2083
+
+
+
+# HELP mssql_resident_memory_bytes SQL Server resident memory size (AKA working set).
+# TYPE mssql_resident_memory_bytes gauge
+mssql_resident_memory_bytes{target="mssql_database"} 4.380950528e+09
+
+
+
+# HELP mssql_user_errors Number of user errors.
+# TYPE mssql_user_errors counter
+mssql_user_errors{target="mssql_database"} 119
+
+
+
+# HELP mssql_virtual_memory_bytes SQL Server committed virtual memory size.
+# TYPE mssql_virtual_memory_bytes gauge
+mssql_virtual_memory_bytes{target="mssql_database"} 6.09845248e+08
+
+
+
+# HELP scrape_duration_seconds How long it took to scrape the target in seconds
+# TYPE scrape_duration_seconds gauge
+scrape_duration_seconds{target="mssql_database"} 0.010813865
+
+
+
+# HELP scrape_errors_total Total number of scrape errors per job, target, collector and query
+# TYPE scrape_errors_total counter
+scrape_errors_total{collector="",job="",query="",target="mssql_database"} 1
+
+
+
+# HELP up 1 if the target is reachable, or 0 if the scrape failed
+# TYPE up gauge
+up{target="mssql_database"} 1

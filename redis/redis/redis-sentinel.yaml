@@ -7,7 +7,7 @@ spec:
   version: 7.2.4
   replicas: 3
   sentinelRef:
-    name: sen-demo
+    name: sentinel
     namespace: demo
   mode: Sentinel
   storageType: Durable
@@ -15,7 +15,7 @@ spec:
     resources:
       requests:
         storage: 1Gi
-    storageClassName: "standard"
+    storageClassName: "linode-block-storage" # "standard" # "longhorn"
     accessModes:
       - ReadWriteOnce
   coordinator:

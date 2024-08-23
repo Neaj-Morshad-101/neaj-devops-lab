@@ -1,7 +1,7 @@
 apiVersion: kubedb.com/v1
 kind: RedisSentinel
 metadata:
-  name: sentinel-v1-tls
+  name: sentinel-v1
   namespace: demo
 spec:
   version: 7.2.4
@@ -16,7 +16,7 @@ spec:
     resources:
       requests:
         storage: 1Gi
-    storageClassName: "standard"
+    storageClassName: "linode-block-storage" # "standard" # "longhorn"
     accessModes:
     - ReadWriteOnce
   podTemplate:
