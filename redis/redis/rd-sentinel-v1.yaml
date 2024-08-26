@@ -23,6 +23,18 @@ spec:
     storageClassName: "linode-block-storage" # "standard" # "longhorn"
     accessModes:
       - ReadWriteOnce
+  monitor:
+    agent: prometheus.io/operator
+    prometheus:
+      exporter:
+        resources:
+          requests:
+            cpu: "150m"
+            memory: "150Mi"
+      serviceMonitor:
+        labels:
+          release: prometheus
+        interval: 10s
   podTemplate:
     spec:
       containers:
