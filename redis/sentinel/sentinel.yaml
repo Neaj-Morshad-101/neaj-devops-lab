@@ -20,4 +20,16 @@ spec:
         requests:
           cpu: "150m"
           memory: "150Mi"
+  monitor:
+    agent: prometheus.io/operator
+    prometheus:
+      exporter:
+        resources:
+          requests:
+            cpu: "150m"
+            memory: "150Mi"
+      serviceMonitor:
+        labels:
+          release: prometheus
+        interval: 10s
   terminationPolicy: WipeOut

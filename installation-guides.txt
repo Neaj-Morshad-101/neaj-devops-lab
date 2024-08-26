@@ -9,7 +9,8 @@ helm install kubedb oci://ghcr.io/appscode-charts/kubedb \
     --set global.featureGates.MSSQLServer=true \
     --wait --burst-limit=10000 --debug
 
-
+v2024.8.21
+v2024.6.4
 helm install kubedb oci://ghcr.io/appscode-charts/kubedb \
           --version v2024.6.4 \
           --namespace kubedb --create-namespace \
@@ -107,9 +108,9 @@ kubectl apply -f components.yaml
 
 ###### KubeStash Installation ###########
 helm install kubestash oci://ghcr.io/appscode-charts/kubestash \
-        --version v2024.7.1 \
+        --version v2024.8.14 \
         --namespace kubestash --create-namespace \
-        --set-file global.license=$HOME/Downloads/kubedb-license-51997c33-cf39-482c-a64e-1645f3b1d066.txt \
+        --set-file global.license=$HOME/Downloads/kubedb-license-ffbd8686-d772-4fd2-8390-62d9168eb594.txt \
         --wait --burst-limit=10000 --debug
 Upgrade:
 # Update catalog CRDs
