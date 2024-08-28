@@ -12,9 +12,9 @@ helm install kubedb oci://ghcr.io/appscode-charts/kubedb \
 v2024.8.21
 v2024.6.4
 helm install kubedb oci://ghcr.io/appscode-charts/kubedb \
-          --version v2024.6.4 \
+          --version v2024.8.21 \
           --namespace kubedb --create-namespace \
-          --set-file global.license=$HOME/Downloads/kubedb-license-ffbd8686-d772-4fd2-8390-62d9168eb594.txt \
+          --set-file global.license=$HOME/Downloads/kubedb-license-07545d0d-d007-419f-9723-bfeeab1c39a3.txt \
           --set global.featureGates.MSSQLServer=true \
           --set global.featureGates.MySQL=true \
           --set global.featureGates.Postgres=true \
@@ -36,7 +36,7 @@ Upgrade KubeDB Operator
 helm upgrade kubedb oci://ghcr.io/appscode-charts/kubedb \
           --version v2024.8.21 \
           --namespace kubedb --create-namespace \
-          --set-file global.license=$HOME/Downloads/kubedb-license-ffbd8686-d772-4fd2-8390-62d9168eb594.txt \
+          --set-file global.license=$HOME/Downloads/kubedb-license-0919430b-ab5d-4b7f-a734-444e5ef647a5.txt \
           --set kubedb-catalog.skipDeprecated=false \
           --set global.featureGates.MSSQLServer=true \
           --set global.featureGates.MySQL=true \
@@ -93,7 +93,7 @@ helm upgrade -i monitoring-operator oci://ghcr.io/appscode-charts/monitoring-ope
 helm upgrade -i panopticon oci://ghcr.io/appscode-charts/panopticon \
   --version v2024.2.5 \
   -n monitoring --create-namespace \
-  --set-file license=$HOME/Downloads/kubedb-license-8a60fe0b-57b5-418f-9da4-05a62553ee8e.txt
+  --set-file license=$HOME/Downloads/kubedb-license-07545d0d-d007-419f-9723-bfeeab1c39a3.txt
 
 
 ####Kubernetes Metrics Server
@@ -110,13 +110,13 @@ kubectl apply -f components.yaml
 helm install kubestash oci://ghcr.io/appscode-charts/kubestash \
         --version v2024.8.14 \
         --namespace kubestash --create-namespace \
-        --set-file global.license=$HOME/Downloads/kubedb-license-ffbd8686-d772-4fd2-8390-62d9168eb594.txt \
+        --set-file global.license=$HOME/Downloads/kubedb-license-07545d0d-d007-419f-9723-bfeeab1c39a3.txt \
         --wait --burst-limit=10000 --debug
 Upgrade:
 # Update catalog CRDs
-$ kubectl apply -f https://github.com/kubestash/installer/raw/v2024.7.1/crds/kubestash-crds.yaml
+$ kubectl apply -f https://github.com/kubestash/installer/raw/v2024.8.14/crds/kubestash-crds.yaml
 helm upgrade kubestash oci://ghcr.io/appscode-charts/kubestash \
-    --version v2024.7.1 \
+    --version v2024.8.14 \
     --namespace kubestash \
     --set-file global.license=/path/to/the/license.txt \
     --wait --burst-limit=10000 --debug
@@ -146,13 +146,3 @@ kubectl get namespace "kubestash" -o json \
 
 
 
-
-
-
-
-
-
-
-
-kubedb-kubedb-webhook-server-568ddf4676-92pfc   1/1     Running    0          14m
-kubedb-kubedb-webhook-server-757d84f57b-lbdjg   1/1     Running    0          80s

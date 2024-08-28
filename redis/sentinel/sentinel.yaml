@@ -11,7 +11,7 @@ spec:
     resources:
       requests:
         storage: 1Gi
-    storageClassName: "linode-block-storage" # "standard" # "longhorn"
+    storageClassName: "standard" # "linode-block-storage" # "standard" # "longhorn"
     accessModes:
     - ReadWriteOnce
   podTemplate:

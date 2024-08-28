@@ -16,7 +16,7 @@ spec:
       name: redis-ca-issuer
   storageType: Durable
   storage:
-    storageClassName: "linode-block-storage" # "standard" # "longhorn"
+    storageClassName: "longhorn" # "standard" # "longhorn"
     accessModes:
     - ReadWriteOnce
     resources:

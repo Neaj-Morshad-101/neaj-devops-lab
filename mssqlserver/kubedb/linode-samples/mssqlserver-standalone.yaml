@@ -14,7 +14,7 @@ spec:
       apiGroup: "cert-manager.io"
     clientTLS: false
   storage:
-    # storageClassName: "standard"
+    storageClassName: "linode-block-storage" # "linode-block-storage" # 
     accessModes:
     - ReadWriteOnce
     resources:

@@ -1,7 +1,7 @@
 apiVersion: core.kubestash.com/v1alpha1
 kind: BackupConfiguration
 metadata:
-  name: redis-bc
+  name: rd-backup-config
   namespace: demo
 spec:
   paused: true
@@ -27,6 +27,18 @@ spec:
         failedJobsHistoryLimit: 1
         jobTemplate:
           backoffLimit: 1
+          template:
+            spec:
+              securityContext:
+                runAsUser: 65535
+                runAsNonRoot: true
+                seccompProfile:
+                  type: RuntimeDefault
+              containerSecurityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
       repositories:
         - name: s3-repo-cluster-new # s3-repo-stad
           backend: s3-backend
@@ -38,3 +50,15 @@ spec:
         name: redis-addon
         tasks:
           - name: logical-backup
+        jobTemplate:
+          spec: 
+            securityContext: 
+              runAsUser: 65535
+              runAsNonRoot: true
+              seccompProfile:
+                type: RuntimeDefault
+            containerSecurityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL

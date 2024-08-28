@@ -1,11 +1,11 @@
 apiVersion: ops.kubedb.com/v1alpha1
 kind: RedisOpsRequest
 metadata:
-  name: horizontal-up
+  name: horizontal-down
   namespace: demo
 spec:
   type: HorizontalScaling
   databaseRef:
-    name: redis-cluster-v1
+    name: rd-cluster-v1
   horizontalScaling:
-    shards: 3
+    replicas: 2

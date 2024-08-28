@@ -1,4 +1,4 @@
-apiVersion: kubedb.com/v1
+piVersion: kubedb.com/v1
 kind: Redis
 metadata:
   name: rd-cluster-tls
@@ -15,7 +15,7 @@ spec:
       kind: Issuer
       name: redis-ca-issuer
   storage:
-    # storageClassName: "standard"
+    storageClassName: "standard"
     accessModes:
       - ReadWriteOnce
     resources:
