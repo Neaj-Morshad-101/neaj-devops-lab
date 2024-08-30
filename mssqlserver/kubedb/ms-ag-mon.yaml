@@ -35,7 +35,7 @@ spec:
         interval: 10s
   storageType: Durable
   storage:
-    storageClassName: "linode-block-storage" # "linode-block-storage" # 
+    storageClassName: "standard" # "linode-block-storage" # 
     accessModes:
     - ReadWriteOnce
     resources:
