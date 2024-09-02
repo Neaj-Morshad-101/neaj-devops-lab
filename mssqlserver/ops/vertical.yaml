@@ -1,0 +1,18 @@
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MSSQLServerOpsRequest
+metadata:
+  name: vertical-ag
+  namespace: demo
+spec:
+  type: VerticalScaling
+  databaseRef:
+    name: mssqlserver-ag
+  verticalScaling:
+    mssqlserver:
+      resources:
+        requests:
+          memory: "2Gi"
+          cpu: "800m"
+        limits:
+          memory: "2Gi"
+          cpu: "800m"
