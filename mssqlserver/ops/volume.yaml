@@ -1,12 +1,12 @@
 apiVersion: ops.kubedb.com/v1alpha1
 kind: MSSQLServerOpsRequest
 metadata:
-  name: ms-online-volume-expansion
+  name: ms-offline-ag
   namespace: demo
 spec:
   type: VolumeExpansion  
   databaseRef:
-    name: mssql-standalone
+    name: mssqlserver-ag
   volumeExpansion:   
-    mode: "Online"
-    mssqlserver: 2Gi
+    mode: "Offline" #"Offline"
+    mssqlserver: 11Gi
