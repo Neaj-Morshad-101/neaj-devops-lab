@@ -4,7 +4,7 @@ metadata:
   name: mssql-standalone
   namespace: demo
 spec:
-  version: "2022-cu12"
+  version: "2022-cu14"
   replicas: 1
   storageType: Durable
   tls:
@@ -34,7 +34,7 @@ spec:
           release: prometheus
         interval: 10s
   storage:
-    storageClassName: "longhorn"
+    storageClassName: "standard"
     accessModes:
     - ReadWriteOnce
     resources:

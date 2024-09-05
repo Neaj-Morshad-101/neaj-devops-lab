@@ -1,0 +1,11 @@
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MSSQLServerOpsRequest
+metadata:
+  name: update-ag
+  namespace: demo
+spec:
+  type: UpdateVersion
+  databaseRef:
+    name: mssqlserver-ag
+  updateVersion:
+    targetVersion: 2022-cu14
