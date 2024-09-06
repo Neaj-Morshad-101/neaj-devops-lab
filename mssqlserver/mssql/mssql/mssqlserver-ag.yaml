@@ -5,7 +5,7 @@ metadata:
   namespace: demo
 spec:
   version: "2022-cu14"
-  replicas: 3
+  replicas: 2
   # authSecret:
   #   name: mssql-auth
   #   externallyManaged: true
