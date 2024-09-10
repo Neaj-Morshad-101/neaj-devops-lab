@@ -17,6 +17,13 @@ SELECT encrypt_option FROM sys.dm_exec_connections WHERE session_id = @@SPID
 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "
 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "Pa55w0rd!"
 
+/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "
+
+kubectl get pods -n demo --selector=app.kubernetes.io/instance=mssqlserver-ag -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.metadata.labels.kubedb\.com/role}{"\n"}{end}'
+
+
+SELECT replica_server_name FROM sys.availability_replicas;
+
 
 SELECT synchronization_health_desc from sys.dm_hadr_availability_group_states
 
