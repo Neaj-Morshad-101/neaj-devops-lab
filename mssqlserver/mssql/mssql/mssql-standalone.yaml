@@ -4,7 +4,9 @@ metadata:
   name: mssql-standalone
   namespace: demo
 spec:
-  version: "2022-cu14"
+  version: "2022-cu12"
+  configSecret:
+    name: ms-config
   replicas: 1
   storageType: Durable
   tls:
@@ -12,7 +14,7 @@ spec:
       name: mssqlserver-ca-issuer
       kind: Issuer
       apiGroup: "cert-manager.io"
-    clientTLS: false
+    clientTLS: true
   podTemplate:
     spec:
       containers:

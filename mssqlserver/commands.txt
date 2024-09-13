@@ -83,3 +83,38 @@ http://localhost:9399/sql_exporter_metrics
 
 kubectl port-forward -n monitoring svc/prometheus-grafana 4000:80
 http://localhost:4000/login
+
+
+
+
+
+
+
+[memory]
+memorylimitmb = 4096
+
+
+[network]
+tlscert = /var/opt/mssql/tls/server.crt
+tlskey = /var/opt/mssql/tls/server.key
+tlsprotocols = 1.2
+forceencryption = 1
+
+[language]
+lcid = 1036
+
+
+SELECT value_in_use FROM sys.configurations WHERE name = 'max server memory (MB)';
+
+
+SELECT encrypt_option FROM sys.dm_exec_connections WHERE session_id = @@SPID;
+
+
+
+
+SELECT availability_group_id, replica_id FROM sys.dm_hadr_availability_replica_states;
+
+
+
+
+SELECT default_language_name FROM sys.server_principals WHERE name = 'sa';  -- or your specific login name

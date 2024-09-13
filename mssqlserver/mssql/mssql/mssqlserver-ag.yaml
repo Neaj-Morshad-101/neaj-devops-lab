@@ -4,11 +4,14 @@ metadata:
   name: mssqlserver-ag
   namespace: demo
 spec:
-  version: "2022-cu14"
-  replicas: 2
+  version: "2022-cu12"
+  replicas: 1
   # authSecret:
   #   name: mssql-auth
   #   externallyManaged: true
+  configSecret:
+    name: ms-config
+  replicas: 2
   topology:
     mode: AvailabilityGroup
     availabilityGroup:
@@ -26,7 +29,7 @@ spec:
       name: mssqlserver-ca-issuer
       kind: Issuer
       apiGroup: "cert-manager.io"
-    clientTLS: false
+    clientTLS: true
   monitor:
     agent: prometheus.io/operator
     prometheus:
