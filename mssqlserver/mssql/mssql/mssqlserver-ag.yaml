@@ -5,13 +5,12 @@ metadata:
   namespace: demo
 spec:
   version: "2022-cu12"
-  replicas: 1
+  replicas: 2
   # authSecret:
   #   name: mssql-auth
   #   externallyManaged: true
   configSecret:
     name: ms-config
-  replicas: 2
   topology:
     mode: AvailabilityGroup
     availabilityGroup:

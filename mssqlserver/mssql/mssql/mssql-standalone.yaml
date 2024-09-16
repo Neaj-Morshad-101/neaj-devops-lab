@@ -5,8 +5,8 @@ metadata:
   namespace: demo
 spec:
   version: "2022-cu12"
-  configSecret:
-    name: ms-config
+  # configSecret:
+  #   name: ms-config
   replicas: 1
   storageType: Durable
   tls:
@@ -21,20 +21,20 @@ spec:
       - name: mssql
         resources:
           requests:
-            cpu: "500m"
-            memory: "1.5Gi"
+            cpu: "2000m"
+            memory: "4Gi"
           # limits:
           #   cpu: "600m"
           #   memory: "1.6Gi"
-  monitor:
-    agent: prometheus.io/operator
-    prometheus:
-      exporter:
-        port: 9399
-      serviceMonitor:
-        labels:
-          release: prometheus
-        interval: 10s
+  # monitor:
+  #   agent: prometheus.io/operator
+  #   prometheus:
+  #     exporter:
+  #       port: 9399
+  #     serviceMonitor:
+  #       labels:
+  #         release: prometheus
+  #       interval: 10s
   storage:
     storageClassName: "standard"
     accessModes:
