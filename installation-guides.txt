@@ -139,6 +139,12 @@ helm install longhorn longhorn/longhorn --namespace longhorn-system --create-nam
 
 
 
+
+cannot uninstall Longhorn because deleting-confirmation-flag is set to `false`. Please set it to `true` using Longhorn UI or 
+
+kubectl -n longhorn-system edit settings.longhorn.io deleting-confirmation-flag
+helm uninstall longhorn -n longhorn-system
+
 #####Delete stucked namespace: 
 kubectl get namespace "kubestash" -o json \
         | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \

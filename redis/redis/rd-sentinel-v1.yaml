@@ -1,40 +1,40 @@
 apiVersion: kubedb.com/v1
 kind: Redis
 metadata:
-  name: rd-sentinel-v1
+  name: rd-sentinel-v1-res
   namespace: demo
 spec:
   version: 7.4.0
-  replicas: 3
+  replicas: 2
   sentinelRef:
     name: sentinel-v1
     namespace: demo
   mode: Sentinel
-  tls:
-    issuerRef:
-      apiGroup: "cert-manager.io"
-      kind: Issuer
-      name: redis-ca-issuer
+  # tls:
+  #   issuerRef:
+  #     apiGroup: "cert-manager.io"
+  #     kind: Issuer
+  #     name: redis-ca-issuer
   storageType: Durable
   storage:
     resources:
       requests:
         storage: 1Gi
-    storageClassName: "linode-block-storage" # "standard" # "longhorn"
+    storageClassName: "standard" # "standard" # "longhorn"
     accessModes:
       - ReadWriteOnce
-  monitor:
-    agent: prometheus.io/operator
-    prometheus:
-      exporter:
-        resources:
-          requests:
-            cpu: "150m"
-            memory: "150Mi"
-      serviceMonitor:
-        labels:
-          release: prometheus
-        interval: 10s
+  # monitor:
+  #   agent: prometheus.io/operator
+  #   prometheus:
+  #     exporter:
+  #       resources:
+  #         requests:
+  #           cpu: "150m"
+  #           memory: "150Mi"
+  #     serviceMonitor:
+  #       labels:
+  #         release: prometheus
+  #       interval: 10s
   podTemplate:
     spec:
       containers:

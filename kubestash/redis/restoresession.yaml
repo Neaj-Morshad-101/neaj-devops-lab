@@ -1,17 +1,17 @@
 apiVersion: core.kubestash.com/v1alpha1
 kind: RestoreSession
 metadata:
-  name: rd-cluster-v1-rs
+  name: rd-stand-res
   namespace: demo
 spec:
   target:
-    name: rd-cluster-v1-res # rd-stand-v1-res # redis-cluster-v1-res
+    name: rd-sentinel-v1-res # rd-stand-v1-res # redis-cluster-v1-res
     namespace: demo
     apiGroup: kubedb.com
     kind: Redis
   dataSource:
     snapshot: latest
-    repository: s3-repo-cluster-new # s3-repo-stand # s3-repo-cluster
+    repository: s3-repo-sen-new # s3-repo-stand # s3-repo-cluster
     encryptionSecret:
       name: encry-secret 
       namespace: demo
