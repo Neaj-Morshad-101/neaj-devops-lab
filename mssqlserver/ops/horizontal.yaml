@@ -1,7 +1,7 @@
 apiVersion: ops.kubedb.com/v1alpha1
 kind: MSSQLServerOpsRequest
 metadata:
-  name: msops-horizontal-down
+  name: msops-horizontal-up2
   namespace: demo
 spec:
   type: HorizontalScaling

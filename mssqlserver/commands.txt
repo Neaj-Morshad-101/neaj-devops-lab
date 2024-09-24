@@ -20,7 +20,17 @@ SELECT encrypt_option FROM sys.dm_exec_connections WHERE session_id = @@SPID
 mssql running?
 ps aux | grep -v grep | grep -c sqlservr
 
+/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P JzbyIXY6i5Wa4TSi -Q SHUTDOWN -No
 
+
+kubectl logs mssql-standalone-0 -n demo -c mssql
+kubectl logs mssql-standalone-0 -n demo -c exporter
+kubectl delete pod mssql-standalone-0 -n demo --grace-period=0 --force
+kubectl describe pod mssql-standalone-0 -n demo
+kubectl describe node
+kubectl describe pvc data-mssql-standalone-0 -n demo
+
+pod's role?
 kubectl get pods -n demo --selector=app.kubernetes.io/instance=mssqlserver-ag -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.metadata.labels.kubedb\.com/role}{"\n"}{end}'
 
 
@@ -101,6 +111,11 @@ tlskey = /var/opt/mssql/tls/server.key
 tlsprotocols = 1.2
 forceencryption = 1
 
+English---------
+[language]
+lcid = 1033
+
+France ---------- 
 [language]
 lcid = 1036
 
