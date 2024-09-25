@@ -1,11 +1,16 @@
 apiVersion: kubedb.com/v1alpha2
 kind: MSSQLServer
 metadata:
-  name: ms-ag-mon
+  name: mssql-ag
   namespace: demo
 spec:
   version: "2022-cu12"
-  replicas: 3
+  replicas: 2
+  # authSecret:
+  #   name: mssql-auth
+  #   externallyManaged: true
+  # configSecret:
+  #   name: ms-config
   topology:
     mode: AvailabilityGroup
     availabilityGroup:
@@ -24,18 +29,29 @@ spec:
       kind: Issuer
       apiGroup: "cert-manager.io"
     clientTLS: false
-  monitor:
-    agent: prometheus.io/operator
-    prometheus:
-      exporter:
-        port: 9399
-      serviceMonitor:
-        labels:
-          release: prometheus
-        interval: 10s
+  # monitor:
+  #   agent: prometheus.io/operator
+  #   prometheus:
+  #     exporter:
+  #       port: 9399
+  #     serviceMonitor:
+  #       labels:
+  #         release: prometheus
+  #       interval: 10s
+  podTemplate:
+    spec:
+      containers:
+      - name: mssql
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1.5Gi"
+          # limits:
+          #   cpu: "600m"
+          #   memory: "1.6Gi"
   storageType: Durable
   storage:
-    storageClassName: "standard" # "linode-block-storage" # 
+    storageClassName: "standard"
     accessModes:
     - ReadWriteOnce
     resources:
