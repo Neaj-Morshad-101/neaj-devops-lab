@@ -93,7 +93,7 @@ helm upgrade -i monitoring-operator oci://ghcr.io/appscode-charts/monitoring-ope
 helm upgrade -i panopticon oci://ghcr.io/appscode-charts/panopticon \
   --version v2024.2.5 \
   -n monitoring --create-namespace \
-  --set-file license=$HOME/Downloads/kubedb-license-6506aa83-a41b-405e-a535-5aa456b56ead.txt
+  --set-file license=$HOME/Downloads/kubedb-license-ae9a82a4-4704-4c80-8d1d-cdb585631bd4.txt
 
 
 #### Kubernetes Metrics Server
@@ -104,11 +104,9 @@ kubectl apply -f components.yaml
 
 
 
-
-
 ###### KubeStash Installation ###########
 helm install kubestash oci://ghcr.io/appscode-charts/kubestash \
-        --version v2024.8.14 \
+        --version v2024.9.30 \
         --namespace kubestash --create-namespace \
         --set-file global.license=$HOME/Downloads/kubedb-license-07545d0d-d007-419f-9723-bfeeab1c39a3.txt \
         --wait --burst-limit=10000 --debug
