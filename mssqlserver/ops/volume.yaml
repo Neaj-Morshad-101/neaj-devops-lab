@@ -9,4 +9,4 @@ spec:
     name: mssqlserver-ag
   volumeExpansion:   
     mode: "Offline" #"Offline"
-    mssqlserver: 11Gi
+    mssqlserver: 30Gi
