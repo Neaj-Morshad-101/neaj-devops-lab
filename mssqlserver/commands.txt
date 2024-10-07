@@ -10,7 +10,7 @@ kubectl view-secret -n demo mssqlserver-standalone-auth password
 
 SELECT encrypt_option FROM sys.dm_exec_connections WHERE session_id = @@SPID
 
-
+cat /var/opt/mssql/mssql.conf
 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "
 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "Pa55w0rd!"
 
@@ -119,8 +119,15 @@ France ----------
 lcid = 1036
 
 
+
+
+
 SELECT value_in_use FROM sys.configurations WHERE name = 'max server memory (MB)';
 
 SELECT encrypt_option FROM sys.dm_exec_connections WHERE session_id = @@SPID;
 
 SELECT default_language_name FROM sys.server_principals WHERE name = 'sa';  -- or your specific login name
+
+
+cat /var/opt/mssql/mssql.conf
+/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P
