@@ -1,7 +1,7 @@
 apiVersion: kubedb.com/v1
 kind: Redis
 metadata:
-  name: rd-sentinel-v1-res
+  name: rd-sentinel-v1
   namespace: demo
 spec:
   version: 7.4.0

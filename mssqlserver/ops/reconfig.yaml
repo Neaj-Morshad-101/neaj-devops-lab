@@ -1,0 +1,31 @@
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MSSQLServerOpsRequest
+metadata:
+  name: msops-reconfigure
+  namespace: demo
+spec:
+  type: Reconfigure
+  databaseRef:
+    name: mssql-ag
+  configuration:
+      configSecret:
+        name: new-custom-config
+  apply: IfReady
+
+
+
+
+
+# apiVersion: ops.kubedb.com/v1alpha1
+# kind: MSSQLServerOpsRequest
+# metadata:
+#   name: msops-apply-reconfig
+#   namespace: demo
+# spec:
+#   type: Reconfigure
+#   databaseRef:
+#     name: mssql-standalone
+#   configuration:
+#     applyConfig:
+#       mssql.conf: |-
+#         maxclients 3000        

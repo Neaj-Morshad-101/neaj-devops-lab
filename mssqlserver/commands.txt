@@ -80,7 +80,6 @@ INSERT INTO Data(ID, Name, Age) VALUES (6, 'John Doe', 25);
 
 
 Monitoring:
-
 kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-prometheus 9090
 kubectl port-forward -n monitoring prometheus-prometheus-kube-prometheus-prometheus-0 9090
 
@@ -98,7 +97,7 @@ http://localhost:4000/login
 
 
 
-
+kubectl create secret generic -n demo ms-custom-config --from-file=./mssql.conf
 
 
 [memory]
@@ -123,7 +122,5 @@ lcid = 1036
 SELECT value_in_use FROM sys.configurations WHERE name = 'max server memory (MB)';
 
 SELECT encrypt_option FROM sys.dm_exec_connections WHERE session_id = @@SPID;
-
-SELECT availability_group_id, replica_id FROM sys.dm_hadr_availability_replica_states;
 
 SELECT default_language_name FROM sys.server_principals WHERE name = 'sa';  -- or your specific login name

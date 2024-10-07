@@ -6,6 +6,6 @@ metadata:
 spec:
   type: UpdateVersion
   databaseRef:
-    name: mssqlserver-ag
+    name: mssql-ag
   updateVersion:
     targetVersion: 2022-cu14
