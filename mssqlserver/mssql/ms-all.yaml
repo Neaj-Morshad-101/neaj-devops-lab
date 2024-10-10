@@ -7,7 +7,7 @@ spec:
   authSecret:
     name: mssqlserver-auth
   configSecret:
-    name: mssqlserver-custom-config
+    name: ms-custom-config
   topology:
     availabilityGroup:
       databases:
@@ -16,96 +16,101 @@ spec:
     mode: AvailabilityGroup
   internalAuth:
     endpointCert:
-      certificates:
-        - alias: endpoint
-          secretName: mssqlserver-endpoint-cert
-          subject:
-            organizationalUnits:
-              - endpoint
-            organizations:
-              - kubedb
+      # certificates:
+      #   - alias: endpoint
+      #     secretName: mssqlserver-endpoint-cert
+      #     subject:
+      #       organizationalUnits:
+      #         - endpoint
+      #       organizations:
+      #         - kubedb
       issuerRef:
         apiGroup: cert-manager.io
         kind: Issuer
         name: mssqlserver-ca-issuer
-  leaderElection:
-    electionTick: 10
-    heartbeatTick: 1
-    period: 300ms
-    transferLeadershipInterval: 1s
-    transferLeadershipTimeout: 1m0s
+  # leaderElection:
+  #   electionTick: 10
+  #   heartbeatTick: 1
+  #   period: 300ms
+  #   transferLeadershipInterval: 1s
+  #   transferLeadershipTimeout: 1m0s
   podTemplate:
-    metadata:
-      annotations:
-        passMe: ToDatabasePod
-    controller:
-      annotations:
-        passMe: ToPetSet
+    # metadata:
+    #   annotations:
+    #     passMe: ToDatabasePod
+    # controller:
+    #   annotations:
+    #     passMe: ToPetSet
     spec:
-      serviceAccountName: my-custom-sa
-      schedulerName: my-scheduler
-      nodeSelector:
-        disktype: ssd
+      # serviceAccountName: my-custom-sa
+      # schedulerName: my-scheduler
+      # nodeSelector:
+      #   disktype: ssd
       containers:
         - name: mssql
-          resources:
-            limits:
-              memory: 4Gi
-            requests:
-              cpu: 500m
-              memory: 4Gi
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              add:
-                - NET_BIND_SERVICE
-              drop:
-                - ALL
-            runAsGroup: 10001
-            runAsNonRoot: true
-            runAsUser: 10001
-            seccompProfile:
-              type: RuntimeDefault
-        - name: mssql-coordinator
-          resources:
-            limits:
-              memory: 256Mi
-            requests:
-              cpu: 200m
-              memory: 256Mi
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-            runAsGroup: 10001
-            runAsNonRoot: true
-            runAsUser: 10001
-            seccompProfile:
-              type: RuntimeDefault
-      initContainers:
-        - name: mssql-init
-          resources:
-            limits:
-              memory: 512Mi
-            requests:
-              cpu: 200m
-              memory: 512Mi
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-            runAsGroup: 10001
-            runAsNonRoot: true
-            runAsUser: 10001
-            seccompProfile:
-              type: RuntimeDefault
+          env:
+          # - name: MSSQL_SA_PASSWORD
+          #   value: Pa55w0rd!
+          # - name: MSSQL_SA_USERNAME
+          #   value: sa
+          # resources:
+          #   limits:
+          #     memory: 4Gi
+          #   requests:
+          #     cpu: 500m
+          #     memory: 4Gi
+          # securityContext:
+          #   allowPrivilegeEscalation: false
+          #   capabilities:
+          #     add:
+          #       - NET_BIND_SERVICE
+          #     drop:
+          #       - ALL
+          #   runAsGroup: 10001
+          #   runAsNonRoot: true
+          #   runAsUser: 10001
+          #   seccompProfile:
+          #     type: RuntimeDefault
+      #   - name: mssql-coordinator
+      #     resources:
+      #       limits:
+      #         memory: 256Mi
+      #       requests:
+      #         cpu: 200m
+      #         memory: 256Mi
+      #     securityContext:
+      #       allowPrivilegeEscalation: false
+      #       capabilities:
+      #         drop:
+      #           - ALL
+      #       runAsGroup: 10001
+      #       runAsNonRoot: true
+      #       runAsUser: 10001
+      #       seccompProfile:
+      #         type: RuntimeDefault
+      # initContainers:
+      #   - name: mssql-init
+      #     resources:
+      #       limits:
+      #         memory: 512Mi
+      #       requests:
+      #         cpu: 200m
+      #         memory: 512Mi
+      #     securityContext:
+      #       allowPrivilegeEscalation: false
+      #       capabilities:
+      #         drop:
+      #           - ALL
+      #       runAsGroup: 10001
+      #       runAsNonRoot: true
+      #       runAsUser: 10001
+      #       seccompProfile:
+      #         type: RuntimeDefault
       podPlacementPolicy:
         name: default
       securityContext:
         fsGroup: 10001
-  replicas: 3
+  replicas: 1
   storage:
     accessModes:
       - ReadWriteOnce
@@ -114,58 +119,69 @@ spec:
         storage: 1Gi
     storageClassName: standard
   storageType: Durable
-  # serviceTemplates:
-  # - alias: primary
-  #   metadata:
-  #     annotations:
-  #       passMe: ToService
-  #   spec:
-  #     type: LoadBalancer
-  # - alias: secondary
-  #   metadata:
-  #     annotations:
-  #       passMe: ToReplicaService
-  #   spec:
-  #     type: NodePort
-  #     ports:
-  #     - name:  http
-  #       port:  1433
+  serviceTemplates:
+  - alias: primary
+    metadata:
+      annotations:
+        passMe: ToService
+    spec:
+      type: LoadBalancer
+  - alias: secondary
+    metadata:
+      annotations:
+        passMe: ToReplicaService
+    spec:
+      type: NodePort
+      ports:
+      - name:  http
+        port:  1433
   tls:
-    certificates:
-      - alias: server
-        secretName: mssqlserver-server-cert
-        subject:
-          organizationalUnits:
-            - server
-          organizations:
-            - kubedb
-        emailAddresses:
-          - dev@appscode.com
-      - alias: client
-        secretName: mssqlserver-client-cert
-        subject:
-          organizationalUnits:
-            - client
-          organizations:
-            - kubedb
-        emailAddresses:
-          - abc@appscode.com
+    # certificates:
+    #   - alias: server
+    #     secretName: mssqlserver-server-cert
+    #     subject:
+    #       organizationalUnits:
+    #         - server
+    #       organizations:
+    #         - kubedb
+    #     emailAddresses:
+    #       - dev@appscode.com
+    #   - alias: client
+    #     secretName: mssqlserver-client-cert
+    #     subject:
+    #       organizationalUnits:
+    #         - client
+    #       organizations:
+    #         - kubedb
+    #     emailAddresses:
+    #       - abc@appscode.com
     clientTLS: true
     issuerRef:
       apiGroup: cert-manager.io
       kind: Issuer
       name: mssqlserver-ca-issuer
-  healthChecker:
-    periodSeconds: 15
-    timeoutSeconds: 10
-    failureThreshold: 2
-    disableWriteCheck: false
-  monitor:
-    agent: prometheus.io/operator
-    prometheus:
-      serviceMonitor:
-        labels:
-          release: prometheus
-        interval: 10s
+  # healthChecker:
+  #   periodSeconds: 15
+  #   timeoutSeconds: 10
+  #   failureThreshold: 2
+  #   disableWriteCheck: false
+  # monitor:
+  #   agent: prometheus.io/operator
+  #   prometheus:
+  #     serviceMonitor:
+  #       labels:
+  #         release: prometheus
+  #       interval: 10s
   version: 2022-cu12
-  deletionPolicy: Halt
+  deletionPolicy: WipeOut
+
+
+
+
+# kubectl create secret generic mssqlserver-auth -n demo \
+#              --from-literal=username='sa' \
+#              --from-literal=password='Pa55w0rd!'
+
+
+# kubectl create secret generic -n demo ms-custom-config --from-file=./mssql.conf
+
