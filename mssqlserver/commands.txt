@@ -3,7 +3,7 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ./ca.key -out ./ca.c
 kubectl create secret tls mssqlserver-ca --cert=ca.crt  --key=ca.key --namespace=demo 
 
 
-kubectl create secret generic mssql-auth --from-literal=username='sa' --from-literal=password='Pa55w0rd!' -n demo
+kubectl create secret generic mssqlserver-auth --from-literal=username='sa' --from-literal=password='Pa55w0rd!' -n demo
 kubectl view-secret -n demo mssqlserver 
 kubectl view-secret -n demo mssqlserver-standalone-auth password
 
@@ -15,6 +15,17 @@ cat /var/opt/mssql/mssql.conf
 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "Pa55w0rd!"
 
 /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "
+
+
+
+/opt/mssql-tools18/bin/sqlcmd -S ${host},${port} -U ${username} -P ${password} -d ${database}
+
+For SQL Server: 
+sqlcmd -S ${host},${port} -U ${username} -P ${password} -d ${database}
+
+with TLS:
+sqlcmd -S ${host},${port} -U ${username} -P ${password} -d ${database} -N
+
 
 
 mssql running?
@@ -43,6 +54,7 @@ SELECT is_local, role_desc, synchronization_health_desc from sys.dm_hadr_availab
 
 SELECT synchronization_health_desc from sys.dm_hadr_availability_replica_states WHERE is_local = 1 
 
+SELECT name FROM sys.availability_groups
 
 
 
