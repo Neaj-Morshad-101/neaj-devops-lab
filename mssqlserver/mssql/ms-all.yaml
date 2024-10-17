@@ -42,10 +42,10 @@ spec:
       annotations:
         passMe: ToPetSet
     spec:
-      serviceAccountName: my-custom-sa
-      schedulerName: my-scheduler
-      nodeSelector:
-        disktype: ssd
+      # serviceAccountName: my-custom-sa
+      # schedulerName: my-scheduler
+      # nodeSelector:
+      #   disktype: ssd
       containers:
         - name: mssql
           env:
@@ -53,6 +53,8 @@ spec:
             value: Pa55w0rd!
           - name: NOT_MSSQL_SA_USERNAME
             value: sa
+          - name: MSSQL_PID
+            value: Enterprise
           resources:
             limits:
               memory: 4Gi
@@ -110,7 +112,7 @@ spec:
         name: default
       securityContext:
         fsGroup: 10001
-  replicas: 1
+  replicas: 3
   storage:
     accessModes:
       - ReadWriteOnce
@@ -124,17 +126,17 @@ spec:
     metadata:
       annotations:
         passMe: ToService
-    spec:
-      type: LoadBalancer
+    # spec:
+    #   type: LoadBalancer
   - alias: secondary
     metadata:
       annotations:
         passMe: ToReplicaService
-    spec:
-      type: NodePort
-      ports:
-      - name:  http
-        port:  1433
+    # spec:
+    #   type: NodePort
+    #   ports:
+    #   - name:  http
+    #     port:  1433
   tls:
     certificates:
       - alias: server
