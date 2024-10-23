@@ -1,8 +1,8 @@
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
- name: mssqlserver-ca-issuer
- namespace: demo
+  name: mssqlserver-ca-issuer
+  namespace: demo
 spec:
- ca:
-   secretName: mssqlserver-ca
+  ca:
+    secretName: mssqlserver-ca
