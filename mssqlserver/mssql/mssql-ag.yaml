@@ -51,7 +51,7 @@ spec:
           #   memory: "1.6Gi"
   storageType: Durable
   storage:
-    storageClassName: "standard"
+    # storageClassName: "standard"
     accessModes:
     - ReadWriteOnce
     resources:

@@ -1,0 +1,55 @@
+apiVersion: kubedb.com/v1alpha2
+kind: MSSQLServer
+metadata:
+  name: hello-cluster-issuer
+  namespace: default
+spec:
+  deletionPolicy: WipeOut
+  internalAuth:
+    endpointCert:
+      issuerRef:
+        apiGroup: cert-manager.io
+        kind: ClusterIssuer
+        name: cluster-issuer
+  monitor:
+    agent: prometheus.io/operator
+    prometheus:
+      exporter:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+      serviceMonitor:
+        interval: 30s
+        labels:
+          release: kube-prometheus-stack
+  podTemplate:
+    spec:
+      containers:
+      - name: mssql
+        resources:
+          limits:
+            memory: 1.5Gi
+          requests:
+            cpu: 500m
+            memory: 1.5Gi
+  replicas: 3
+  storage:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 10Gi
+    # storageClassName: local-path
+  storageType: Durable
+  tls:
+    clientTLS: true
+    issuerRef:
+      apiGroup: cert-manager.io
+      kind: ClusterIssuer
+      name: cluster-issuer
+  topology:
+    availabilityGroup:
+      databases: []
+    mode: AvailabilityGroup
+  version: 2022-cu12

@@ -1,11 +1,11 @@
 apiVersion: ops.kubedb.com/v1alpha1
 kind: MSSQLServerOpsRequest
 metadata:
-  name: msops-horizontal-up2
+  name: msops-hscale-down
   namespace: demo
 spec:
   type: HorizontalScaling
   databaseRef:
-    name: mssql-ag
+    name: mssql-ag-cluster
   horizontalScaling:
     replicas: 2
