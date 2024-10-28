@@ -1,11 +1,11 @@
 apiVersion: ops.kubedb.com/v1alpha1
 kind: MSSQLServerOpsRequest
 metadata:
-  name: restart
+  name: msops-restart
   namespace: demo
 spec:
   type: Restart
   databaseRef:
-    name: mssql-ag
+    name: mssqlserver-ag-cluster
   timeout: 3m
-  apply: IfReady
+  apply: Always

@@ -1,11 +1,11 @@
 apiVersion: autoscaling.kubedb.com/v1alpha1
 kind: MSSQLServerAutoscaler
 metadata:
-  name: ms-as-compute-ag
+  name: ms-as-compute
   namespace: demo
 spec:
   databaseRef:
-    name: mssqlserver-ag
+    name: mssqlserver-ag-cluster
   opsRequestOptions:
     timeout: 5m
     apply: IfReady
@@ -18,7 +18,7 @@ spec:
         cpu: 800m
         memory: 2Gi
       maxAllowed:
-        cpu: 2
+        cpu: 1
         memory: 3Gi
-      controlledResources: ["cpu", "memory"]
       containerControlledValues: "RequestsAndLimits"
+      controlledResources: ["cpu", "memory"]

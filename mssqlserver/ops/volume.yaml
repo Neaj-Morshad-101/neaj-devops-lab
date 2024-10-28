@@ -1,12 +1,12 @@
 apiVersion: ops.kubedb.com/v1alpha1
 kind: MSSQLServerOpsRequest
 metadata:
-  name: ms-offline-ag
+  name: mops-volume-exp-ag-cluster
   namespace: demo
 spec:
-  type: VolumeExpansion  
+  type: VolumeExpansion
   databaseRef:
-    name: mssqlserver-ag
-  volumeExpansion:   
-    mode: "Offline" #"Offline"
-    mssqlserver: 30Gi
+    name: mssqlserver-ag-cluster
+  volumeExpansion:
+    mode: "Offline" # Online
+    mssqlserver: 2Gi

@@ -143,3 +143,13 @@ SELECT default_language_name FROM sys.server_principals WHERE name = 'sa';  -- o
 
 cat /var/opt/mssql/mssql.conf
 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P
+
+
+
+
+
+kubectl label ms mssql-ag -n demo operator=neaj --overwrite
+
+
+kubectl label ms mssql-ag -n demo operator- --overwrite
+
