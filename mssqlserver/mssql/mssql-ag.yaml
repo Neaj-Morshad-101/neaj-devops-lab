@@ -5,7 +5,7 @@ metadata:
   namespace: demo
 spec:
   version: "2022-cu12"
-  replicas: 3
+  replicas: 2
   # authSecret:
   #   name: mssql-auth
   #   externallyManaged: true
@@ -38,17 +38,17 @@ spec:
   #       labels:
   #         release: prometheus
   #       interval: 10s
-  # podTemplate:
-  #   spec:
-  #     containers:
-  #     - name: mssql
-  #       resources:
-  #         requests:
-  #           cpu: "500m"
-  #           memory: "1.5Gi"
-          # limits:
-          #   cpu: "600m"
-          #   memory: "1.6Gi"
+  podTemplate:
+    spec:
+      containers:
+      - name: mssql
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1.5Gi"
+          limits:
+            # cpu: "600m"
+            memory: "2Gi"
   storageType: Durable
   storage:
     # storageClassName: "standard"

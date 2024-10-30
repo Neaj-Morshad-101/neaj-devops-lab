@@ -1,0 +1,43 @@
+apiVersion: catalog.kubedb.com/v1alpha1
+kind: MSSQLServerVersion
+metadata:
+  annotations:
+    meta.helm.sh/release-name: kubedb-catalog
+    meta.helm.sh/release-namespace: kubedb
+  # creationTimestamp: "2024-10-29T06:28:56Z"
+  # generation: 1
+  labels:
+    app.kubernetes.io/instance: kubedb-catalog
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kubedb-catalog
+    app.kubernetes.io/version: v2024.9.30
+    helm.sh/chart: kubedb-catalog-v2024.9.30
+  name: 2022-cu12
+  # resourceVersion: "880420"
+  # uid: 906c4f1a-e290-430a-b6c0-25ab56349560
+spec:
+  archiver:
+    addon:
+      name: mssqlserver-addon
+      tasks:
+        fullBackup:
+          name: logical-backup
+        fullBackupRestore:
+          name: logical-backup-restore
+        manifestBackup:
+          name: manifest-backup
+        manifestRestore:
+          name: manifest-restore
+    walg:
+      image: ghcr.io/kubedb/mssqlserver-archiver:v0.0.1
+  coordinator:
+    image: neajmorshad/mssql-coordinator:imp_linux_amd64
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-CU12-ubuntu-22.04
+  exporter:
+    image: ghcr.io/kubedb/mssql-exporter:1.1.0
+  initContainer:
+    image: neajmorshad/mssql-init-docker:upd
+  securityContext:
+    runAsUser: 10001
+  version: "2022"

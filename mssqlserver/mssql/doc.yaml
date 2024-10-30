@@ -5,7 +5,7 @@ metadata:
   namespace: demo
 spec:
   version: "2022-cu12"
-  replicas: 3
+  replicas: 2
   topology:
     mode: AvailabilityGroup
     availabilityGroup:
