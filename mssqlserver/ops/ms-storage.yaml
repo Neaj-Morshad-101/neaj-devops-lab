@@ -8,7 +8,8 @@ spec:
     name: mssqlserver-ag-cluster
   storage:
     mssqlserver:
-      trigger: "On"
+      trigger: "Off"
       usageThreshold: 60
       scalingThreshold: 50
       expansionMode: "Offline"
+      upperBound: "100Gi"
