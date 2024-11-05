@@ -1,0 +1,83 @@
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MSSQLServerOpsRequest
+metadata:
+  name: ms-add-tls
+  namespace: demo
+spec:
+  type: ReconfigureTLS
+  databaseRef:
+    name: mssql-standalone
+  tls:
+    issuerRef:
+      name: mssqlserver-ca-issuer
+      kind: Issuer
+      apiGroup: "cert-manager.io"
+    certificates:
+      - alias: client
+        subject:
+          organizations:
+            - mssql
+          organizationalUnits:
+            - client
+
+# Remove TLS from the Database
+  # tls:
+  #   remove: true
+
+
+# Change Issuer/ClusterIssuer
+  # tls:
+  #   issuerRef:
+  #     name: rd-new-issuer
+  #     kind: Issuer
+  #     apiGroup: "cert-manager.io"
+
+# Add TLS
+    # tls:
+    # issuerRef:
+    #   name: redis-ca-issuer
+    #   kind: Issuer
+    #   apiGroup: "cert-manager.io"
+    # certificates:
+    #   - alias: client
+    #     subject:
+    #       organizations:
+    #         - redis
+    #       organizationalUnits:
+    #         - client
+
+
+# Rotate Certificate
+  # tls:
+  #   rotateCertificates: true
+
+
+
+
+
+
+
+
+  # mssqlserver tls spec example
+
+ # tls:
+ #    certificates:
+ #    - alias: server
+ #      secretName: mssql-standalone-server-cert
+ #      subject:
+ #        organizationalUnits:
+ #        - server
+ #        organizations:
+ #        - kubedb
+ #    - alias: client
+ #      secretName: mssql-standalone-client-cert
+ #      subject:
+ #        organizationalUnits:
+ #        - client
+ #        organizations:
+ #        - kubedb
+ #    clientTLS: false
+ #    issuerRef:
+ #      apiGroup: cert-manager.io
+ #      kind: Issuer
+ #      name: mssqlserver-ca-issuer

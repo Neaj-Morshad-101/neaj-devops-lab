@@ -98,13 +98,13 @@ helm uninstall prometheus -n monitoring
 
 
 helm upgrade -i monitoring-operator oci://ghcr.io/appscode-charts/monitoring-operator \
-  --version v0.0.4 \
+  --version v2024.9.30 \
   -n monitoring --create-namespace
 
 helm upgrade -i panopticon oci://ghcr.io/appscode-charts/panopticon \
-  --version v2024.2.5 \
+  --version v2024.9.30 \
   -n monitoring --create-namespace \
-  --set-file license=$HOME/Downloads/kubedb-license-ae9a82a4-4704-4c80-8d1d-cdb585631bd4.txt
+  --set-file license=$HOME/Downloads/kubedb-license-49d549b1-61b5-4bbe-ab7a-6f9fa663304e.txt
 
 
 #### Kubernetes Metrics Server
