@@ -1,31 +1,33 @@
-apiVersion: ops.kubedb.com/v1alpha1
-kind: MSSQLServerOpsRequest
-metadata:
-  name: msops-reconfigure
-  namespace: demo
-spec:
-  type: Reconfigure
-  databaseRef:
-    name: mssql-ag
-  configuration:
-      configSecret:
-        name: new-custom-config
-  apply: IfReady
-
-
-
-
-
 # apiVersion: ops.kubedb.com/v1alpha1
 # kind: MSSQLServerOpsRequest
 # metadata:
-#   name: msops-apply-reconfig
+#   name: msops-reconfigure-standalone
 #   namespace: demo
 # spec:
 #   type: Reconfigure
 #   databaseRef:
-#     name: mssql-standalone
+#     name: ms-standalone
 #   configuration:
-#     applyConfig:
-#       mssql.conf: |-
-#         maxclients 3000        
+#       configSecret:
+#         name: new-custom-config
+#   timeout: 5m
+#   apply: IfReady
+
+
+
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MSSQLServerOpsRequest
+metadata:
+  name: msops-reconfigure-standalone-apply
+  namespace: demo
+spec:
+  type: Reconfigure
+  databaseRef:
+    name: ms-standalone
+  configuration:
+    applyConfig:
+      mssql.conf: |-
+        [memory]
+        memorylimitmb = 3072
+  timeout: 5m
+  apply: IfReady

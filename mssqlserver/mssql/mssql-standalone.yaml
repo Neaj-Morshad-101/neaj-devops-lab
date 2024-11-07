@@ -14,11 +14,27 @@ spec:
       name: mssqlserver-ca-issuer
       kind: Issuer
       apiGroup: "cert-manager.io"
+    certificates:
+    - alias: client
+      # ipAddresses:
+      # - 127.0.0.1
+      # - 192.168.0.252
+      # secretName: mssqlserver-ag-cluster-client-cert
+      # subject:
+      #   organizationalUnits:
+      #   - client
+      #   organizations:
+      #   - kubedb
+
+
     clientTLS: false
   podTemplate:
     spec:
       containers:
       - name: mssql
+        # env:
+        # - name: MSSQL_SA_PASSWORD
+        #   value: Pa55w0rd!!
         # resources:
         #   requests:
         #     cpu: "2"
@@ -28,7 +44,7 @@ spec:
         #     memory: "6Gi"  # Adjust this value based on the actual needs and node capacity
         resources:
           requests:
-            cpu: "5000m"
+            cpu: "500m"
             memory: "1.5Gi"
           limits:
             # cpu: "1000m"
