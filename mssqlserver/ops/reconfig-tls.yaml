@@ -12,13 +12,14 @@ spec:
       name: mssqlserver-ca-issuer
       kind: Issuer
       apiGroup: "cert-manager.io"
-    certificates:
-      - alias: client
-        subject:
-          organizations:
-            - mssql
-          organizationalUnits:
-            - client
+    # certificates:
+    #   - alias: client
+    #     subject:
+    #       organizations:
+    #         - mssql
+    #       organizationalUnits:
+    #         - client
+    clientTLS: true
 
 # Remove TLS from the Database
   # tls:

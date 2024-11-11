@@ -1,7 +1,7 @@
 apiVersion: kubedb.com/v1alpha2
 kind: MSSQLServer
 metadata:
-  name: mssql-standalone
+  name: mssql-standalone-tls
   namespace: demo
 spec:
   version: "2022-cu12"
@@ -14,8 +14,8 @@ spec:
       name: mssqlserver-ca-issuer
       kind: Issuer
       apiGroup: "cert-manager.io"
-    certificates:
-    - alias: client
+    # certificates:
+    # - alias: client
       # ipAddresses:
       # - 127.0.0.1
       # - 192.168.0.252
@@ -25,13 +25,16 @@ spec:
       #   - client
       #   organizations:
       #   - kubedb
-
-
-    clientTLS: false
+    clientTLS: true
   podTemplate:
     spec:
       containers:
       - name: mssql
+        env:
+        - name: ACCEPT_EULA
+          value: "Y"
+        - name: MSSQL_PID
+          value: Evaluation
         # env:
         # - name: MSSQL_SA_PASSWORD
         #   value: Pa55w0rd!!
