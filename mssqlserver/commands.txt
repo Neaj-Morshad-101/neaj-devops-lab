@@ -1,155 +1,124 @@
+Certificate:
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ./ca.key -out ./ca.crt -subj "/CN=MSSQLServer/O=kubedb"
 
+Kubenetes Commands:
+create:
 kubectl create secret tls mssqlserver-ca --cert=ca.crt  --key=ca.key --namespace=demo 
-
-
 kubectl create secret generic mssqlserver-auth --from-literal=username='sa' --from-literal=password='Pa55w0rd!' -n demo
-kubectl view-secret -n demo mssqlserver 
-kubectl view-secret -n demo mssqlserver-standalone-auth password
-
-
-SELECT encrypt_option FROM sys.dm_exec_connections WHERE session_id = @@SPID
-
-cat /var/opt/mssql/mssql.conf
-/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "
-/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "Pa55w0rd!"
-
-/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "
-
-
-
-/opt/mssql-tools18/bin/sqlcmd -S ${host},${port} -U ${username} -P ${password} -d ${database}
-
-For SQL Server: 
-sqlcmd -S ${host},${port} -U ${username} -P ${password} -d ${database}
-
-with TLS:
-sqlcmd -S ${host},${port} -U ${username} -P ${password} -d ${database} -N
-
-
-
-mssql running?
-ps aux | grep -v grep | grep -c sqlservr
-
-/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P JzbyIXY6i5Wa4TSi -Q SHUTDOWN -No
-
-
+kubectl create secret generic -n demo ms-custom-config --from-file=./mssql.conf
+connect:
+kubectl view-secret -n demo mssqlserver-standalone-auth -a
+logs:
 kubectl logs mssql-standalone-0 -n demo -c mssql
 kubectl logs mssql-standalone-0 -n demo -c exporter
-kubectl delete pod mssql-standalone-0 -n demo --grace-period=0 --force
-kubectl describe pod mssql-standalone-0 -n demo
-kubectl describe node
-kubectl describe pvc data-mssql-standalone-0 -n demo
-
+labels:
+kubectl label ms mssql-ag -n demo operator=neaj --overwrite
+kubectl label ms mssql-ag -n demo operator- --overwrite
 pod's role?
 kubectl get pods -n demo --selector=app.kubernetes.io/instance=mssqlserver-ag -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.metadata.labels.kubedb\.com/role}{"\n"}{end}'
-
-
-SELECT replica_server_name FROM sys.availability_replicas;
-
-
-SELECT synchronization_health_desc from sys.dm_hadr_availability_group_states
-
-SELECT is_local, role_desc, synchronization_health_desc from sys.dm_hadr_availability_replica_states
-
-SELECT synchronization_health_desc from sys.dm_hadr_availability_replica_states WHERE is_local = 1 
-
-SELECT name FROM sys.availability_groups
-
-
-
-ALTER DATABASE AgDB1 SET HADR RESUME;
-
-select SERVERPROPERTY('IsSingleUser')
-
-
-
-SELECT name FROM sys.databases
-GO
-
-CREATE DATABASE test; 
-GO
-
-CREATE TABLE Data (ID INT, NAME NVARCHAR(255), AGE INT);
-INSERT INTO Data(ID, Name, Age) VALUES (1, 'John Doe', 25), (2, 'Jane Smith', 30);                                                                                    
-GO 
-
-Select * from data
-go
-
-INSERT INTO Data(ID, Name, Age) VALUES (3, 'John Doe', 25);
-
-first fail-over: 
-INSERT INTO Data(ID, Name, Age) VALUES (4, 'John Doe', 25);
-
-2nd fail-over: 
-INSERT INTO Data(ID, Name, Age) VALUES (5, 'John Doe', 25);
-
-INSERT INTO Data(ID, Name, Age) VALUES (6, 'John Doe', 25);
-
-
-
-
 
 Monitoring:
 kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-prometheus 9090
 kubectl port-forward -n monitoring prometheus-prometheus-kube-prometheus-prometheus-0 9090
-
 http://localhost:9090/targets?search=
-
-
 kubectl port-forward -n demo svc/ms-std-mon-stats 9399
 http://localhost:9399/metrics
 http://localhost:9399/sql_exporter_metrics
-
-
-
 kubectl port-forward -n monitoring svc/prometheus-grafana 4000:80
 http://localhost:4000/login
 
 
+General SQL Server Commands:
+cat /var/opt/mssql/mssql.conf
+mssql running?
+ps aux | grep -v grep | grep -c sqlservr
+/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "
+/opt/mssql-tools18/bin/sqlcmd -S ${host},${port} -U ${username} -P ${password} -d ${database}
+with TLS:
+sqlcmd -S ${host},${port} -U ${username} -P ${password} -d ${database} -N
+/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P JzbyIXY6i5Wa4TSi -Q SHUTDOWN -No
+SELECT SERVERPROPERTY('IsSingleUser')
+SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE';
 
-kubectl create secret generic -n demo ms-custom-config --from-file=./mssql.conf
+Status:
+SELECT physical_memory_kb / 1024 AS physical_memory_mb FROM sys.dm_os_sys_info;
+SELECT encrypt_option FROM sys.dm_exec_connections WHERE session_id = @@SPID;
+SELECT default_language_name FROM sys.server_principals WHERE name = 'sa';  -- or your specific login name
 
-
+Configuration:
 [memory]
 memorylimitmb = 4096
-
-
 [network]
 tlscert = /var/opt/mssql/tls/server.crt
 tlskey = /var/opt/mssql/tls/server.key
 tlsprotocols = 1.2
 forceencryption = 1
-
 English---------
 [language]
 lcid = 1033
-
 France ---------- 
 [language]
 lcid = 1036
 
+For Testing:
+SELECT name FROM sys.databases
+GO
+CREATE DATABASE test; 
+GO
+CREATE TABLE Data (ID INT, NAME NVARCHAR(255), AGE INT);
+INSERT INTO Data(ID, Name, Age) VALUES (1, 'John Doe', 25), (2, 'Jane Smith', 30);                                                                    
+GO 
+SELECT * from data
+go
+INSERT INTO Data(ID, Name, Age) VALUES (3, 'John Doe', 25);
+first fail-over: 
+INSERT INTO Data(ID, Name, Age) VALUES (4, 'John Doe', 25);
+2nd fail-over: 
+INSERT INTO Data(ID, Name, Age) VALUES (5, 'John Doe', 25);
+INSERT INTO Data(ID, Name, Age) VALUES (6, 'John Doe', 25);
+Status: 
+SELECT encrypt_option FROM sys.dm_exec_connections WHERE session_id = @@SPID
+
+
+Availability Group Related Command:
+Status:
+SELECT replica_server_name FROM sys.availability_replicas;
+select database_name	from sys.availability_databases_cluster;
+SELECT synchronization_health_desc from sys.dm_hadr_availability_group_states
+SELECT is_local, role_desc, synchronization_health_desc from sys.dm_hadr_availability_replica_states
+SELECT synchronization_health_desc from sys.dm_hadr_availability_replica_states WHERE is_local = 1 
+SELECT name FROM sys.availability_groups
+
+Config Change: 
+ALTER AVAILABILITY GROUP [mssqlagcluster] OFFLINE
+ALTER AVAILABILITY GROUP [mssqlagcluster] SET (ROLE = SECONDARY);
+ALTER AVAILABILITY GROUP mssqlagcluster SET (REQUIRED_SYNCHRONIZED_SECONDARIES_TO_COMMIT = 0);
+
+
+AG Database:
+ALTER DATABASE [agdb1] SET HADR RESUME;
+ALTER DATABASE [agdb2] SET HADR RESUME;
+ALTER DATABASE [agdb1] SET HADR OFF;
+DROP DATABASE [agdb1];
+
+AG Replica Related:
+Join:
+ALTER AVAILABILITY GROUP [mssqlagcluster] JOIN WITH (CLUSTER_TYPE = NONE);
+ALTER AVAILABILITY GROUP [mssqlagcluster] GRANT CREATE ANY DATABASE;
+
+Add/Remove:	
+USE [master]
+ALTER AVAILABILITY GROUP [mssqlagcluster]
+	ADD REPLICA ON N'mssql-ag-cluster-1'WITH (
+	ENDPOINT_URL = N'tcp://mssql-ag-cluster-1.mssql-ag-cluster-pods.demo.svc:5022',
+	AVAILABILITY_MODE = SYNCHRONOUS_COMMIT, SEEDING_MODE = AUTOMATIC, FAILOVER_MODE = MANUAL,
+	SECONDARY_ROLE (ALLOW_CONNECTIONS = ALL));
+USE [master]
+ALTER AVAILABILITY GROUP [mssqlagcluster] REMOVE REPLICA ON N'mssql-ag-cluster-1';
+
+AG Create/Delete:
+DROP AVAILABILITY GROUP [mssqlagcluster];
 
 
 
-
-SELECT physical_memory_kb / 1024 AS physical_memory_mb FROM sys.dm_os_sys_info;
-
-SELECT encrypt_option FROM sys.dm_exec_connections WHERE session_id = @@SPID;
-
-SELECT default_language_name FROM sys.server_principals WHERE name = 'sa';  -- or your specific login name
-
-
-cat /var/opt/mssql/mssql.conf
-/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P
-
-
-
-
-
-kubectl label ms mssql-ag -n demo operator=neaj --overwrite
-
-
-kubectl label ms mssql-ag -n demo operator- --overwrite
 

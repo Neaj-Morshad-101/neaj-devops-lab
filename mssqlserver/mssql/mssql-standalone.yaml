@@ -28,6 +28,7 @@ spec:
     clientTLS: true
   podTemplate:
     spec:
+      terminationGracePeriodSeconds: 300  # Increase this value as needed
       containers:
       - name: mssql
         env:
@@ -35,23 +36,16 @@ spec:
           value: "Y"
         - name: MSSQL_PID
           value: Evaluation
-        # env:
-        # - name: MSSQL_SA_PASSWORD
-        #   value: Pa55w0rd!!
-        # resources:
-        #   requests:
-        #     cpu: "2"
-        #     memory: "4Gi"
-        #  limits:
-        #     cpu: "2"
-        #     memory: "6Gi"  # Adjust this value based on the actual needs and node capacity
         resources:
           requests:
-            cpu: "500m"
-            memory: "1.5Gi"
+            cpu: 2
+            memory: "5Gi"
+          # requests:
+          #   cpu: "500m"
+          #   memory: "1.5Gi"
           limits:
             # cpu: "1000m"
-            memory: "2Gi"
+            # memory: "2Gi"
   # monitor:
   #   agent: prometheus.io/operator
   #   prometheus:
@@ -69,3 +63,16 @@ spec:
       requests:
         storage: 1Gi
   deletionPolicy: WipeOut
+
+
+
+        # env:
+        # - name: MSSQL_SA_PASSWORD
+        #   value: Pa55w0rd!!
+        # resources:
+        #   requests:
+        #     cpu: "2"
+        #     memory: "4Gi"
+        #  limits:
+        #     cpu: "2"
+        #     memory: "6Gi"  # Adjust this value based on the actual needs and node capacity
