@@ -1,11 +1,11 @@
 apiVersion: kubedb.com/v1alpha2
 kind: MSSQLServer
 metadata:
-  name: mssql-ag-cluster
+  name: mssqlserver-ag-cluster
   namespace: demo
 spec:
   version: "2022-cu12"
-  replicas: 2
+  replicas: 3
   topology:
     mode: AvailabilityGroup
     availabilityGroup:
@@ -17,7 +17,7 @@ spec:
       name: mssqlserver-ca-issuer
       kind: Issuer
       apiGroup: "cert-manager.io"
-    clientTLS: true
+    clientTLS: false
   podTemplate:
     spec:
       containers:
@@ -28,16 +28,17 @@ spec:
         - name: MSSQL_PID
           value: Evaluation
         resources:
-          requests:
-            cpu: "500m"
-            memory: "1.5Gi"
-          limits:
-            memory: "2Gi"
+            requests:
+              cpu: "500m"
+              memory: "1.5Gi"
+            limits:
+              cpu: "600m"
+              memory: "1.6Gi"
   storageType: Durable
   storage:
-    storageClassName: "standard"
+    storageClassName: "longhorn"
     accessModes:
-    - ReadWriteOnce
+      - ReadWriteOnce
     resources:
       requests:
         storage: 1Gi

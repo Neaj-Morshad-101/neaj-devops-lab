@@ -5,10 +5,10 @@ metadata:
   namespace: demo
 spec:
   databaseRef:
-    name: mssqlserver-ag-cluster
+    name: mssql-standalone
   storage:
     mssqlserver:
-      trigger: "Off"
+      trigger: "On" # If “On” then compute autoscaling is enabled. If “Off” then compute autoscaling is disabled
       usageThreshold: 60
       scalingThreshold: 50
       expansionMode: "Offline"
