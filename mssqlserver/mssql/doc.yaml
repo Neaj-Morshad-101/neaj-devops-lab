@@ -1,17 +1,13 @@
 apiVersion: kubedb.com/v1alpha2
 kind: MSSQLServer
 metadata:
-  name: mssqlserver-ag-cluster
+  name: ms-standalone
   namespace: demo
 spec:
   version: "2022-cu12"
-  replicas: 3
-  topology:
-    mode: AvailabilityGroup
-    availabilityGroup:
-      databases:
-        - agdb1
-        - agdb2
+  configSecret:
+    name: ms-custom-config
+  replicas: 1
   tls:
     issuerRef:
       name: mssqlserver-ca-issuer
@@ -36,7 +32,7 @@ spec:
               memory: "1.6Gi"
   storageType: Durable
   storage:
-    storageClassName: "longhorn"
+    storageClassName: "standard"
     accessModes:
       - ReadWriteOnce
     resources:

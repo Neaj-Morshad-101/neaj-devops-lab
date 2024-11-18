@@ -13,27 +13,13 @@ spec:
       databases:
         - agdb1
         - agdb2
+      leaderElection:
+        electionTick: 10
+        heartbeatTick: 1
+        period: 300ms
+        transferLeadershipInterval: 1s
+        transferLeadershipTimeout: 1m0s
     mode: AvailabilityGroup
-  internalAuth:
-    endpointCert:
-      certificates:
-        - alias: endpoint
-          secretName: mssqlserver-endpoint-cert
-          subject:
-            organizationalUnits:
-              - endpoint
-            organizations:
-              - kubedb
-      issuerRef:
-        apiGroup: cert-manager.io
-        kind: Issuer
-        name: mssqlserver-ca-issuer
-  leaderElection:
-    electionTick: 10
-    heartbeatTick: 1
-    period: 300ms
-    transferLeadershipInterval: 1s
-    transferLeadershipTimeout: 1m0s
   podTemplate:
     metadata:
       annotations:
@@ -49,12 +35,10 @@ spec:
       containers:
         - name: mssql
           env:
-          - name: NOT_MSSQL_SA_PASSWORD_NO
-            value: Pa55w0rd!
-          - name: NOT_MSSQL_SA_USERNAME
-            value: sa
+          - name: ACCEPT_EULA
+            value: "Y"
           - name: MSSQL_PID
-            value: Enterprise
+            value: Evaluation
           resources:
             limits:
               memory: 4Gi
@@ -139,24 +123,31 @@ spec:
     #     port:  1433
   tls:
     certificates:
-      - alias: server
-        secretName: mssqlserver-server-cert
-        subject:
-          organizationalUnits:
-            - server
-          organizations:
-            - kubedb
-        emailAddresses:
-          - dev@appscode.com
-      - alias: client
-        secretName: mssqlserver-client-cert
-        subject:
-          organizationalUnits:
-            - client
-          organizations:
-            - kubedb
-        emailAddresses:
-          - abc@appscode.com
+    - alias: server
+      emailAddresses:
+      - dev@appscode.com
+      secretName: mssqlserver-server-cert
+      subject:
+        organizationalUnits:
+        - server
+        organizations:
+        - kubedb
+    - alias: client
+      emailAddresses:
+      - abc@appscode.com
+      secretName: mssqlserver-client-cert
+      subject:
+        organizationalUnits:
+        - client
+        organizations:
+        - kubedb
+    - alias: endpoint
+      secretName: mssqlserver-endpoint-cert
+      subject:
+        organizationalUnits:
+        - endpoint
+        organizations:
+        - kubedb
     clientTLS: true
     issuerRef:
       apiGroup: cert-manager.io

@@ -1,43 +1,43 @@
-apiVersion: catalog.kubedb.com/v1alpha1
-kind: MSSQLServerVersion
+new secret -> old one stays 
+
+
+operator: 
+secret annotations
+db spec activeFrom 
+ 
+ 
+ 
+ 
+ 
+ // ops major flow:
+//    1. update in secret:
+//    - if user provide a secret:
+//        - we store current auth in user's provided secret's '.prev' data
+//    - else
+//        - we generate a new password and store new cred in existing secret's '.next' data
+//    2. update password in nodes those have pvc(except hidden) by mongodb client:
+//        - if secret is user provided, use external secret's 'password' data
+//        - else use existing secret 'password.next' data(updated in step 1)
+//    3. reconcile db with new dbCopy
+//    4. restart all pods
+//    5. if generate secret's password case, shift "current cred -> .prev cred" and ".next cred -> current cred"
+ 
+ 
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MongoDBOpsRequest
 metadata:
-  annotations:
-    meta.helm.sh/release-name: kubedb-catalog
-    meta.helm.sh/release-namespace: kubedb
-  # creationTimestamp: "2024-10-29T06:28:56Z"
-  # generation: 1
-  labels:
-    app.kubernetes.io/instance: kubedb-catalog
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: kubedb-catalog
-    app.kubernetes.io/version: v2024.9.30
-    helm.sh/chart: kubedb-catalog-v2024.9.30
-  name: 2022-cu12
-  # resourceVersion: "880420"
-  # uid: 906c4f1a-e290-430a-b6c0-25ab56349560
+  name: mops-auth-rotate
+  namespace: demo
 spec:
-  archiver:
-    addon:
-      name: mssqlserver-addon
-      tasks:
-        fullBackup:
-          name: logical-backup
-        fullBackupRestore:
-          name: logical-backup-restore
-        manifestBackup:
-          name: manifest-backup
-        manifestRestore:
-          name: manifest-restore
-    walg:
-      image: ghcr.io/kubedb/mssqlserver-archiver:v0.0.1
-  coordinator:
-    image: neajmorshad/mssql-coordinator:imp_linux_amd64
-  db:
-    image: mcr.microsoft.com/mssql/server:2022-CU12-ubuntu-22.04
-  exporter:
-    image: ghcr.io/kubedb/mssql-exporter:1.1.0
-  initContainer:
-    image: neajmorshad/mssql-init-docker:upd
-  securityContext:
-    runAsUser: 10001
-  version: "2022"
+  type: RotateAuth
+  databaseRef:
+    name: shard-mongodb8
+  # authentication:
+  #   secretRef:
+  #     name: repl-auth-custom
+  readinessCriteria:
+    oplogMaxLagSeconds: 20
+    objectsCountDiffPercentage: 10
+  timeout: 5m
+  apply: IfReady
+ 

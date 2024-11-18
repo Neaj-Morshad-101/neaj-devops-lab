@@ -25,10 +25,10 @@ spec:
       #   - client
       #   organizations:
       #   - kubedb
-    clientTLS: false
+    clientTLS: true
   podTemplate:
     spec:
-      terminationGracePeriodSeconds: 300  # Increase this value as needed
+      # terminationGracePeriodSeconds: 300  # Increase this value as needed
       containers:
       - name: mssql
         env:
@@ -52,7 +52,7 @@ spec:
   #         release: prometheus
   #       interval: 10s
   storage:
-    storageClassName: "longhorn"
+    storageClassName: "standard"
     accessModes:
     - ReadWriteOnce
     resources:

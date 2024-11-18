@@ -1,25 +1,45 @@
+# apiVersion: ops.kubedb.com/v1alpha1
+# kind: MSSQLServerOpsRequest
+# metadata:
+#   name: msops-add-tls
+#   namespace: demo
+# spec:
+#   type: ReconfigureTLS
+#   databaseRef:
+#     name: ms-standalone
+#   tls:
+#     issuerRef:
+#       name: mssqlserver-ca-issuer
+#       kind: Issuer
+#       apiGroup: "cert-manager.io"
+#     certificates:
+#       - alias: client
+#         subject:
+#           organizations:
+#             - mssqlserver
+#           organizationalUnits:
+#             - client
+#     clientTLS: true
+#   timeout: 5m
+#   apply: IfReady
+
 apiVersion: ops.kubedb.com/v1alpha1
 kind: MSSQLServerOpsRequest
 metadata:
-  name: ms-add-tls
+  name: msops-rotate
   namespace: demo
 spec:
   type: ReconfigureTLS
   databaseRef:
-    name: mssql-standalone
+    name: ms-standalone
   tls:
-    issuerRef:
-      name: mssqlserver-ca-issuer
-      kind: Issuer
-      apiGroup: "cert-manager.io"
-    # certificates:
-    #   - alias: client
-    #     subject:
-    #       organizations:
-    #         - mssql
-    #       organizationalUnits:
-    #         - client
+    rotateCertificates: true
     clientTLS: true
+  timeout: 5m
+  apply: IfReady
+
+
+
 
 # Remove TLS from the Database
   # tls:
