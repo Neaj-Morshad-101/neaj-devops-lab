@@ -1,15 +1,22 @@
-apiVersion: autoscaling.kubedb.com/v1alpha1
-kind: MSSQLServerAutoscaler
+apiVersion: v1
+data:
+  password: UGE1NXcwcmQy
+  username: c2E=
+kind: Secret
 metadata:
-  name: ms-as-storage
+  labels:
+    app.kubernetes.io/component: database
+    app.kubernetes.io/instance: mssql-ag
+    app.kubernetes.io/managed-by: kubedb.com
+    app.kubernetes.io/name: mssqlservers.kubedb.com
+  name: mssql-ag-auth
   namespace: demo
-spec:
-  databaseRef:
-    name: mssqlserver-ag-cluster
-  storage:
-    mssqlserver:
-      trigger: "Off"
-      usageThreshold: 60
-      scalingThreshold: 50
-      expansionMode: "Offline"
-      upperBound: "100Gi"
+  ownerReferences:
+  - apiVersion: kubedb.com/v1alpha2
+    blockOwnerDeletion: true
+    controller: true
+    kind: MSSQLServer
+    name: mssql-ag
+    uid: 5800b7ce-3fea-48f4-89df-37cd97b913ba
+  uid: a61d348f-bbb9-4872-a8f2-3a61a20a01bf
+type: kubernetes.io/basic-auth

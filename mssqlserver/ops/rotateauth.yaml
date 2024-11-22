@@ -1,0 +1,15 @@
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MSSQLServerOpsRequest
+metadata:
+  name: msops-auth-rotate
+  namespace: demo
+spec:
+  type: RotateAuth
+  databaseRef:
+    name: mssql-standalone
+  # authentication:
+  #   secretRef:
+  #     name: repl-auth-custom
+  timeout: 5m
+  apply: IfReady
+ 
