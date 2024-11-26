@@ -1,3 +1,86 @@
+Prepare Demo: 
+TDS FDW stands for "Tabular Data Stream Foreign Data Wrapper.
+
+
+
+PG: Add new PG instance (include TDS FSW), Connect to the instance from PC 
+
+psql -U postgres
+
+CREATE DATABASE ramdor;
+\c ramdor
+
+CREATE EXTENSION tds_fdw;
+
+SELECT oid, extname, extversion FROM pg_extension;
+
+CREATE SERVER tds_server
+  FOREIGN DATA WRAPPER tds_fdw
+  OPTIONS (servername 'mssql-standalone', port '1433', database 'sales', tds_version '7.4');
+
+CREATE USER MAPPING FOR postgres
+  SERVER tds_server
+  OPTIONS (username 'sa', password 'Hh9Zt5FrOTzLGf3T');
+
+
+
+IMPORT FOREIGN SCHEMA dbo
+  FROM SERVER tds_server
+  INTO public;
+
+
+
+CREATE FOREIGN TABLE sqlserver_customers (
+    id INTEGER,
+    name VARCHAR,
+    city VARCHAR
+)
+SERVER tds_server
+OPTIONS (schema_name 'dbo', table_name 'customers');
+
+
+// doesn't work 
+INSERT INTO sqlserver_customers (id, name, city)
+VALUES (2, 'AlicePG', 'New York');
+
+
+SELECT * FROM sqlserver_customers;
+
+
+
+
+
+MS: Connect the instance to SQL Server (TDF FDW) 
+Necessary changes on sql server end:
+
+1> create database sales;
+2> go
+1> use sales
+2> go
+Changed database context to 'sales'.
+1> CREATE TABLE dbo.customers (
+2>     id INT PRIMARY KEY,
+3>     name NVARCHAR(100),
+4>     city NVARCHAR(100)
+5> );
+6> go
+
+INSERT INTO customers (id, name, city) VALUES (1, 'AliceSQL', 'New York');
+
+
+ALTER ROLE db_owner ADD MEMBER sa;
+sqcmd -S <SQL_SERVER_IP> -p 1433 -U sa -P '<Password>' -D sales
+TDS Version Compatibility: tds_version '7.1' is not recommended, use tds_version '7.4'
+
+
+
+PG: Upgrade PG, Change settings (Max connections), Increase RAM/CPU, Backup/Restore, HA cluster + FO 
+
+
+
+
+
+
 Pod Dashboard: 
 Pod Name (md, mg)
 Uptime (md mg 

@@ -4,19 +4,21 @@ metadata:
   name: pg
   namespace: demo
 spec:
-  version: "13.13"
+  version: "16.1-alpine-tds-fdw"
+  replicas: 1
   deletionPolicy: WipeOut
+  storageType: Durable
   storage:
-    storageClassName: "linode-block-storage" #"standard"
+    # storageClassName: "linode-block-storage" #"standard"
     accessModes:
     - ReadWriteOnce
     resources:
       requests:
         storage: 1Gi
-  monitor:
-    agent: prometheus.io/operator
-    prometheus:
-      serviceMonitor:
-        labels:
-          release: prometheus
-        interval: 10s
+  # monitor:
+  #   agent: prometheus.io/operator
+  #   prometheus:
+  #     serviceMonitor:
+  #       labels:
+  #         release: prometheus
+  #       interval: 10s

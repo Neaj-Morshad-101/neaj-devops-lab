@@ -1,22 +1,30 @@
-apiVersion: v1
-data:
-  password: UGE1NXcwcmQy
-  username: c2E=
-kind: Secret
+apiVersion: catalog.kubedb.com/v1alpha1
+kind: MSSQLServerVersion
 metadata:
-  labels:
-    app.kubernetes.io/component: database
-    app.kubernetes.io/instance: mssql-ag
-    app.kubernetes.io/managed-by: kubedb.com
-    app.kubernetes.io/name: mssqlservers.kubedb.com
-  name: mssql-ag-auth
-  namespace: demo
-  ownerReferences:
-  - apiVersion: kubedb.com/v1alpha2
-    blockOwnerDeletion: true
-    controller: true
-    kind: MSSQLServer
-    name: mssql-ag
-    uid: 5800b7ce-3fea-48f4-89df-37cd97b913ba
-  uid: a61d348f-bbb9-4872-a8f2-3a61a20a01bf
-type: kubernetes.io/basic-auth
+  name: 2022-cu12
+spec:
+  archiver:
+    addon:
+      name: mssqlserver-addon
+      tasks:
+        fullBackup:
+          name: logical-backup
+        fullBackupRestore:
+          name: logical-backup-restore
+        manifestBackup:
+          name: manifest-backup
+        manifestRestore:
+          name: manifest-restore
+    walg:
+      image: ghcr.io/kubedb/mssqlserver-archiver:v0.3.0
+  coordinator:
+    image: neajmorshad/mssql-coordinator:v0.4.0_linux_amd64
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-CU12-ubuntu-22.04
+  exporter:
+    image: ghcr.io/kubedb/mssql-exporter:1.1.0
+  initContainer:
+    image: ghcr.io/kubedb/mssql-init:2022-ubuntu-22-v3
+  securityContext:
+    runAsUser: 10001
+  version: "2022"
