@@ -13,15 +13,13 @@ kubectl get ns kube-system -o=jsonpath='{.metadata.uid}'
 kubectl label ns demo pod-security.kubernetes.io/enforce=restricted
 kubectl label ns kubedb pod-security.kubernetes.io/enforce=restricted
 
-v2024.9.30
-v2024.8.21
-v2024.6.4
-v2024.4.27
+v2024.11.18 v2024.9.30 v2024.8.21 v2024.6.4 v2024.4.27
+
 
 helm install kubedb oci://ghcr.io/appscode-charts/kubedb \
-          --version v2024.9.30 \
+          --version v2024.11.18 \
           --namespace kubedb --create-namespace \
-          --set-file global.license=$HOME/Downloads/kubedb-license-8c46fc66-d30b-40b0-b59b-9c907016b91a.txt \
+          --set-file global.license=$HOME/Downloads/kubedb-license-49d549b1-61b5-4bbe-ab7a-6f9fa663304e.txt \
           --set global.featureGates.MSSQLServer=true \
           --wait --burst-limit=10000 --debug
 
@@ -57,7 +55,7 @@ helm upgrade kubedb oci://ghcr.io/appscode-charts/kubedb \
           --set global.featureGates.Memcached=true \
           --wait --burst-limit=10000 --debug -f https://raw.githubusercontent.com/kubedb/installer/master/charts/kubedb/ci/ci-values.yaml
 
-Uninstall:
+Uninstall KubeDB:
 helm uninstall kubedb --namespace kubedb
 kubectl get crd -o name | grep kubedb.com | xargs kubectl delete
 
@@ -94,12 +92,13 @@ helm uninstall prometheus -n monitoring
 
 kubectl port-forward -n monitoring service/prometheus-grafana 3000:80
 
+# panopticon
 helm upgrade -i monitoring-operator oci://ghcr.io/appscode-charts/monitoring-operator \
-  --version v2024.9.30 \
+  --version v2024.11.18 \
   -n monitoring --create-namespace
 
 helm upgrade -i panopticon oci://ghcr.io/appscode-charts/panopticon \
-  --version v2024.9.30 \
+  --version v2024.11.18 \
   -n monitoring --create-namespace \
   --set-file license=$HOME/Downloads/kubedb-license-49d549b1-61b5-4bbe-ab7a-6f9fa663304e.txt
 
@@ -108,6 +107,13 @@ helm upgrade -i panopticon oci://ghcr.io/appscode-charts/panopticon \
 kubectl apply -f components.yaml
 
 
+helm upgrade -i coreos-prom-memcd charts/memcached-alerts -n demo 
+    --create-namespace 
+    --version=v2023.05.09 
+    --set form.alert.labels.release=prometheus
+
+It will provide the JSON for debuging:
+helm install  --dry-run --debug memcached charts/memcached-alerts -n demo --create-namespace --version=v2023.05.09
 
 
 
