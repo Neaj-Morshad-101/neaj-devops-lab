@@ -52,7 +52,7 @@ spec:
           release: prometheus
         interval: 10s
   storage:
-    # storageClassName: "standard"
+    storageClassName: "longhorn"
     accessModes:
     - ReadWriteOnce
     resources:

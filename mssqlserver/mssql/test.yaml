@@ -5,16 +5,19 @@ metadata:
   namespace: demo
 spec:
   version: "2022-cu12"
+  # configSecret:
+  #   name: ms-config
   replicas: 1
   storageType: Durable
   tls:
     issuerRef:
-      name: mssqlserver-ca-issuer
+      name: db-issuer
       kind: Issuer
       apiGroup: "cert-manager.io"
     clientTLS: false
   podTemplate:
     spec:
+      # terminationGracePeriodSeconds: 300  # Increase this value as needed
       containers:
       - name: mssql
         env:

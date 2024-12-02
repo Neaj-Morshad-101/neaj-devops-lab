@@ -98,14 +98,15 @@ helm upgrade -i monitoring-operator oci://ghcr.io/appscode-charts/monitoring-ope
   -n monitoring --create-namespace
 
 helm upgrade -i panopticon oci://ghcr.io/appscode-charts/panopticon \
-  --version v2024.11.18 \
+  --version v2024.9.30 \
   -n monitoring --create-namespace \
-  --set-file license=$HOME/Downloads/kubedb-license-49d549b1-61b5-4bbe-ab7a-6f9fa663304e.txt
+  --set-file license=$HOME/Downloads/kubedb-license-6b10b420-b3de-4ff4-b7e7-89f4ff6981f5.txt
 
 
 #### Kubernetes Metrics Server
 kubectl apply -f components.yaml
 
+kubectl view-secret -n monitoring prometheus-grafana -a
 
 helm upgrade -i coreos-prom-memcd charts/memcached-alerts -n demo 
     --create-namespace 
@@ -114,6 +115,8 @@ helm upgrade -i coreos-prom-memcd charts/memcached-alerts -n demo
 
 It will provide the JSON for debuging:
 helm install  --dry-run --debug memcached charts/memcached-alerts -n demo --create-namespace --version=v2023.05.09
+
+
 
 
 

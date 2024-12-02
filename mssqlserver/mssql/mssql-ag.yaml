@@ -22,16 +22,16 @@ spec:
       name: mssqlserver-ca-issuer
       kind: Issuer
       apiGroup: "cert-manager.io"
-    clientTLS: false
-  # monitor:
-  #   agent: prometheus.io/operator
-  #   prometheus:
-  #     exporter:
-  #       port: 9399
-  #     serviceMonitor:
-  #       labels:
-  #         release: prometheus
-  #       interval: 10s
+    clientTLS: true
+  monitor:
+    agent: prometheus.io/operator
+    prometheus:
+      exporter:
+        port: 9399
+      serviceMonitor:
+        labels:
+          release: prometheus
+        interval: 10s
   podTemplate:
     spec:
       containers:
@@ -49,7 +49,7 @@ spec:
             memory: "2Gi"
   storageType: Durable
   storage:
-    # storageClassName: "standard"
+    storageClassName: "longhorn"
     accessModes:
     - ReadWriteOnce
     resources:
