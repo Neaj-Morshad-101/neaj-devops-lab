@@ -92,16 +92,23 @@ helm uninstall prometheus -n monitoring
 
 kubectl port-forward -n monitoring service/prometheus-grafana 3000:80
 
-# panopticon
-helm upgrade -i monitoring-operator oci://ghcr.io/appscode-charts/monitoring-operator \
-  --version v2024.11.18 \
-  -n monitoring --create-namespace
+helm repo add appscode https://charts.appscode.com/stable/ 
+helm repo update
 
+# panopticon
 helm upgrade -i panopticon oci://ghcr.io/appscode-charts/panopticon \
   --version v2024.9.30 \
   -n monitoring --create-namespace \
   --set-file license=$HOME/Downloads/kubedb-license-6b10b420-b3de-4ff4-b7e7-89f4ff6981f5.txt
 
+helm upgrade -i kubedb-metrics oci://ghcr.io/appscode-charts/kubedb-metrics \
+  --version v2024.9.30 \
+  -n kubedb --create-namespace
+
+Not needed usually:
+helm upgrade -i monitoring-operator oci://ghcr.io/appscode-charts/monitoring-operator \
+  --version v2024.11.18 \
+  -n monitoring --create-namespace
 
 #### Kubernetes Metrics Server
 kubectl apply -f components.yaml
@@ -146,7 +153,9 @@ kubectl delete crd -l=app.kubernetes.io/name=catalog
 
 
 ####### Storage ###########
-Longhorn doesn't support Online Volume Expansion
+Longhorn doesn't support Online Volume Expansion: 
+https://longhorn.io/docs/archives/1.4.4/deploy/install/install-with-helm/
+
 helm repo add longhorn https://charts.longhorn.io
 helm repo update
 helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace

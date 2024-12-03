@@ -1,0 +1,114 @@
+Fix: summary pvc panel, pod role panel for for database dashboard
+Update Installation command and Sample Yamls in Slide, 
+Prepare Speech 
+
+
+
+
+
+
+
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ./ca.key -out ./ca.crt -subj "/CN=MSSQLServer/O=kubedb"
+
+kubectl create secret tls mssqlserver-ca --cert=ca.crt  --key=ca.key --namespace=demo 
+
+
+
+kubectl view-secret -n demo mssqlserver 
+kubectl view-secret -n demo mssqlserver-standalone-auth -a
+
+/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "
+/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "Pa55w0rd!"
+
+
+SELECT synchronization_health_desc from sys.dm_hadr_availability_group_states
+
+SELECT is_local, role_desc, synchronization_health_desc from sys.dm_hadr_availability_replica_states
+
+SELECT synchronization_health_desc from sys.dm_hadr_availability_replica_states WHERE is_local = 1 
+
+
+
+
+ALTER DATABASE AgDB1 SET HADR RESUME;
+
+select SERVERPROPERTY('IsSingleUser')
+
+
+
+SELECT name FROM sys.databases
+GO
+
+CREATE DATABASE test; 
+GO
+
+CREATE TABLE Data (ID INT, NAME NVARCHAR(255), AGE INT);
+INSERT INTO Data(ID, Name, Age) VALUES (1, 'John Doe', 25), (2, 'Jane Smith', 30);                                                                                    
+GO 
+
+Select * from data
+go
+
+INSERT INTO Data(ID, Name, Age) VALUES (3, 'John Doe', 25);
+
+first fail-over: 
+INSERT INTO Data(ID, Name, Age) VALUES (4, 'John Doe', 25);
+
+2nd fail-over: 
+INSERT INTO Data(ID, Name, Age) VALUES (5, 'John Doe', 25);
+
+INSERT INTO Data(ID, Name, Age) VALUES (6, 'John Doe', 25);
+
+
+
+
+
+
+
+
+
+Create demo namespace:
+we will use namespace demo throughout this demo.
+
+Apply CR [Standalone]:
+- connect & insert data
+- see persistency
+
+
+Install cert-manger:
+v1.4.0 or later to your cluster to manage your TLS certificates.
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.5/cert-manager.yaml
+
+
+Create Issuer: 
+This Issuer is used to create certificates. Then we are going to deploy a MSSQLServer AG cluster 
+create an example issuer: 
+
+Start off by generating our ca-certificates using openssl,
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ./ca.key -out ./ca.crt -subj "/CN=MSSQLServer/O=kubedb"
+
+create a secret using the certificate files we have just generated,
+kubectl create secret tls mssqlserver-ca --cert=ca.crt  --key=ca.key --namespace=demo 
+
+Now, we are going to create an Issuer using the mssqlserver-ca secret that contains the ca-certificate we have just created. The YAML of the Issuer cr that we are going to create is, mssqlserver-ca-issuer.yaml 
+
+Let’s create the Issuer cr we have shown, 
+kubectl apply -f mssqlserver-ca-issuer.yaml
+
+
+Apply CR AG 
+connect and insert 
+see data is replicated or not 
+do manual fail-over 
+insert data 
+see data is replicated or not 
+
+
+
+
+
+
+
+
+
+
