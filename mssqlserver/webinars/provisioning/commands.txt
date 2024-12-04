@@ -4,6 +4,21 @@ kubectl create secret tls mssqlserver-ca --cert=ca.crt  --key=ca.key --namespace
 
 
 
+
+Monitoring:
+kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-prometheus 9090
+kubectl port-forward -n monitoring prometheus-prometheus-kube-prometheus-prometheus-0 9090
+http://localhost:9090/targets?search=
+kubectl port-forward -n demo svc/ms-std-mon-stats 9399
+http://localhost:9399/metrics
+http://localhost:9399/sql_exporter_metrics
+kubectl port-forward -n monitoring svc/prometheus-grafana 4000:80
+http://localhost:4000/login
+
+
+
+
+
 kubectl view-secret -n demo mssqlserver 
 kubectl view-secret -n demo mssqlserver-standalone-auth password
 

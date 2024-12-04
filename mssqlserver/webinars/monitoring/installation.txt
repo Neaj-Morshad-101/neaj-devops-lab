@@ -1,25 +1,21 @@
 $ helm install kubedb oci://ghcr.io/appscode-charts/kubedb \
   --version v2024.11.18 \
   --namespace kubedb --create-namespace \
-  --set-file global.license=/path/to/the/license.txt \
+  --set-file global.license=$HOME/Downloads/kubedb-license-6b10b420-b3de-4ff4-b7e7-89f4ff6981f5.txt \
   --set global.featureGates.MSSQLServer=true \
   --wait --burst-limit=10000 --debug
-
-
 
 
 # Cert-Manager
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.1/cert-manager.yaml
 
 
-# CSI-Driver-CACerts
+# CSI-Driver-CACerts: add ca certificates to a the OS trusted certificate issuers
 helm repo add appscode https://charts.appscode.com/stable/
 helm repo update
 helm upgrade -i \
   cert-manager-csi-driver-cacerts appscode/cert-manager-csi-driver-cacerts \
   -n cert-manager --wait
-
-
 
 
 # Monitoring 
@@ -28,11 +24,7 @@ $ helm repo update
 $ helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring --set grafana.image.tag=7.5.5 --create-namespace
 
 
-
-helm upgrade -i monitoring-operator oci://ghcr.io/appscode-charts/monitoring-operator \
-  --version v2024.11.18 \
-  -n monitoring --create-namespace
-
+Panopticon: A Generic Kubernetes State Metrics Exporter Deleloped and Used by KubeDB that can generates Prometheus metrics from both Kubernetes native and custom resources.
 helm upgrade -i panopticon oci://ghcr.io/appscode-charts/panopticon \
   --version v2024.9.30 \
   -n monitoring --create-namespace \
@@ -42,5 +34,26 @@ helm upgrade -i kubedb-metrics oci://ghcr.io/appscode-charts/kubedb-metrics \
   --version v2024.9.30 \
   -n kubedb --create-namespace
 
+
+Monitoring Operator: makes the  target-prometheus-labels dynamic
+helm upgrade -i monitoring-operator oci://ghcr.io/appscode-charts/monitoring-operator \
+  --version v2024.11.18 \
+  -n monitoring --create-namespace
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Don't need this. 
 # Kubernetes Metrics Server
 kubectl apply -f ../../../components.yaml

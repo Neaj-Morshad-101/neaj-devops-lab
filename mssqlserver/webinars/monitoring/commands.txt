@@ -1,4 +1,7 @@
-Fix: summary pvc panel, pod role panel for for database dashboard
+Fix: summary pvc panel 
+include job=~\"kubelet\"  in kubelet_volume_stats_used_bytes and kubelet_volume_stats_capacity_bytes
+
+pod role panel for for database dashboard
 Update Installation command and Sample Yamls in Slide, 
 Prepare Speech 
 
@@ -11,6 +14,19 @@ Prepare Speech
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ./ca.key -out ./ca.crt -subj "/CN=MSSQLServer/O=kubedb"
 
 kubectl create secret tls mssqlserver-ca --cert=ca.crt  --key=ca.key --namespace=demo 
+
+
+kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-prometheus 9090
+kubectl port-forward -n monitoring prometheus-prometheus-kube-prometheus-prometheus-0 9090
+http://localhost:9090/targets?search=
+kubectl port-forward -n demo svc/ms-std-mon-stats 9399
+http://localhost:9399/metrics
+http://localhost:9399/sql_exporter_metrics
+kubectl port-forward -n monitoring svc/prometheus-grafana 4000:80
+http://localhost:4000/login
+
+
+
 
 
 

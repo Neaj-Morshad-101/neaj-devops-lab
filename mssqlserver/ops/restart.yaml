@@ -9,3 +9,9 @@ spec:
     name: mssqlserver-ag-cluster
   timeout: 3m
   apply: Always
+
+
+issuerRef:
+  apiGroup: cert-manager.io
+  kind: Issuer
+  name: mssqlserver-ca-issuer
