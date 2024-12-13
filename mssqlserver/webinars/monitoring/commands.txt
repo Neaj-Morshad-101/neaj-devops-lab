@@ -1,46 +1,138 @@
-Fix: summary pvc panel 
-include job=~\"kubelet\"  in kubelet_volume_stats_used_bytes and kubelet_volume_stats_capacity_bytes
+Demo Stuff: 
 
-pod role panel for for database dashboard
-Update Installation command and Sample Yamls in Slide, 
-Prepare Speech 
+cluster setup: kubectl version –short 
+install kubedb, cert-manager, csi-drive ca certs, prometheus grafana stack 
+apply mssqlsever
+
+You need to have a Kubernetes cluster
+
+Install KubeDB operator in your cluster. 
+Make sure install with helm command including --set global.featureGates.MSSQLServer=true to ensure MSSQLServer CRD installation.
+
+To configure TLS/SSL in MSSQLServer, KubeDB uses cert-manager to issue certificates. So first you have to make sure that the cluster has cert-manager installed.
+
+To keep Prometheus resources isolated, I used a separate namespace called monitoring to deploy respective monitoring resources. 
+We are going to deploy database in demo namespace.
+
+
+kubectl get pods -A
+
+watch kubectl get ms,petset,pods,svc,secrets,issuer,pvc -n demo
+
+
+Create demo namespace:
+we will use namespace demo throughout this webinar.
 
 
 
+Find out required labels for ServiceMonitor
+kubectl get prometheus -n monitoring prometheus-kube-prometheus-prometheus -oyaml
+
+Notice the spec.serviceMonitorSelector section. Here, release: prometheus label is used to select ServiceMonitor CR. So, we are going to use this label in spec.monitor.prometheus.labels field of MSSQLServer CR.
 
 
 
+Create Issuer: 
+This Issuer is used to create certificates required for TLS configurations.
 
+Start off by generating our ca-certificates using openssl,
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ./ca.key -out ./ca.crt -subj "/CN=MSSQLServer/O=kubedb"
 
+create a secret using the certificate files we have just generated,
 kubectl create secret tls mssqlserver-ca --cert=ca.crt  --key=ca.key --namespace=demo 
 
+Now, we are going to create an Issuer using the mssqlserver-ca secret that contains the ca-certificate we have just created. The YAML of the Issuer cr that we are going to create is, mssqlserver-ca-issuer.yaml 
+
+Let’s create the Issuer cr we have shown, 
+kubectl apply -f mssqlserver-ca-issuer.yaml
+
+
+monitor.agent: prometheus.io/operator indicates that we are going to monitor this server using Prometheus operator.
+monitor.prometheus.serviceMonitor.labels specifies that KubeDB should create ServiceMonitor with these labels.
+monitor.prometheus.interval indicates that the Prometheus server should scrape metrics from this database with 10 seconds interval.
+
+Apply CR 
+kubectl apply -f issyer,standalone,cluster etc. 
+
+
+KubeDB will create a separate stats service with name {mssqlserver cr name}-stats for monitoring purpose.
+
+kubectl describe svc -n demo mssql-monitoring-stats
+
+Notice the Labels and Port fields. ServiceMonitor will use these information to target its endpoints.
+
+KubeDB will also create a ServiceMonitor CR in demo namespace that select the endpoints of mssql-monitoring-stats service. Verify that the ServiceMonitor CR has been created.
+
+kubectl get servicemonitor -n demo
+
+Let’s verify that the ServiceMonitor has the label that we had specified in spec.monitor section of MSSQLServer CR.
+kubectl get servicemonitor -n demo mssql-monitoring-stats -o yaml
+
+Notice that the ServiceMonitor has label release: prometheus that we had specified in MSSQLServer CR.
+
+Also notice that the ServiceMonitor has selector which match the labels we have seen in the mssql-monitoring-stats service. It also, target the metrics port that we have seen in the stats service.
+
+
+
+
+
+
+
+
+
+Verify Monitoring Metrics
+
+At first, let’s find out the respective Prometheus pod for prometheus-kube-prometheus-prometheus Prometheus server.
+
+Prometheus server is listening to port 9090 of prometheus-prometheus-kube-prometheus-prometheus-0 pod. 
+We are going to use port forwarding to access Prometheus dashboard.
+
+
+Run following command on a separate terminal to forward the port 9090 of prometheus-prometheus-0 pod,
 
 kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-prometheus 9090
 kubectl port-forward -n monitoring prometheus-prometheus-kube-prometheus-prometheus-0 9090
+http://localhost:9090
+
+Now, we can access the dashboard at localhost:9090. Open http://localhost:9090 in your browser. 
+You should see metrics endpoint of mssql-monitoring-stats service as one of the targets.
+
+
+Let's Check the endpoint and service labels. It verifies that the target is our expected database. Now, you can view the collected metrics and create a graph from homepage of this Prometheus dashboard. You can also use this Prometheus server as data source for Grafana and create beautiful dashboards with collected metrics.
+
+Kubedb has dashboards developed for you, 
+There are three dashboards to monitor Microsoft SQL Server Databases managed by KubeDB.
+
+KubeDB / MSSQLServer / Summary: Shows overall summary of Microsoft SQL Server instance.
+KubeDB / MSSQLServer / Pod: Shows individual pod-level information.
+KubeDB / MSSQLServer / Database: Shows Microsoft SQL Server internal metrics for a database cluster.
+
+
+out mssqlserver-dashboards
+
+
 http://localhost:9090/targets?search=
 kubectl port-forward -n demo svc/ms-std-mon-stats 9399
 http://localhost:9399/metrics
 http://localhost:9399/sql_exporter_metrics
+
 kubectl port-forward -n monitoring svc/prometheus-grafana 4000:80
 http://localhost:4000/login
 
 
 
+you can monitoring different metrics using prometheus and visualize them using grafana dashboards 
+port-forward prometheus svc/pod 9090  
+show metriecs endpoints, are up 
+import dashboards and explain panels 
 
 
-
-kubectl view-secret -n demo mssqlserver 
 kubectl view-secret -n demo mssqlserver-standalone-auth -a
-
-/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "
 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "Pa55w0rd!"
 
 
 SELECT synchronization_health_desc from sys.dm_hadr_availability_group_states
-
 SELECT is_local, role_desc, synchronization_health_desc from sys.dm_hadr_availability_replica_states
-
 SELECT synchronization_health_desc from sys.dm_hadr_availability_replica_states WHERE is_local = 1 
 
 
@@ -83,48 +175,10 @@ INSERT INTO Data(ID, Name, Age) VALUES (6, 'John Doe', 25);
 
 
 
-Create demo namespace:
-we will use namespace demo throughout this demo.
 
-Apply CR [Standalone]:
-- connect & insert data
-- see persistency
+Fix: summary pvc panel 
+include job=~\"kubelet\"  in kubelet_volume_stats_used_bytes and kubelet_volume_stats_capacity_bytes
 
-
-Install cert-manger:
-v1.4.0 or later to your cluster to manage your TLS certificates.
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.5/cert-manager.yaml
-
-
-Create Issuer: 
-This Issuer is used to create certificates. Then we are going to deploy a MSSQLServer AG cluster 
-create an example issuer: 
-
-Start off by generating our ca-certificates using openssl,
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ./ca.key -out ./ca.crt -subj "/CN=MSSQLServer/O=kubedb"
-
-create a secret using the certificate files we have just generated,
-kubectl create secret tls mssqlserver-ca --cert=ca.crt  --key=ca.key --namespace=demo 
-
-Now, we are going to create an Issuer using the mssqlserver-ca secret that contains the ca-certificate we have just created. The YAML of the Issuer cr that we are going to create is, mssqlserver-ca-issuer.yaml 
-
-Let’s create the Issuer cr we have shown, 
-kubectl apply -f mssqlserver-ca-issuer.yaml
-
-
-Apply CR AG 
-connect and insert 
-see data is replicated or not 
-do manual fail-over 
-insert data 
-see data is replicated or not 
-
-
-
-
-
-
-
-
-
-
+pod role panel for for database dashboard
+Update Installation command and Sample Yamls in Slide, 
+Prepare Speech 

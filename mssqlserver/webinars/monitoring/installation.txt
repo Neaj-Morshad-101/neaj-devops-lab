@@ -35,25 +35,41 @@ helm upgrade -i kubedb-metrics oci://ghcr.io/appscode-charts/kubedb-metrics \
   -n kubedb --create-namespace
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Don't need these: 
 Monitoring Operator: makes the  target-prometheus-labels dynamic
 helm upgrade -i monitoring-operator oci://ghcr.io/appscode-charts/monitoring-operator \
   --version v2024.11.18 \
   -n monitoring --create-namespace
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Don't need this. 
 # Kubernetes Metrics Server
 kubectl apply -f ../../../components.yaml

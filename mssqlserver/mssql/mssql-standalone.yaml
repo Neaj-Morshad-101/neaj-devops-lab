@@ -4,7 +4,7 @@ metadata:
   name: mssql-standalone-tls
   namespace: demo
 spec:
-  version: "2022-cu12"
+  version: "2022-cu16"
   # configSecret:
   #   name: ms-config
   replicas: 1
@@ -52,7 +52,7 @@ spec:
           release: prometheus
         interval: 10s
   storage:
-    storageClassName: "longhorn"
+    # storageClassName: "longhorn"
     accessModes:
     - ReadWriteOnce
     resources:

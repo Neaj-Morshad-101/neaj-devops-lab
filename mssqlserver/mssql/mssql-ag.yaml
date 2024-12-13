@@ -4,8 +4,8 @@ metadata:
   name: mssql-ag
   namespace: demo
 spec:
-  version: "2022-cu12"
-  replicas: 3
+  version: "2022-cu16"
+  replicas: 2
   # authSecret:
   #   name: mssql-auth
   #   externallyManaged: true
@@ -49,7 +49,7 @@ spec:
             memory: "2Gi"
   storageType: Durable
   storage:
-    storageClassName: "longhorn"
+    # storageClassName: "longhorn"
     accessModes:
     - ReadWriteOnce
     resources:
