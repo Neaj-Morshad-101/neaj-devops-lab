@@ -1,7 +1,7 @@
 apiVersion: kubedb.com/v1alpha2
 kind: MSSQLServer
 metadata:
-  name: mssql-standalone-tls
+  name: mssql-standalone
   namespace: demo
 spec:
   version: "2022-cu16"
@@ -25,7 +25,7 @@ spec:
       #   - client
       #   organizations:
       #   - kubedb
-    clientTLS: true
+    clientTLS: false
   podTemplate:
     spec:
       # terminationGracePeriodSeconds: 300  # Increase this value as needed
@@ -37,20 +37,20 @@ spec:
         - name: MSSQL_PID
           value: Evaluation
         resources:
-          requests:
-            cpu: "500m"
-            memory: "1.5Gi"
-          limits:
-            memory: "2Gi"
-  monitor:
-    agent: prometheus.io/operator
-    prometheus:
-      exporter:
-        port: 9399
-      serviceMonitor:
-        labels:
-          release: prometheus
-        interval: 10s
+          # requests:
+          #   cpu: "600m"
+          #   memory: "1.6Gi"
+          # limits:
+          #   memory: "2Gi"
+  # monitor:
+  #   agent: prometheus.io/operator
+  #   prometheus:
+  #     exporter:
+  #       port: 9399
+  #     serviceMonitor:
+  #       labels:
+  #         release: prometheus
+  #       interval: 10s
   storage:
     # storageClassName: "longhorn"
     accessModes:

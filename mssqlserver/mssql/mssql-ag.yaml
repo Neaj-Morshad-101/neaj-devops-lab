@@ -5,7 +5,7 @@ metadata:
   namespace: demo
 spec:
   version: "2022-cu16"
-  replicas: 2
+  replicas: 3
   # authSecret:
   #   name: mssql-auth
   #   externallyManaged: true
@@ -13,25 +13,26 @@ spec:
   #   name: ms-custom-config
   topology:
     mode: AvailabilityGroup
-    availabilityGroup:
+    availabilityGroup: 
       databases:
         - agdb1
-        - agdb2
+        # - agdb2
+        # - agdb3
   tls:
     issuerRef:
       name: mssqlserver-ca-issuer
       kind: Issuer
       apiGroup: "cert-manager.io"
-    clientTLS: true
-  monitor:
-    agent: prometheus.io/operator
-    prometheus:
-      exporter:
-        port: 9399
-      serviceMonitor:
-        labels:
-          release: prometheus
-        interval: 10s
+    clientTLS: false
+  # monitor:
+  #   agent: prometheus.io/operator
+  #   prometheus:
+  #     exporter:
+  #       port: 9399
+  #     serviceMonitor:
+  #       labels:
+  #         release: prometheus
+  #       interval: 10s
   podTemplate:
     spec:
       containers:
@@ -41,12 +42,12 @@ spec:
           value: "Y"
         - name: MSSQL_PID
           value: Evaluation
-        resources:
-          requests:
-            cpu: "500m"
-            memory: "1.5Gi"
-          limits:
-            memory: "2Gi"
+        # resources:
+        #   requests:
+        #     cpu: "500m"
+        #     memory: "1.5Gi"
+        #   limits:
+        #     memory: "2Gi"
   storageType: Durable
   storage:
     # storageClassName: "longhorn"
