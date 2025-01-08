@@ -25,7 +25,7 @@ spec:
       #   - client
       #   organizations:
       #   - kubedb
-    clientTLS: false
+    clientTLS: true
   podTemplate:
     spec:
       # terminationGracePeriodSeconds: 300  # Increase this value as needed

@@ -16,8 +16,7 @@ spec:
     availabilityGroup: 
       databases:
         - agdb1
-        # - agdb2
-        # - agdb3
+        - agdb2
   tls:
     issuerRef:
       name: mssqlserver-ca-issuer

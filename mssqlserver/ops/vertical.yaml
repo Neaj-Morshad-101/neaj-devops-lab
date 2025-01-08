@@ -6,13 +6,13 @@ metadata:
 spec:
   type: VerticalScaling
   databaseRef:
-    name: mssql-ag-cluster
+    name: mssql-ag
   verticalScaling:
     mssqlserver:
       resources:
         requests:
-          memory: "1.7Gi"
-          cpu: "700m"
+          memory: "2Gi"
+          cpu: "1m"
         limits:
           cpu: 2
           memory: "4Gi"

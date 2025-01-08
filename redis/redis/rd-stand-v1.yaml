@@ -1,13 +1,13 @@
 apiVersion: kubedb.com/v1
 kind: Redis
 metadata:
-  name: rd-stand-v1
+  name: rd-std
   namespace: demo
 spec:
   version: 7.4.0
-  # authSecret:
-  #   name: mysecret
-  #   externallyManaged: true
+  authSecret:
+    name: redis-auth
+    externallyManaged: true
 
   # tls:
   #   issuerRef:
@@ -16,7 +16,7 @@ spec:
   #     name: redis-ca-issuer
   storageType: Durable
   storage:
-    storageClassName: "standard" # "standard" # "longhorn"
+    storageClassName: "longhorn" # "standard" # "longhorn"
     accessModes:
     - ReadWriteOnce
     resources:

@@ -1,10 +1,12 @@
 apiVersion: kubedb.com/v1
 kind: Redis
 metadata:
-  name: rd-std-v1-res
-  namespace: demo
+  name: rd-std-v1
+  namespace: org-1
 spec:
   version: 7.4.0
+  configSecret:
+    name: rd-configuration
   # authSecret:
   #   name: mysecret
   #   externallyManaged: true
@@ -16,23 +18,23 @@ spec:
   #     name: redis-ca-issuer
   storageType: Durable
   storage:
-    storageClassName: "standard" # "standard" # "longhorn"
+    # storageClassName: "standard" # "standard" # "longhorn"
     accessModes:
     - ReadWriteOnce
     resources:
       requests:
         storage: 1Gi
-  podTemplate:
-    spec:
-      containers:
-      - name: redis
-        resources:
-          requests:
-            cpu: 150m
-            memory: 150Mi
-          limits:
-            cpu: "200m"
-            memory: "200Mi"
+  # podTemplate:
+  #   spec:
+  #     containers:
+  #     - name: redis
+  #       resources:
+  #         requests:
+  #           cpu: 150m
+  #           memory: 150Mi
+  #         limits:
+  #           cpu: "200m"
+  #           memory: "200Mi"
   # monitor:
   #   agent: prometheus.io/operator
   #   prometheus:
