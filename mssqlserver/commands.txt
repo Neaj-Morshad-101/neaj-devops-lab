@@ -2,6 +2,8 @@ Certificate:
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ./ca.key -out ./ca.crt -subj "/CN=MSSQLServer/O=kubedb"
 
 
+mssqlserver, ops-manager, petset 
+make deploy-to-kind 
 
 
 Kubenetes Commands:
@@ -149,6 +151,8 @@ ALTER AVAILABILITY GROUP [mssqlagcluster] REMOVE REPLICA ON N'mssql-ag-0';
 
 AG Create/Delete:
 DROP AVAILABILITY GROUP [mssqlagcluster];
+
+
 
 
 

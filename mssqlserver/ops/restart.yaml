@@ -6,6 +6,6 @@ metadata:
 spec:
   type: Restart
   databaseRef:
-    name: mssql-ag
+    name: mssql-standalone
   timeout: 3m
-  apply: Always
+  apply: IfReady

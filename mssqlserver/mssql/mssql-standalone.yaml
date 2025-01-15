@@ -36,7 +36,7 @@ spec:
           value: "Y"
         - name: MSSQL_PID
           value: Evaluation
-        resources:
+        # resources:
           # requests:
           #   cpu: "600m"
           #   memory: "1.6Gi"

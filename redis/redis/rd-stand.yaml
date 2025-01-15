@@ -4,10 +4,10 @@ metadata:
   name: rd-stand
   namespace: demo
 spec:
-  version: 7.2.4
+  version: 7.4.1
   storageType: Durable
   storage:
-    storageClassName: "linode-block-storage" # "standard" # "longhorn"
+    storageClassName: "longhorn" # "standard" # "longhorn"
     accessModes:
     - ReadWriteOnce
     resources:

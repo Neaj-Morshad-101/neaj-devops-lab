@@ -10,7 +10,7 @@ spec:
     externallyManaged: true
 
   # tls:
-  #   issuerRef:
+  #   issuerRef:  
   #     apiGroup: "cert-manager.io"
   #     kind: Issuer
   #     name: redis-ca-issuer

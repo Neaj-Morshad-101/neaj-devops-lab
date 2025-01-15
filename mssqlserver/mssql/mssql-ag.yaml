@@ -1,7 +1,7 @@
 apiVersion: kubedb.com/v1alpha2
 kind: MSSQLServer
 metadata:
-  name: mssql-ag
+  name: ag2
   namespace: demo
 spec:
   version: "2022-cu16"
@@ -14,9 +14,9 @@ spec:
   topology:
     mode: AvailabilityGroup
     availabilityGroup: 
-      databases:
-        - agdb1
-        - agdb2
+      # databases:
+      #   - agdb3
+      #   - agdb2
   tls:
     issuerRef:
       name: mssqlserver-ca-issuer
@@ -47,6 +47,13 @@ spec:
         #     memory: "1.5Gi"
         #   limits:
         #     memory: "2Gi"
+  # serviceTemplates:
+  # - alias: primary
+  #   spec:
+  #     type: ClusterIP
+  #     ports:
+  #       - name: endpoint
+  #         port: 5022
   storageType: Durable
   storage:
     # storageClassName: "longhorn"

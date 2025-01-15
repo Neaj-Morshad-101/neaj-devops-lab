@@ -1,3 +1,105 @@
+svc's port and namespace issue 
+
+
+The master key in SQL Server is a database-level object used to secure other keys and sensitive data, such as certificates and credentials. It serves as the root of the encryption hierarchy within a database. The master key is protected by a password and is required for certain operations involving encryption and security.
+
+Logins must be identical (in terms of name, SID, and password) across AG or DAG replicas to avoid authentication failures, orphaned users, and operational disruptions.
+When you create a login with the same name and password on both replicas using CREATE LOGIN, SQL Server assigns a new SID to the login unless explicitly specified.
+In most cases:
+If the SID differs between the replicas but you haven't mapped any specific database users to these logins, you may not encounter issues immediately.
+However, mismatched SIDs may lead to orphaned users when database failover occurs, as the user in the database might not be properly linked to the login on the secondary replica.
+How to Ensure Future Consistency
+For a more robust setup, consider synchronizing the SID for critical logins:
+Extract SID from Primary:
+SELECT name, sid 
+FROM sys.sql_logins 
+WHERE name = 'YourLoginName';
+Create Login on Secondary with SID: Use the extracted SID when creating the login:
+CREATE LOGIN YourLoginName WITH PASSWORD = 'YourPassword', SID = 0xABCDEF1234567
+
+
+
+
+Ah, now I see the root cause from the error logs. The key error is:
+
+￼
+Copy
+Database Mirroring login attempt failed with error: 'Connection handshake failed. The certificate used by the peer is invalid due to the following reason: Certificate not found. State 89.'
+This indicates there's a certificate authentication issue between the replicas. For Distributed AG to work, we need to:
+
+Create certificates on both instances
+Exchange certificates between the instances
+Create logins from the certificates
+
+
+
+
+
+
+Yes, for Distributed Availability Groups (DAG), you need to ensure consistent authentication across both AG replicas (ag1 and ag2). This means:
+
+Same DBM Login and Password: 
+sql
+￼
+Copy
+-- Use the same on both ag1 and ag2
+CREATE LOGIN dbm_login WITH PASSWORD = '<same_password>';
+Same Master Key Encryption Password:
+sql
+￼
+Copy
+-- Use the same master key password on both ag1 and ag2
+CREATE MASTER KEY ENCRYPTION BY PASSWORD = '<same_master_key_password>';
+Same Certificate Configuration: From your code, you're using dbm_certificate as the certificate name:
+sql
+￼
+Copy
+-- Certificate and endpoint configuration should match on both AGs
+CREATE CERTIFICATE dbm_certificate FROM FILE = '<pfx_path>' 
+WITH FORMAT = 'PFX', PRIVATE KEY (DECRYPTION BY PASSWORD = '');
+
+CREATE ENDPOINT Hadr_endpoint
+    AS TCP (LISTENER_IP = (0.0.0.0), LISTENER_PORT = 5022)
+    FOR DATA_MIRRORING (
+        ROLE = ALL,
+        AUTHENTICATION = CERTIFICATE dbm_certificate,
+        ENCRYPTION = REQUIRED ALGORITHM AES
+    );
+The issue in your current setup is that each AG has its own independent authentication setup. For DAG to work:
+
+Both AGs must use identical login credentials
+The master key encryption password must be the same
+The certificates used for endpoint authentication must be the same
+The endpoint configurations must match
+Would you like me to provide a complete script to ensure consistent authentication across both AGs?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Prepare Demo: 
 TDS FDW stands for "Tabular Data Stream Foreign Data Wrapper.
 

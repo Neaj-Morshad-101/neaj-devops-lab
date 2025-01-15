@@ -1,41 +1,60 @@
-apiVersion: kubedb.com/v1alpha2
-kind: MSSQLServer
+apiVersion: v1
+kind: Service
 metadata:
-  name: ramdor-mssql
+  name: ag2
   namespace: demo
 spec:
-  version: "2022-cu12"
-  # configSecret:
-  #   name: ms-config
-  replicas: 1
-  storageType: Durable
-  tls:
-    issuerRef:
-      name: db-issuer
-      kind: Issuer
-      apiGroup: "cert-manager.io"
-    clientTLS: false
-  podTemplate:
-    spec:
-      # terminationGracePeriodSeconds: 300  # Increase this value as needed
-      containers:
-      - name: mssql
-        env:
-        - name: ACCEPT_EULA
-          value: "Y"
-        - name: MSSQL_PID
-          value: Evaluation
-        resources:
-          requests:
-            cpu: "500m"
-            memory: "1.5Gi"
-          limits:
-            memory: "2Gi"
-  storage:
-    # storageClassName: "standard"
-    accessModes:
-    - ReadWriteOnce
-    resources:
-      requests:
-        storage: 2Gi
-  deletionPolicy: WipeOut
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: primary
+    port: 1433
+    protocol: TCP
+    targetPort: db
+  - name: mirroring-endpoint
+    port: 5022
+    targetPort: 5022
+    protocol: TCP
+  publishNotReadyAddresses: true
+  selector:
+    app.kubernetes.io/instance: ag2
+    app.kubernetes.io/managed-by: kubedb.com
+    app.kubernetes.io/name: mssqlservers.kubedb.com
+    kubedb.com/role: primary
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ag1
+  namespace: demo
+spec:
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: primary
+    port: 1433
+    protocol: TCP
+    targetPort: db
+  - name: mirroring-endpoint
+    port: 5022
+    targetPort: 5022
+    protocol: TCP
+  publishNotReadyAddresses: true
+  selector:
+    app.kubernetes.io/instance: ag1
+    app.kubernetes.io/managed-by: kubedb.com
+    app.kubernetes.io/name: mssqlservers.kubedb.com
+    kubedb.com/role: primary
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

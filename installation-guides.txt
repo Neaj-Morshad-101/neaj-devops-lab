@@ -6,20 +6,16 @@ export LICENSE_FILE=$HOME/Downloads/kubedb-license-8c46fc66-d30b-40b0-b59b-9c907
 
 kubectl get ns kube-system -o=jsonpath='{.metadata.uid}'
 
-8c46fc66-d30b-40b0-b59b-9c907016b91a⏎       
-
-kubectl get ns kube-system -o=jsonpath='{.metadata.uid}'
-
 kubectl label ns demo pod-security.kubernetes.io/enforce=restricted
 kubectl label ns kubedb pod-security.kubernetes.io/enforce=restricted
 
-v2024.11.18 v2024.9.30 v2024.8.21 v2024.6.4 v2024.4.27
+v2024.12.18 v2024.11.18 v2024.9.30 v2024.8.21 v2024.6.4 v2024.4.27
 
 
 helm install kubedb oci://ghcr.io/appscode-charts/kubedb \
-          --version v2024.11.18 \
+          --version v2024.12.18 \
           --namespace kubedb --create-namespace \
-          --set-file global.license=$HOME/Downloads/kubedb-license-49d549b1-61b5-4bbe-ab7a-6f9fa663304e.txt \
+          --set-file global.license=$HOME/Downloads/kubedb-license-283aa2e9-7c5f-4525-9c99-cc9debdab908.txt \
           --set global.featureGates.MSSQLServer=true \
           --wait --burst-limit=10000 --debug
 
@@ -99,7 +95,7 @@ helm repo update
 helm upgrade -i panopticon oci://ghcr.io/appscode-charts/panopticon \
   --version v2024.9.30 \
   -n monitoring --create-namespace \
-  --set-file license=$HOME/Downloads/kubedb-license-6b10b420-b3de-4ff4-b7e7-89f4ff6981f5.txt
+  --set-file license=$HOME/Downloads/kubedb-license-ca5e0114-5d13-40a6-9d82-4abb47b9e008.txt
 
 helm upgrade -i kubedb-metrics oci://ghcr.io/appscode-charts/kubedb-metrics \
   --version v2024.9.30 \
