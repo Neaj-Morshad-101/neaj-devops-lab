@@ -1,10 +1,10 @@
 apiVersion: kubedb.com/v1
 kind: Redis
 metadata:
-  name: rd-cluster-v1
+  name: rd-cluster
   namespace: demo
 spec:
-  version: 7.4.0
+  version: 7.4.1
   mode: Cluster
   # tls:
   #   issuerRef:
@@ -13,13 +13,13 @@ spec:
   #     name: redis-ca-issuer
   cluster:
     shards: 3
-    replicas: 3
+    replicas: 2
   storageType: Durable
   storage:
     resources:
       requests:
         storage: 1Gi
-    storageClassName: "standard" #"linode-block-storage"  # "longhorn"
+    storageClassName: "longhorn"  # "longhorn"
     accessModes:
     - ReadWriteOnce
   podTemplate:

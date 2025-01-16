@@ -1,10 +1,19 @@
-apiVersion: kubedb.com/v1alpha2
+apiVersion: kubedb.com/v1
 kind: Redis
 metadata:
-  name: rd-stand
+  name: rd-standalone
   namespace: demo
 spec:
   version: 7.4.1
+  # authSecret:
+  #   name: redis-auth
+  #   externallyManaged: true
+
+  # tls:
+  #   issuerRef:  
+  #     apiGroup: "cert-manager.io"
+  #     kind: Issuer
+  #     name: redis-ca-issuer
   storageType: Durable
   storage:
     storageClassName: "longhorn" # "standard" # "longhorn"
@@ -15,8 +24,26 @@ spec:
         storage: 1Gi
   podTemplate:
     spec:
-      resources:
-        requests:
-          cpu: "150m"
-          memory: "150Mi"
-  terminationPolicy: WipeOut
+      containers:
+      - name: redis
+        resources:
+          requests:
+            cpu: 150m
+            memory: 150Mi
+          limits:
+            cpu: "200m"
+            memory: "200Mi"
+  # monitor:
+  #   agent: prometheus.io/operator
+  #   prometheus:
+  #     exporter:
+  #       resources:
+  #         requests:
+  #           cpu: "150m"
+  #           memory: "150Mi"
+  #     serviceMonitor:
+  #       labels:
+  #         release: prometheus
+  #       interval: 10s
+  deletionPolicy: WipeOut
+
