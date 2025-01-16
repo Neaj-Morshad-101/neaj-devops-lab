@@ -95,7 +95,7 @@ helm repo update
 helm upgrade -i panopticon oci://ghcr.io/appscode-charts/panopticon \
   --version v2024.9.30 \
   -n monitoring --create-namespace \
-  --set-file license=$HOME/Downloads/kubedb-license-ca5e0114-5d13-40a6-9d82-4abb47b9e008.txt
+  --set-file license=$HOME/Downloads/kubedb-license-b3d4e66d-ac7d-48bd-9043-87a22d9f7b0b.txt
 
 helm upgrade -i kubedb-metrics oci://ghcr.io/appscode-charts/kubedb-metrics \
   --version v2024.9.30 \
@@ -149,12 +149,12 @@ kubectl delete crd -l=app.kubernetes.io/name=catalog
 
 
 ####### Storage ###########
-Longhorn doesn't support Online Volume Expansion: 
-https://longhorn.io/docs/archives/1.4.4/deploy/install/install-with-helm/
+Longhorn support Online Volume Expansion: 
+https://longhorn.io/docs/1.7.2/deploy/install/install-with-helm/
 
 helm repo add longhorn https://charts.longhorn.io
 helm repo update
-helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace
+helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace --version 1.7.2
 
 
 cannot uninstall Longhorn because deleting-confirmation-flag is set to `false`. Please set it to `true` using Longhorn UI or 
