@@ -1,3 +1,432 @@
+to configure & use a distributed ag in sql server on linux, when a failover happens in the primary ag (ag1). and global primary changes, how to check & get the forwarer (the primary of second ag (ag2)) sync with the new global primary.
+
+
+if i have a cluster ag1 (ag1-0, ag1-1, ag1-2) for primary ag. and is any failover occurs in primary ag. global primary changed from ag1-0 to ag1-1, then I see my forwarded ag2-0 & ag2-1, ag2-2 is not getting synced. being unhealthy. how to get the second ag (ag2) sync with the new global primary ag1-1.
+
+I am already using load balancer svc in dag LISTENER_URL . which points to the current primaries of ag1 & ag2. when this failvoer occurs. do I have to run any query on forwarder or new global primary to start synchronizing?
+
+
+
+
+
+Check Error Logs:
+
+
+kubectl exec -it ag1-1 -- cat /var/opt/mssql/log/errorlog
+
+Remove / Add ag2 from dag. 
+
+On the New Global Primary (ag1-1):
+Temporarily disable automatic seeding:
+
+ALTER AVAILABILITY GROUP [DAG]
+MODIFY AVAILABILITY GROUP ON 'ag2' WITH (SEEDING_MODE = MANUAL);
+GO
+Re-enable automatic seeding:
+
+
+ALTER AVAILABILITY GROUP [DAG]
+MODIFY AVAILABILITY GROUP ON 'ag2' WITH (SEEDING_MODE = AUTOMATIC);
+GO
+
+
+On the Forwarder AG (ag2-0):
+Rejoin the DAG:
+
+
+ALTER AVAILABILITY GROUP [DAG] JOIN;
+GO
+Resume synchronization:
+
+ALTER DATABASE [YourDatabase] SET HADR RESUME;
+GO
+
+
+
+
+
+
+
+
+
+No, if you are correctly using a Load Balancer service that dynamically points to the current primary of AG1, you should not need to run any manual queries on the forwarding AG (AG2) or the new global primary (which is still within AG1, just a different replica like ag1-1) to restart synchronization after a failover within AG1.
+
+
+
+SQL Server Error Logs on AG2 (Forwarding AG):
+
+Critical Information Source: Examine the SQL Server error logs on the primary replica of AG2 (ag2-0) around the time of the failover in AG1. Look for error messages related to:
+
+Connectivity failures to AG1: Errors indicating that AG2 cannot connect to the specified endpoint for AG1.
+
+Distributed AG synchronization issues: Errors related to the Distributed AG mechanism itself.
+
+Network errors: Lower-level network errors that might point to connectivity problems.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: ag1
+  namespace: dag
+  labels:
+    app: ag1
+spec:
+  ports:
+  - port: 1433
+    name: db
+  - port: 5022
+    name: mirror
+  clusterIP: None
+  selector:
+    app: ag1
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ag1
+  namespace: dag
+spec:
+  serviceName: ag1
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ag1
+  template:
+    metadata:
+      labels:
+        app: ag1
+    spec:
+      containers:
+      - name: mssql
+        image: neajmorshad/sql-server-2022:latest # official image: mcr.microsoft.com/mssql/server:2022-latest
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: ACCEPT_EULA
+            value: "Y"
+          - name: MSSQL_SA_PASSWORD
+            value: "Pa55w0rd!"
+          - name: MSSQL_PID
+            value: "Developer"
+          - name: MSSQL_AGENT_ENABLED
+            value: "True"
+          - name: MSSQL_ENABLE_HADR
+            value: "1"
+        ports:
+        - containerPort: 1433
+          name: db
+        - containerPort: 5022
+          name: mirror
+        volumeMounts:
+        - name: mssql
+          mountPath: /var/opt/mssql
+  volumeClaimTemplates:
+  - metadata:
+      name: mssql
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 2Gi
+
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: ag2
+  namespace: dag
+  labels:
+    app: ag2
+spec:
+  ports:
+  - port: 1433
+    name: db
+  - port: 5022
+    name: mirror
+  clusterIP: None
+  selector:
+    app: ag2
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ag2
+  namespace: dag
+spec:
+  serviceName: ag2
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ag2
+  template:
+    metadata:
+      labels:
+        app: ag2
+    spec:
+      containers:
+      - name: mssql
+        image: neajmorshad/sql-server-2022:latest # official image: mcr.microsoft.com/mssql/server:2022-latest
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: ACCEPT_EULA
+            value: "Y"
+          - name: MSSQL_SA_PASSWORD
+            value: "Pa55w0rd!"
+          - name: MSSQL_PID
+            value: "Developer"
+          - name: MSSQL_AGENT_ENABLED
+            value: "True"
+          - name: MSSQL_ENABLE_HADR
+            value: "1"
+        ports:
+        - containerPort: 1433
+          name: db
+        - containerPort: 5022
+          name: mirror
+        volumeMounts:
+        - name: mssql
+          mountPath: /var/opt/mssql
+  volumeClaimTemplates:
+  - metadata:
+      name: mssql
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 2Gi
+
+
+kubectl exec -it -n dag ag1-0 -- bash
+root@ag1-0:/# /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Pa55w0rd!" -No -Q "
+CREATE AVAILABILITY GROUP [AG1]
+WITH (CLUSTER_TYPE = NONE)
+FOR REPLICA ON
+    N'ag1-0'
+        WITH (
+            ENDPOINT_URL = N'tcp://ag1-0.ag1:5022',
+            AVAILABILITY_MODE = SYNCHRONOUS_COMMIT,
+            SEEDING_MODE = AUTOMATIC,
+            FAILOVER_MODE = MANUAL,
+            SECONDARY_ROLE (ALLOW_CONNECTIONS = ALL)
+        ),
+    N'ag1-1'
+        WITH (
+            ENDPOINT_URL = N'tcp://ag1-1.ag1:5022',
+            AVAILABILITY_MODE = SYNCHRONOUS_COMMIT,
+            SEEDING_MODE = AUTOMATIC,
+            FAILOVER_MODE = MANUAL,
+            SECONDARY_ROLE (ALLOW_CONNECTIONS = ALL)
+        ),
+    N'ag1-2'
+        WITH (
+            ENDPOINT_URL = N'tcp://ag1-2.ag1:5022',
+            AVAILABILITY_MODE = SYNCHRONOUS_COMMIT,
+            SEEDING_MODE = AUTOMATIC,
+            FAILOVER_MODE = MANUAL,
+            SECONDARY_ROLE (ALLOW_CONNECTIONS = ALL)
+        );
+"
+
+
+-- Grant the ability to create databases in the Availability Group:
+root@ag1-0:/# /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Pa55w0rd!" -No -Q "
+ALTER AVAILABILITY GROUP [AG1] GRANT CREATE ANY DATABASE;
+"
+```
+
+
+
+kubectl exec -it -n dag ag2-0 -- bash
+root@ag2-0:/# /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Pa55w0rd!" -No -Q "
+CREATE AVAILABILITY GROUP [AG2]
+WITH (CLUSTER_TYPE = NONE)
+FOR REPLICA ON
+    N'ag2-0'
+        WITH (
+            ENDPOINT_URL = N'tcp://ag2-0.ag2:5022',
+            AVAILABILITY_MODE = SYNCHRONOUS_COMMIT,
+            SEEDING_MODE = AUTOMATIC,
+            FAILOVER_MODE = MANUAL,
+            SECONDARY_ROLE (ALLOW_CONNECTIONS = ALL)
+        ),
+    N'ag2-1'
+        WITH (
+            ENDPOINT_URL = N'tcp://ag2-1.ag2:5022',
+            AVAILABILITY_MODE = SYNCHRONOUS_COMMIT,
+            SEEDING_MODE = AUTOMATIC,
+            FAILOVER_MODE = MANUAL,
+            SECONDARY_ROLE (ALLOW_CONNECTIONS = ALL)
+        ),
+    N'ag2-2'
+        WITH (
+            ENDPOINT_URL = N'tcp://ag2-2.ag2:5022',
+            AVAILABILITY_MODE = SYNCHRONOUS_COMMIT,
+            SEEDING_MODE = AUTOMATIC,
+            FAILOVER_MODE = MANUAL,
+            SECONDARY_ROLE (ALLOW_CONNECTIONS = ALL)
+        );
+"
+
+
+-- Grant the ability to create databases in the Availability Group:
+root@ag2-0:/# /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Pa55w0rd!" -No -Q "
+ALTER AVAILABILITY GROUP [AG2] GRANT CREATE ANY DATABASE;
+"
+```
+
+
+
+## Configure Distributed Availability Group on Kubernetes
+
+
+
+First create the first availability group [ag1](../availability-group/ag1/readme.md) and second availability group [ag2](../availability-group/ag2/readme.md) following the steps detailed in readme file. 
+
+Now create load balancer svc for each availability group for inter cluster communication. 
+
+Create load balancer svc for first availability group (ag1) in the first cluster. 
+`kubectl apply -f ag1-primary-svc.yaml`
+```bash
+kubectl get svc -n dag ag1-primary
+NAME          TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)                         AGE
+ag1-primary   LoadBalancer   10.43.238.68   10.2.0.149    1433:32400/TCP,5022:30466/TCP   4h25m
+```
+
+Create load balancer svc for second availability group (ag2) in the second cluster.
+`kubectl apply -f ag2-primary-svc.yaml`
+```bash
+kubectl get svc -n dag ag2-primary
+NAME          TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                         AGE
+ag2-primary   LoadBalancer   10.43.173.130   10.2.0.188    1433:30752/TCP,5022:31052/TCP   4h24m
+```
+
+
+Verify which one is the primary pod (replica) of each AG. 
+Run `SELECT is_local, role_desc from sys.dm_hadr_availability_replica_states` on each replica to see the role. 
+
+Mine is `ag1-0` for ag1, and `ag2-0` for ag2. 
+
+
+
+Add lable `role=primary` in ag1-0, ag2-0 (primary pods of each AG).
+```
+first cluster:
+kubectl label pod ag1-0 -n dag role=primary
+second cluster:
+kubectl label pod ag2-0 -n dag role=primary
+```
+
+
+
+Now, create the DISTRIBUTED Availability Group named `DAG`.
+ag1-primary:  EXTERNAL-IP    10.2.0.149
+ag2-primary:  EXTERNAL-IP    10.2.0.188
+
+
+```bash
+# Primary Cluster 
+kubectl exec -it -n dag ag1-0 -- bash
+root@ag1-0:/# /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Pa55w0rd!" -No -Q "
+CREATE AVAILABILITY GROUP [DAG]  
+   WITH (DISTRIBUTED)   
+   AVAILABILITY GROUP ON  
+      'ag1' WITH    
+      (   
+         LISTENER_URL = 'tcp://10.2.0.149:5022',    
+         AVAILABILITY_MODE = ASYNCHRONOUS_COMMIT,   
+         FAILOVER_MODE = MANUAL,   
+         SEEDING_MODE = AUTOMATIC   
+      ),   
+      'ag2' WITH    
+      (   
+         LISTENER_URL = 'tcp://10.2.0.188 :5022',   
+         AVAILABILITY_MODE = ASYNCHRONOUS_COMMIT,   
+         FAILOVER_MODE = MANUAL,   
+         SEEDING_MODE = AUTOMATIC   
+      );    
+GO 
+"
+```
+
+```bash
+# Secondary Cluster
+kubectl exec -it -n dag ag2-0 -- bash
+root@ag2-0:/# /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Pa55w0rd!" -No -Q "
+ALTER AVAILABILITY GROUP [DAG]
+   JOIN   
+   AVAILABILITY GROUP ON  
+      'ag1' WITH    
+      (   
+         LISTENER_URL = 'tcp://10.2.0.149:5022',    
+         AVAILABILITY_MODE = ASYNCHRONOUS_COMMIT,   
+         FAILOVER_MODE = MANUAL,   
+         SEEDING_MODE = AUTOMATIC   
+      ),   
+      'ag2' WITH    
+      (   
+         LISTENER_URL = 'tcp://10.2.0.188 :5022',   
+         AVAILABILITY_MODE = ASYNCHRONOUS_COMMIT,   
+         FAILOVER_MODE = MANUAL,   
+         SEEDING_MODE = AUTOMATIC   
+      );  
+GO
+"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 Prepare Demo: 
