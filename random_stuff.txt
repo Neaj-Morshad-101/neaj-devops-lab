@@ -1,9 +1,15 @@
-to configure & use a distributed ag in sql server on linux, when a failover happens in the primary ag (ag1). and global primary changes, how to check & get the forwarer (the primary of second ag (ag2)) sync with the new global primary.
+Plan: 
+add a cli command with will backup the appbinding with necessary yamls, then the user will just apply the appbinding in remote cluster. 
 
 
-if i have a cluster ag1 (ag1-0, ag1-1, ag1-2) for primary ag. and is any failover occurs in primary ag. global primary changed from ag1-0 to ag1-1, then I see my forwarded ag2-0 & ag2-1, ag2-2 is not getting synced. being unhealthy. how to get the second ag (ag2) sync with the new global primary ag1-1.
 
-I am already using load balancer svc in dag LISTENER_URL . which points to the current primaries of ag1 & ag2. when this failvoer occurs. do I have to run any query on forwarder or new global primary to start synchronizing?
+
+to configure & use a distributed ag in sql server on linux, when a failover happens in the primary ag (ag1). and global primary changes, how to check & get the forwared (the primary of second ag (ag2)) sync with the new global primary.
+
+
+if i have a cluster ag1 (ag1-0, ag1-1, ag1-2) for primary ag. and if any failover occurs in primary ag. global primary changed from ag1-0 to ag1-1, then I see my forwarded ag2-0 & ag2-1, ag2-2 is not getting synced. being unhealthy. how to get the second ag (ag2) sync with the new global primary ag1-1.
+
+I am already using load balancer svc in dag's LISTENER_URL . which points to the current primaries of ag1 & ag2. when this failvoer occurs. do I have to run any query on forwarder or new global primary to start synchronizing?
 
 
 
@@ -15,6 +21,8 @@ Check Error Logs:
 kubectl exec -it ag1-1 -- cat /var/opt/mssql/log/errorlog
 
 Remove / Add ag2 from dag. 
+
+
 
 On the New Global Primary (ag1-1):
 Temporarily disable automatic seeding:
@@ -38,7 +46,7 @@ ALTER AVAILABILITY GROUP [DAG] JOIN;
 GO
 Resume synchronization:
 
-ALTER DATABASE [YourDatabase] SET HADR RESUME;
+ALTER DATABASE [agtestdb] SET HADR RESUME;
 GO
 
 

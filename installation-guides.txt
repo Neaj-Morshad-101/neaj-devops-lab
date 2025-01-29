@@ -95,7 +95,7 @@ helm repo update
 helm upgrade -i panopticon oci://ghcr.io/appscode-charts/panopticon \
   --version v2024.9.30 \
   -n monitoring --create-namespace \
-  --set-file license=$HOME/Downloads/kubedb-license-b3d4e66d-ac7d-48bd-9043-87a22d9f7b0b.txt
+  --set-file license=$HOME/Downloads/kind-license.txt
 
 helm upgrade -i kubedb-metrics oci://ghcr.io/appscode-charts/kubedb-metrics \
   --version v2024.9.30 \
@@ -125,11 +125,14 @@ helm install  --dry-run --debug memcached charts/memcached-alerts -n demo --crea
 
 
 ###### KubeStash Installation ###########
+
 helm install kubestash oci://ghcr.io/appscode-charts/kubestash \
-        --version v2024.9.30 \
+        --version v2025.1.9 \
         --namespace kubestash --create-namespace \
-        --set-file global.license=$HOME/Downloads/kubedb-license-07545d0d-d007-419f-9723-bfeeab1c39a3.txt \
+        --set-file global.license=$HOME/Downloads/kind-license.txt \
         --wait --burst-limit=10000 --debug
+
+kubectl apply -f catalog/kubestash/raw/redis/.
 Upgrade:
 # Update catalog CRDs
 $ kubectl apply -f https://github.com/kubestash/installer/raw/v2024.8.14/crds/kubestash-crds.yaml

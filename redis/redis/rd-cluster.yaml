@@ -19,7 +19,7 @@ spec:
     resources:
       requests:
         storage: 1Gi
-    storageClassName: "longhorn"  # "longhorn"
+    # storageClassName: "longhorn"  # "longhorn"
     accessModes:
     - ReadWriteOnce
   podTemplate:
