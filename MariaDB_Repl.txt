@@ -1,0 +1,9 @@
+MariaDB Replication PR: 
+
+Who is handling failover & how? 
+
+
+Galera: 
+Multi-primary (all support read, write), 
+no failover needed. 
+Synchronous? may be yes. 
