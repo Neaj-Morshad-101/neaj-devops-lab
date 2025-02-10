@@ -17,15 +17,15 @@
   <component name="GoLibraries">
     <option name="indexEntireGoPath" value="true" />
   </component>
-  <component name="KubernetesApiProvider"><![CDATA[{
-  "configuredContexts": [
+  <component name="KubernetesApiProvider">{
+  &quot;configuredContexts&quot;: [
     {
-      "name": "kind-kind",
-      "kubeConfigUrl": "file:///home/neaj/.kube/config"
+      &quot;name&quot;: &quot;kind-kind&quot;,
+      &quot;kubeConfigUrl&quot;: &quot;file:///home/neaj/.kube/config&quot;
     }
   ],
-  "isMigrated": true
-}]]></component>
+  &quot;isMigrated&quot;: true
+}</component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
@@ -49,6 +49,8 @@
     "go.import.settings.migrated": "true",
     "go.sdk.automatically.set": "true",
     "last_opened_file_path": "/home/neaj/go/src/github.com/Neaj-Morshad-101/yamls",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
     "nodejs_package_manager_path": "npm"
   }
 }]]></component>
