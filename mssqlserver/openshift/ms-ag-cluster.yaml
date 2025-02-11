@@ -1,12 +1,17 @@
 apiVersion: kubedb.com/v1alpha2
 kind: MSSQLServer
 metadata:
-  name: ms-standalone
+  name: ms-ag-arbiter
   namespace: demo
 spec:
   version: "2022-cu16"
-  replicas: 1
-  storageType: Durable
+  replicas: 2
+  topology:
+    mode: AvailabilityGroup
+    availabilityGroup:
+     databases:
+       - agdb1
+       - agdb2
   tls:
     issuerRef:
       name: mssqlserver-ca-issuer
@@ -18,17 +23,28 @@ spec:
       securityContext:
         fsGroup: 1000670000
       containers:
-      - name: mssql
-        env:
-        - name: ACCEPT_EULA
-          value: "Y"
-        - name: MSSQL_PID
-          value: Evaluation
-        securityContext:
+        - name: mssql
+          env:
+            - name: ACCEPT_EULA
+              value: "Y"
+            - name: MSSQL_PID
+              value: Evaluation
+          securityContext:
             allowPrivilegeEscalation: false
             capabilities:
               add:
                 - NET_BIND_SERVICE
+              drop:
+                - ALL
+            runAsGroup: 0
+            runAsNonRoot: true
+            runAsUser: 1000670000
+            seccompProfile:
+              type: RuntimeDefault
+        - name: mssql-coordinator
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
               drop:
                 - ALL
             runAsGroup: 0
@@ -67,17 +83,11 @@ spec:
         labels:
           release: prometheus
         interval: 10s
-  
+  storageType: Durable
   storage:
-    # storageClassName: "longhorn"
     accessModes:
-    - ReadWriteOnce
+      - ReadWriteOnce
     resources:
       requests:
         storage: 1Gi
   deletionPolicy: WipeOut
-
-
-
-
-# exporter sc issue 
