@@ -98,7 +98,7 @@ Verify that AG2 knows the correct primary endpoint:
 sql
 Copy
 Edit
-SELECT * FROM sys.availability_replicas WHERE group_id = (SELECT group_id FROM sys.availability_groups WHERE name = 'DAGTest');
+SELECT * FROM sys.availability_replicas WHERE group_id = (SELECT group_id FROM sys.availability_groups WHERE name = 'DAG');
 If the old AG1 primary (ag1-0) is still listed, update it:
 
 sql
