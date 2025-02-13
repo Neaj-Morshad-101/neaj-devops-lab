@@ -4,6 +4,16 @@ cluster nodes
 cluster info
 info 
 
+
+To check all keys in the redis cluser: 
+redis-cli -h localhost CLUSTER NODES \
+  | grep master \
+  | awk '{print $2}' \
+  | cut -f1 -d '@' \
+  | xargs -I '{}' redis-cli -u redis://{} --scan
+
+
+
 redis-cli --tls --cert "/certs/client.crt" --key "/certs/client.key" --cacert "/certs/ca.crt"
 
 
