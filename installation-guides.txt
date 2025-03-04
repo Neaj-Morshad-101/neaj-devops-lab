@@ -2,23 +2,31 @@
 
 export KUBECONFIG=/home/neaj/Downloads/neaj-kubeconfig.yaml
 export REGISTRY=neajmorshad
-export LICENSE_FILE=$HOME/Downloads/kubedb-license-8c46fc66-d30b-40b0-b59b-9c907016b91a.txt 
+export LICENSE_FILE=$HOME/Downloads/kind-license.txt
 
 kubectl get ns kube-system -o=jsonpath='{.metadata.uid}'
 
+kubectl create ns demo kubedb
 kubectl label ns demo pod-security.kubernetes.io/enforce=restricted
 kubectl label ns kubedb pod-security.kubernetes.io/enforce=restricted
 
 v2024.12.18 v2024.11.18 v2024.9.30 v2024.8.21 v2024.6.4 v2024.4.27
 
+cd ../crd-manager
+make deploy-to-kind
+cd ../mssqlserver
+make deploy-to-kind
+cd ../ops-manager
+make deploy-to-kind
+cd ../provisioner
+make deploy-to-kind
+cd ../webhook-server
+make deploy-to-kind
+cd ../../kubeops.dev/petset
+make deploy-to-kind
+cd ../../kubedb.dev/mssqlserver
 
-helm install kubedb oci://ghcr.io/appscode-charts/kubedb \
-          --version v2024.12.18 \
-          --namespace kubedb --create-namespace \
-          --set-file global.license=$HOME/Downloads/kubedb-license-283aa2e9-7c5f-4525-9c99-cc9debdab908.txt \
-          --set global.featureGates.MSSQLServer=true \
-          --wait --burst-limit=10000 --debug
-
+Install KubeDB:
 helm install kubedb oci://ghcr.io/appscode-charts/kubedb \
           --version v2024.4.27 \
           --namespace kubedb --create-namespace \
@@ -38,7 +46,7 @@ kubectl apply -f https://github.com/kubedb/installer/raw/v2024.8.21/crds/kubedb-
 kubectl apply -f https://github.com/kubeops/petset/raw/v0.0.6/crds/apps.k8s.appscode.com_petsets.yaml
 kubectl apply -f https://github.com/kubeops/petset/raw/v0.0.6/crds/apps.k8s.appscode.com_placementpolicies.yaml
 
-Upgrade:
+Upgrade KubeDB:
 helm upgrade kubedb oci://ghcr.io/appscode-charts/kubedb \
           --version v2024.8.21 \
           --namespace kubedb --create-namespace \
@@ -83,6 +91,7 @@ helm upgrade -i \
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring --set grafana.image.tag=7.5.5 --create-namespace
+
 helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring --create-namespace --wait --burst-limit=10000
 helm uninstall prometheus -n monitoring
 

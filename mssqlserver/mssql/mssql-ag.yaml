@@ -14,9 +14,9 @@ spec:
   topology:
     mode: AvailabilityGroup
     availabilityGroup: 
-      # databases:
-      #   - agdb3
-      #   - agdb2
+      databases:
+        - agdb1
+        - agdb2
   tls:
     issuerRef:
       name: mssqlserver-ca-issuer

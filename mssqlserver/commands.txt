@@ -106,9 +106,24 @@ INSERT INTO Data(ID, Name, Age) VALUES (5, 'John Doe', 25);
 INSERT INTO Data(ID, Name, Age) VALUES (6, 'John Doe', 25);
 Status: 
 SELECT encrypt_option FROM sys.dm_exec_connections WHERE session_id = @@SPID
+Insert Dummy Data: 
+CREATE TABLE test_data (id INT IDENTITY(1,1));
+GO
+INSERT INTO test_data DEFAULT VALUES;
+GO 100000
+SELECT COUNT(*) FROM test_data;
 
 
 
+Connections: 
+SELECT @@MAX_CONNECTIONS AS 'Max Connections';
+user connections only:
+SELECT COUNT(*) AS connection_count FROM sys.dm_exec_sessions;
+SELECT COUNT(*) AS user_connection_count FROM sys.dm_exec_sessions WHERE is_user_process = 1;
+SELECT COUNT(*) AS system_connection_count FROM sys.dm_exec_sessions WHERE is_user_process = 0;
+SELECT session_id, login_name, host_name, program_name, is_user_process FROM sys.dm_exec_sessions ORDER BY is_user_process DESC;
+SELECT session_id, login_name, host_name, program_name, is_user_process FROM sys.dm_exec_sessions WHERE is_user_process = 1 ORDER BY session_id;
+To update max connections: https://learn.microsoft.com/en-us/sql/database-engine/configure-windows/configure-the-user-connections-server-configuration-option?view=sql-server-ver16
 
 Availability Group Related Command:
 Status:
