@@ -1,0 +1,13 @@
+ kubectl exec -it -n demo proxy-server-0 -- bash
+proxysql@proxy-server-0:/$ mysql -uadmin -padmin -h127.0.0.1 -P6032 --prompt="ProxySQLAdmin > "
+SHOW TABLES FROM main;
+select * from mysql_servers;
+select username from mysql_users;
+select hostgroup,Queries from stats_mysql_connection_pool; 
+SELECT * FROM stats.stats_mysql_connection_pool;
+SELECT * FROM stats.stats_mysql_users;
+SELECT * FROM stats.stats_mysql_query_digest
+select * from runtime_mysql_servers;
+ 
+select * from mysql_group_replication_hostgroups;
+select * from mysql_servers;
