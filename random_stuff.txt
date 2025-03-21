@@ -1,3 +1,24 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Title: SQL Server Distributed Availability Group (DAG) Not Syncing After AG1 Failover in Kubernetes
 
 I have set up a SQL Server Distributed Availability Group (DAG) in Kubernetes using SQL Server on Ubuntu images. The setup consists of two availability groups (AGs) across two separate clusters:
