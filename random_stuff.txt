@@ -1,9 +1,43 @@
+the server certificate presented by MSSQL has a negative serial number, which is rejected by clients built with Go 1.23 or later due to a change in the crypto/x509 package. 
+
+
+You have two main options to fix this:
+
+Generate Certificates with Positive Serial Numbers
+Ensure that the server certificate used by MSSQL has a positive serial number, aligning with RFC 5280 recommendations and avoiding compatibility issues with Go 1.23 and other modern clients.
+Use the GODEBUG Workaround
+Set GODEBUG=x509negativeserial=1 in the KubeDB operator’s environment to revert to the pre-Go 1.23 behavior, allowing it to accept certificates with negative serial numbers.
 
 
 
 
+kubectl edit deployment kubedb-operator -n kubedb
+In the editor, modify the spec.template.spec.containers section to include:
+yaml
+￼
+Collapse
+￼
+Wrap
+￼
+Copy
+spec:
+  containers:
+  - name: operator
+    env:
+    - name: GODEBUG
+      value: "x509negativeserial=1"
 
 
+
+
+Recommendation: Generate Certificates Correctly
+You should generate the certificate correctly with a positive serial number rather than relying on go:debug x509negativeserial=1. Here’s why:
+
+Standards Compliance: RFC 5280 recommends positive serial numbers. Ensuring your certificates comply avoids reliance on lenient parsing behavior.
+Broad Compatibility: Go 1.23’s change reflects a trend toward stricter validation. Fixing the certificate now prevents future issues with other clients or tools.
+Simplicity: Regenerating the certificate is a one-time fix within your control, whereas modifying the operator’s environment depends on its deployment and may need reapplication after upgrades.
+Root Cause: The GODEBUG workaround masks the problem (a certificate with a negative serial number) rather than resolving it. Since cert-manager should generate positive serial numbers, regenerating the certificate also helps confirm that your setup is working as intended.
+While the GODEBUG approach is a quick fix for testing, it’s not a sustainable solution. Follow the steps in Option 1 to regenerate the CA certificate, update the secret, and trigger a new server certificate. This ensures your MSSQL database is secure, compliant, and compatible with modern TLS clients, including the KubeDB operator’s health checker.
 
 
 
