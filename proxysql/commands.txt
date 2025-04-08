@@ -1,25 +1,87 @@
+kubectl exec -it -n demo mysql-server-0 -- bash
+root@mysql-server-0:/# mysql -uroot -p$MYSQL_ROOT_PASSWORD
+mysql> create user `test`@'%' identified by 'pass';
+mysql> create database test;
+mysql> use test;
+mysql> show tables;
+mysql> create table testtb(name varchar(103), primary key(name));
+mysql> grant all privileges on test.* to 'test'@'%';
+mysql> flush privileges;
+select * FROM performance_schema.replication_group_members;
+
+
  kubectl exec -it -n demo proxy-server-0 -- bash
 proxysql@proxy-server-0:/$ mysql -uadmin -padmin -h127.0.0.1 -P6032 --prompt="ProxySQLAdmin > "
 SHOW TABLES FROM main;
 select * from mysql_servers;
+select * from runtime_mysql_servers;
 select username from mysql_users;
+select * from mysql_users;
 select hostgroup,Queries from stats_mysql_connection_pool; 
 SELECT * FROM stats.stats_mysql_connection_pool;
 SELECT * FROM stats.stats_mysql_users;
-SELECT * FROM stats.stats_mysql_query_digest
-select * from runtime_mysql_servers;
+SELECT * FROM stats.stats_mysql_query_digest;
  
 select * from mysql_group_replication_hostgroups;
-select * from mysql_servers;
-
-
 select * from mysql_galera_hostgroups;
 
 
 
+ubuntu: 
+kubectl exec -it -n demo ubuntu-bb47d8d6c-c5l5g -- bash
+apt update
+apt install mysql-client -y
+mysql -utest -ppass -hmysql-proxy.demo.svc -P6033
+mysql> insert into testtb(name) values("Kim Torres");
+Query OK, 1 row affected (0.01 sec)
+
+mysql> insert into testtb(name) values("Tony SoFua");
+Query OK, 1 row affected (0.01 sec)
+
+mysql> select * from testtb;
+
+Configure ProxySQL
+Global variables
+Global variables to control timeout and interval check:
+
+    mysql> select * from global_variables where variable_name like '%monitor_galera%';
+    +----------------------------------------------------+----------------+
+    | variable_name                                      | variable_value |
+    +----------------------------------------------------+----------------+
+    | mysql-monitor_galera_healthcheck_interval          | 1000           |
+    | mysql-monitor_galera_healthcheck_timeout           | 600            |
+    | mysql-monitor_galera_healthcheck_max_timeout_count | 3              |
+    +----------------------------------------------------+----------------+
+    3 rows in set (0.01 sec)
+
+
+mysql_galera_hostgroups: In memory config.
+runtime_mysql_galera_hostgroups: Runtime config.
+disk.mysql_galera_hostgroups: Persistent config.
+
+
+mysql> select * from mysql_galera_hostgroups\G
+*************************** 1. row ***************************
+       writer_hostgroup: 0
+backup_writer_hostgroup: 2
+       reader_hostgroup: 1
+      offline_hostgroup: 4
+                 active: 1
+            max_writers: 1
+  writer_is_also_reader: 1
+max_transactions_behind: 100
+                comment: NULL
+1 row in set (0.00 sec)
+
+
+check it:
+active – when enabled, ProxySQL monitors the hostgroups and moves servers between the appropriate hostgroups. If disabled, Galera monitoring is disabled for the given cluster and ProxySQL doesn’t perform any reconfiguration, despite the fact that hostgroups and servers are still configured in mysql_servers
+
+
 
 LOAD MYSQL USERS TO RUNTIME;
-
+LOAD MYSQL SERVERS TO RUNTIME; 
+SAVE MYSQL SERVERS TO DISK;
 
 
 
@@ -34,7 +96,29 @@ ProxySQLAdmin > select * from runtime_mysql_servers;
 +--------------+-------------------------------+------+-----------+--------+--------+-------------+-----------------+---------------------+---------+----------------+---------+
 
 
+ProxySQLAdmin > SELECT * FROM stats.stats_mysql_connection_pool;
++-----------+-------------------------------------------+----------+--------+----------+----------+--------+---------+-------------+---------+-------------------+-----------------+-----------------+------------+
+| hostgroup | srv_host                                  | srv_port | status | ConnUsed | ConnFree | ConnOK | ConnERR | MaxConnUsed | Queries | Queries_GTID_sync | Bytes_data_sent | Bytes_data_recv | Latency_us |
++-----------+-------------------------------------------+----------+--------+----------+----------+--------+---------+-------------+---------+-------------------+-----------------+-----------------+------------+
+| 2         | mysql-server-0.mysql-server-pods.demo.svc | 3306     | ONLINE | 0        | 1        | 1      | 0       | 1           | 3       | 0                 | 70              | 66              | 71         |
+| 3         | mysql-server-0.mysql-server-pods.demo.svc | 3306     | ONLINE | 0        | 0        | 0      | 0       | 0           | 0       | 0                 | 0               | 0               | 71         |
+| 3         | mysql-server-1.mysql-server-pods.demo.svc | 3306     | ONLINE | 0        | 1        | 1      | 0       | 1           | 2       | 0                 | 40              | 0               | 75         |
+| 3         | mysql-server-2.mysql-server-pods.demo.svc | 3306     | ONLINE | 0        | 1        | 1      | 0       | 1           | 2       | 0                 | 49              | 23              | 81         |
 
+
+
+ProxySQLAdmin > SELECT * FROM stats.stats_mysql_connection_pool;
++-----------+-------------------------------------------+----------+--------------+----------+----------+--------+---------+-------------+---------+-------------------+-----------------+-----------------+------------+
+| hostgroup | srv_host                                  | srv_port | status       | ConnUsed | ConnFree | ConnOK | ConnERR | MaxConnUsed | Queries | Queries_GTID_sync | Bytes_data_sent | Bytes_data_recv | Latency_us |
++-----------+-------------------------------------------+----------+--------------+----------+----------+--------+---------+-------------+---------+-------------------+-----------------+-----------------+------------+
+| 2         | mysql-server-0.mysql-server-pods.demo.svc | 3306     | OFFLINE_HARD | 0        | 0        | 0      | 0       | 0           | 0       | 0                 | 0               | 0               | 78         |
+| 2         | mysql-server-2.mysql-server-pods.demo.svc | 3306     | ONLINE       | 0        | 1        | 1      | 0       | 1           | 3       | 0                 | 126             | 0               | 88         |
+| 3         | mysql-server-2.mysql-server-pods.demo.svc | 3306     | ONLINE       | 0        | 1        | 1      | 0       | 1           | 1       | 0                 | 20              | 27              | 88         |
+| 3         | mysql-server-1.mysql-server-pods.demo.svc | 3306     | ONLINE       | 0        | 1        | 1      | 0       | 1           | 11      | 0                 | 220             | 279             | 67         |
+| 3         | mysql-server-0.mysql-server-pods.demo.svc | 3306     | OFFLINE_HARD | 0        | 0        | 0      | 0       | 0           | 0       | 0                 | 0               | 0               | 78         |
+| 5         | mysql-server-0.mysql-server-pods.demo.svc | 3306     | ONLINE       | 0        | 0        | 0      | 0       | 0           | 0       | 0                 | 0               | 0               | 78         |
++-----------+-------------------------------------------+----------+--------------+----------+----------+--------+---------+-------------+---------+-------------------+-----------------+-----------------+------------+
+6 rows in set (0.004 sec)
 
 
 

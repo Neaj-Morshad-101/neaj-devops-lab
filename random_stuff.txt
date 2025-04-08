@@ -1,3 +1,8 @@
+using godebug: std5, ag4 ready 
+using env: std, ag4
+no env & godebug: not ready, std2, ag1
+test with shards: 
+
 the server certificate presented by MSSQL has a negative serial number, which is rejected by clients built with Go 1.23 or later due to a change in the crypto/x509 package. 
 
 
@@ -44,6 +49,34 @@ While the GODEBUG approach is a quick fix for testing, it’s not a sustainable 
 
 
 
+
+
+mssqlserver.kubedb.com/mssql-standalone   2022-cu16   Provisioning   4m36s
+
+
+  - lastTransitionTime: "2025-03-18T09:29:46Z"
+    message: 'database is not accepting connection , TLS Handshake failed: tls: failed
+      to parse certificate from server: x509: negative serial number'
+    observedGeneration: 4
+    reason: DatabaseNotAcceptingConnectionRequest
+    status: "False"
+    type: AcceptingConnection
+  - lastTransitionTime: "2025-03-18T09:29:46Z"
+    message: 'database in not accepting connection TLS Handshake failed: tls: failed
+      to parse certificate from server: x509: negative serial number'
+    observedGeneration: 4
+    reason: DatabaseNotAcceptingConnectionRequest
+    status: "False"
+    type: Ready
+
+
+
+
+
+
+
+mssql@mssql-standalone-0:/$ /opt/mssql-tools18/bin/sqlcmd -S mssql-standalone -U sa -P $MSSQL_SA_PASSWORD -No
+Sqlcmd: Error: Microsoft ODBC Driver 18 for SQL Server : Login failed for user 'sa'..
 
 
 
