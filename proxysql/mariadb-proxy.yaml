@@ -8,5 +8,5 @@ spec:
   replicas: 3
   syncUsers: true
   backend:
-    name: mariadb-server
+    name: mariadb-galera
   deletionPolicy: WipeOut

@@ -1,7 +1,7 @@
 apiVersion: kubedb.com/v1
 kind: ProxySQL
 metadata:
-  name: mysql-proxy2
+  name: mysql-proxy
   namespace: demo
 spec:
   version: 2.6.3-debian # 2.3.2-debian # "2.6.3-debian"

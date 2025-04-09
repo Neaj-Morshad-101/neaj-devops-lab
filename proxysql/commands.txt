@@ -9,8 +9,10 @@ mysql> grant all privileges on test.* to 'test'@'%';
 mysql> flush privileges;
 select * FROM performance_schema.replication_group_members;
 
+MariaDB Replication	SHOW SLAVE STATUS\G
+MariaDB Galera	SHOW STATUS LIKE 'wsrep%';
 
- kubectl exec -it -n demo proxy-server-0 -- bash
+kubectl exec -it -n demo mysql-proxy-0 -- bash
 proxysql@proxy-server-0:/$ mysql -uadmin -padmin -h127.0.0.1 -P6032 --prompt="ProxySQLAdmin > "
 SHOW TABLES FROM main;
 select * from mysql_servers;
