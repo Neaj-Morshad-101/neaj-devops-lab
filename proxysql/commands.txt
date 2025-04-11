@@ -17,8 +17,17 @@ proxysql@proxy-server-0:/$ mysql -uadmin -padmin -h127.0.0.1 -P6032 --prompt="Pr
 SHOW TABLES FROM main;
 select * from mysql_servers;
 select * from runtime_mysql_servers;
+
+
 select username from mysql_users;
 select * from mysql_users;
+ProxySQLAdmin >
+INSERT INTO mysql_users (username, password, active, default_hostgroup, backend, frontend, transaction_persistent) 
+             VALUES ('test', 'pass', 1, 2, 1, 1, 1);
+LOAD MYSQL USERS TO RUNTIME;
+SAVE MYSQL USERS TO DISK;
+SELECT username, default_hostgroup, backend, frontend FROM mysql_users WHERE username='test';
+
 select hostgroup,Queries from stats_mysql_connection_pool; 
 SELECT * FROM stats.stats_mysql_connection_pool;
 SELECT * FROM stats.stats_mysql_users;
@@ -26,6 +35,9 @@ SELECT * FROM stats.stats_mysql_query_digest;
  
 select * from mysql_group_replication_hostgroups;
 select * from mysql_galera_hostgroups;
+
+
+
 
 
 
