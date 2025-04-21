@@ -1,7 +1,7 @@
 apiVersion: kubedb.com/v1
 kind: PerconaXtraDB
 metadata:
-  name: xtradb-galera2
+  name: xtradb-galera
   namespace: demo
 spec:
   version: "8.4.3"
