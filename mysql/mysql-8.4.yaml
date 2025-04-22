@@ -1,13 +1,11 @@
 apiVersion: kubedb.com/v1
 kind: MySQL
 metadata:
-  name: mysql-server
+  name: mysql-8
   namespace: demo
 spec:
-  version: 8.0.36 # "9.1.0"
+  version: 8.4.3
   replicas: 3
-  # configSecret:
-  #   name: my-configuration
   topology:
     mode: GroupReplication
   storageType: Durable

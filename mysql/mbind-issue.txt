@@ -1,0 +1,102 @@
+Percona XtraDB is giving mbind: Operation not permitted error continuously. 
+Adding SYS_NICEcapability resolves the issue. 
+https://www.uptimia.com/questions/how-to-fix-mbind-operation-not-permitted-in-mysql-error-log
+containers:
+      - name: perconaxtradb
+        securityContext:
+          capabilities:
+            add: ["SYS_NICE"]
+            drop: ["ALL"]
+
+You, Apr 11, 6:21 PM, Edited
+MySQL has the same issue. 
+ButSYS_NICE is an unrestricted capability, So will not work on restricted namespaces.
+
+
+How To Fix "Mbind: Operation Not Permitted" In MySQL Error Log?
+Home  »  Questions  »  How To Fix "Mbind: Operation Not Permitted" In MySQL Error Log?
+Inside this article
+Problem: MySQL Error: "Mbind: Operation Not Permitted"
+Resolving the "Mbind: Operation Not Permitted" Error
+Published September 7, 2024
+Problem: MySQL Error: "Mbind: Operation Not Permitted"
+The "Mbind: Operation Not Permitted" error in MySQL logs happens when MySQL can't manage memory allocation. This can affect database performance and stability.
+
+Resolving the "Mbind: Operation Not Permitted" Error
+Adding the CAP_SYS_NICE Capability
+CAP_SYS_NICE is a Linux capability that allows a process to change its priority or the priority of other processes. This capability gives MySQL the permissions to perform memory binding operations without restrictions.
+
+By adding CAP_SYS_NICE to your MySQL Docker container, you fix the mbind error by giving MySQL the permissions to manage its memory allocation. This solution lets MySQL work properly without creating "Mbind: Operation Not Permitted" errors in the log files.
+
+Tip: Verify CAP_SYS_NICE
+After adding the CAP_SYS_NICE capability, you can verify if it's correctly applied to your MySQL container by running:
+
+docker exec <container_name> capsh --print | grep cap_sys_nice
+
+If the capability is correctly added, you should see 'cap_sys_nice' in the output.
+
+Implementing the Solution in Docker
+To fix the mbind error, you can add the CAP_SYS_NICE capability to your MySQL Docker container. Here are two ways to do this:
+
+Using docker-compose:
+
+Open your docker-compose.yml file.
+Find the MySQL service configuration.
+Add these lines under the MySQL service:
+cap_add:
+  - SYS_NICE
+
+Your MySQL service configuration should look like this:
+
+services:
+  mysql:
+    image: mysql:8.0.15
+    # Other configuration options...
+    cap_add:
+      - SYS_NICE
+
+Another way for Docker run command: If you don't use docker-compose, you can add the CAP_SYS_NICE capability when starting your MySQL container with the Docker run command:
+
+docker run --cap-add=sys_nice -d mysql
+
+This command adds the SYS_NICE capability to your MySQL container, letting it perform memory binding operations without creating "Mbind: Operation Not Permitted" errors.
+
+After using either of these solutions, restart your MySQL container for the changes to work. This should fix the mbind error and let you see actual MySQL errors in your log files.
+
+
+
+
+
+
+Why this error "mbind: Operation Not Permitted" occurs? 
+MySQL (and other NUMA‑aware daemons) attempt to call the Linux mbind(2) system call to bind memory pages to specific NUMA nodes—
+Modern MySQL versions use mbind(2) under the hood (via glibc/numactl) to allocate memory on the local NUMA node for better throughput and lower latency.
+How to fix it? 
+
+If I off this numa hardware optimisation what I will miss? 
+If you disable NUMA binding altogether (opt out of optimization), you sacrifice potential memory‐locality performance gains—typically a few percent on multi‑socket systems—though most workloads see no noticeable regression
+you sacrifice the performance gains of memory‑locality:
+
+what is numa hardware of numa nodes, does people usually use this?
+what multi‑socket servers? 
+Non‑Uniform Memory Access (NUMA) is a hardware memory architecture in which each processor socket (NUMA node) has its own directly attached memory, offering faster local memory access compared to remote access via an interconnect
+Modern operating systems and high‑performance applications routinely use NUMA–aware allocation and scheduling to exploit memory locality and improve throughput on multi‑socket servers 
+SPICEWORKS INC
+. Multi‑socket servers—those with two, four, or more CPU sockets—are ubiquitous in enterprise and HPC environments, with dual‑socket machines accounting for roughly 80 % of server shipments and larger 4‑ or 8‑socket systems used for scale‑up workloads 
+THE NEX
+
+
+That said, many typical database workloads (especially smaller‐scale or cloud VMs with fewer NUMA nodes) see negligible impact when NUMA binding is disabled
+
+
+
+Memory Binding and NUMA: The mbind call is part of how MySQL optimizes memory use on systems with NUMA (Non-Uniform Memory Access) architecture. In NUMA systems, memory is split across multiple "nodes," and each node is tied to specific CPUs. By binding memory to a node close to the CPU that’s using it, the database can reduce latency and boost performance.
+
+mbind: Operation not permitted
+extra errors: 
+get_mempolicy: Operation not permitted
+2025-04-22T09:46:31.528182Z 1 [Warning] [MY-011873] [InnoDB] Failed to set NUMA memory policy to MPOL_INTERLEAVE: Operation not permitted
+2025-04-22T09:46:31.536199Z 0 [Warning] [MY-011879] [InnoDB] Failed to set NUMA memory policy of buffer pool page frames with mbind(0x7a9cafa3e000,137236480,MPOL_INTERLEAVE,...,...,MPOL_MF_MOVE) failed with Operation not permitted
+
+
+

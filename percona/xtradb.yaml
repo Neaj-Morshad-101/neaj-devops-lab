@@ -6,14 +6,16 @@ metadata:
 spec:
   version: "8.4.3"
   replicas: 3
-  podTemplate:
-    spec:
-      containers:
-      - name: perconaxtradb
-        securityContext:
-          capabilities:
-            add: ["SYS_NICE"]
-            drop: ["ALL"]
+  configSecret:
+    name: px-configuration
+  # podTemplate:
+  #   spec:
+  #     containers:
+  #     - name: perconaxtradb
+  #       securityContext:
+  #         capabilities:
+  #           add: ["SYS_NICE"]
+  #           drop: ["ALL"]
   storageType: Durable
   storage:
     storageClassName: "standard"
