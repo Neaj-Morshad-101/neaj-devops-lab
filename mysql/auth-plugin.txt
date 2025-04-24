@@ -1,0 +1,474 @@
+8.0.36 works fine, 8.2.0  works fine. But
+ 2025-04-22T14:40:18.054117Z 107 [Warning] [MY-013360] [Server] Plugin mysql_native_password reported: ''mysql_native_password' is deprecated and will be removed in a future release. Please use caching_sha2_password instead'
+
+
+
+
+Problem:
+Starting with MySQL 8.4 the default authentication plugin changed from mysql_native_password to caching_sha2_password 
+PROXYSQL
+. Older ProxySQL releases (≤ 2.0.x, even early 2.6.0 RCs) do not fully support caching_sha2_password for frontend connections 
+PERCONA
+PROXYSQL
+. As a result, when your test user was created without explicitly specifying an authentication plugin, MySQL assigned caching_sha2_password, and ProxySQL can’t handle the required Auth Switch or full SHA‑2 handshake 
+PROXYSQL
+.
+
+
+
+
+
+Solution one: Recreate the MySQL user to use mysql_native_password. (works for 8.4)
+
+
+Solution two: 
+Upgrade to ProxySQL 2.6.0+ and configure it for caching_sha2_password over SSL.
+root@ubuntu-bb47d8d6c-4zs7w:/# mysql -utest -ppass -hmysql-proxy9.demo.svc -P6033
+mysql: [Warning] Using a password on the command line interface can be insecure.
+ERROR 1045 (28000): ProxySQL Error: Access denied for user 'test'@'10.244.0.7' (using password: YES)
+
+proxy log: 
+2025-04-24 14:18:28 MySQL_Session.cpp:5807:handler___status_CONNECTING_CLIENT___STATE_SERVER_HANDSHAKE_WrongCredentials(): [ERROR] ProxySQL Error: Access denied for user 'test'@'10.244.0.7' (using password: YES)
+
+
+
+
+Configure ProxySQL’s mysql-default_authentication_plugin and SSL variables to match your plugin 
+PROXYSQL
+.
+
+
+
+
+Solution Worked: for 8.4.0 But 9.1.0 not working
+CREATE USER 'test2'@'%' IDENTIFIED WITH mysql_native_password BY 'pass';
+GRANT ALL PRIVILEGES ON test.* TO 'test2'@'%';
+FLUSH PRIVILEGES;
+
+This ensures the stored hash uses the older *… SHA-1 format that ProxySQL fully supports .
+
+
+
+9.1.0: 
+mysql> CREATE USER 'test2'@'%' IDENTIFIED WITH mysql_native_password BY 'pass';
+ERROR 1524 (HY000): Plugin 'mysql_native_password' is not loaded
+However, starting with MySQL 9.0, the mysql_native_password plugin has been completely removed. This means that any attempt to create or authenticate users using this plugin will result in the error you're seeing. 
+
+
+
+Solution worked: set auto sync users to false
+re-create the User with a Plain-Text Password
+The simplest approach is to let ProxySQL handle hashing for you:
+
+Connect to the ProxySQL admin interface:
+mysql -u admin -padmin -h127.0.0.1 -P6032
+
+Delete any old test entries:
+DELETE FROM mysql_users
+ WHERE username='test';
+
+Insert the user with clear-text password (pass) and enable both frontend & backend:
+INSERT INTO mysql_users (
+  username, password, default_hostgroup,
+  active, use_ssl, transaction_persistent,
+  fast_forward, backend, frontend
+) VALUES (
+  'test','pass',2,
+  1,0,0,
+  0,1,1
+);
+
+Load into the running configuration and persist:
+LOAD MYSQL USERS TO RUNTIME;
+SAVE MYSQL USERS TO DISK;
+
+
+ProxySQLAdmin > select * from runtime_mysql_users;
++----------+----------+--------+---------+-------------------+----------------+---------------+------------------------+--------------+---------+----------+-----------------+------------+---------+
+| username | password | active | use_ssl | default_hostgroup | default_schema | schema_locked | transaction_persistent | fast_forward | backend | frontend | max_connections | attributes | comment |
++----------+----------+--------+---------+-------------------+----------------+---------------+------------------------+--------------+---------+----------+-----------------+------------+---------+
+| test     | pass     | 1      | 0       | 2                 |                | 0             | 0                      | 0            | 0       | 1        | 10000           |            |         |
+| test     | pass     | 1      | 0       | 2                 |                | 0             | 0                      | 0            | 1       | 0        | 10000           |            |         |
++----------+----------+--------+---------+-------------------+----------------+---------------+------------------------+--------------+---------+----------+-----------------+------------+---------+
+2 rows in set (0.001 sec)
+
+ProxySQLAdmin > 
+
+
+
+root@ubuntu-bb47d8d6c-4zs7w:/# mysql -utest -ppass -hmysql-proxy9.demo.svc -P6033
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 12
+Server version: 8.0.27 (ProxySQL)
+
+Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> 
+
+
+
+to work with hash: (may need to auto sync users)
+ensure ProxySQL is configured to use that plugin (and disable its hashing variable), then load the user (either in clear-text or with the proper $C$… hash) into ProxySQL’s mysql_users table.
+
+2.2 (Alternative) Use a Proper Caching-SHA2 Hash
+If you prefer not to store clear text, extract MySQL’s sha2 hash and use that:
+
+On the MySQL server run:
+
+sql
+Copy
+Edit
+SELECT CONCAT('$C$', SUBSTRING_INDEX(password,'$',-1))
+  INTO @sha2hash
+  FROM mysql.user
+ WHERE user='test';
+In the ProxySQL admin:
+
+sql
+Copy
+Edit
+DELETE FROM mysql_users WHERE username='test';
+INSERT INTO mysql_users (
+  username,password,default_hostgroup,
+  active,backend,frontend
+) VALUES (
+  'test',@sha2hash,2,
+  1,1,1
+);
+LOAD MYSQL USERS TO RUNTIME;
+SAVE MYSQL USERS TO DISK;
+MySQL
+
+3. Verify & Recap
+Plain-text insertion is easiest: ProxySQL takes care of the right plugin negotiation.
+
+Hashed insertion also works if you use the $C$… format for caching_sha2_password.
+
+After reloading, ERROR 1045 will disappear and your test user can connect through ProxySQL to MySQL 9.1.0.
+
+With this, your ProxySQL-backed MySQL 9 user authentication will work seamlessly.
+
+
+
+
+
+3.2 Hashed Password
+If you must avoid clear-text in ProxySQL’s config, extract MySQL’s caching-SHA2 hash and store it:
+
+On MySQL:
+
+sql
+Copy
+Edit
+SELECT CONCAT('$C$', SUBSTRING_INDEX(authentication_string,'$',-1))
+  INTO @sha2hash
+  FROM mysql.user
+ WHERE user='test2';
+
+mysql> SELECT @sha2hash;
++--------------------------------------------------------------------+
+| @sha2hash                                                          |
++--------------------------------------------------------------------+
+| $C$K@Dy+v2c?v-Z%6i?g9BWmWnzEXABN3OSER3awyXWxWhEFYneXVoVbVVq9nKA |
++--------------------------------------------------------------------+
+1 row in set (0.00 sec)
+
+
+
+
+3. Why the $C$ Prefix Matters
+ProxySQL detects hash formats by prefix:
+
+$C$… ⇒ caching_sha2_password (SHA-256)
+
+*… or $A$… ⇒ an older native-password or ambiguous format (early SHA-256)
+
+Without $C$, ProxySQL might assume the wrong plugin, leading to handshake failures (and Access denied) 
+ProxySQL
+.
+
+
+
+In ProxySQL:
+
+sql
+Copy
+Edit
+DELETE FROM mysql_users WHERE username='test2';
+select * from mysql_users;
+INSERT INTO mysql_users (
+  username, password, default_hostgroup,
+  active, use_ssl, backend, frontend
+) VALUES (
+  'test2', '$C$K@Dy+v2c?v-Z%6i?g9BWmWnzEXABN3OSER3awyXWxWhEFYneXVoVbVVq9nKA', 2,
+  1, 0,
+  1, 1
+);
+LOAD MYSQL USERS TO RUNTIME;
+SAVE MYSQL USERS TO DISK;
+select * from runtime_mysql_users;
+The $C$… prefix tells ProxySQL it’s a caching-SHA2 hash and to negotiate properly 
+Stack Overflow
+.
+
+
+
+
+
+root@mysql-server-0:/# mysql -uroot -p$MYSQL_ROOT_PASSWORD
+create user `test2`@'%' identified by 'pass';
+create database test;
+use test;
+show tables;
+create table testtb(name varchar(103), primary key(name));
+grant all privileges on test.* to 'test2'@'%';
+flush privileges;
+
+
+
+
+
+
+
+
+set admin-hash_passwords=false in proxysql,
+ or SET mysql-have_ssl = true;
+SET mysql-default_authentication_plugin = 'caching_sha2_password';
+
+
+
+2.2 Upgrade to ProxySQL 2.6.0+ & Enable SHA‑2 Support
+Upgrade your ProxySQL installation to 2.6.0 or later 
+PERCONA
+.
+
+In your ProxySQL config, set:
+
+sql
+Copy
+Edit
+SET mysql-have_ssl = true;
+SET mysql-default_authentication_plugin = 'caching_sha2_password';
+LOAD MYSQL VARIABLES TO RUNTIME;
+SAVE MYSQL VARIABLES TO DISK;
+This enables the secure channel required for full caching_sha2_password auth 
+PROXYSQL
+.
+
+
+
+
+
+
+[mysqld]
+default_authentication_plugin= mysql_native_password
+
+
+
+Getting another error ￼ ERROR 1524 (HY000): Plugin 'mysql_native_password' is not loaded
+  Mar 24th at 5:15 PM
+You need to enable it on MySQL 8.4
+5:16
+Add the below under the mysqld section of your .cnf
+mysql_native_password=ON
+
+
+
+
+CREATE USER 'admin'@'localhost' IDENTIFIED WITH mysql_native_password BY 'yourpass';
+GRANT ALL PRIVILEGES ON *.* TO 'admin'@'localhost' WITH GRANT OPTION;
+CREATE USER 'admin'@'%' IDENTIFIED WITH mysql_native_password BY 'yourpass';
+GRANT ALL PRIVILEGES ON *.* TO 'admin'@'%' WITH GRANT OPTION;
+#
+CREATE DATABASE IF NOT EXISTS `yourdb` COLLATE 'utf8_general_ci' ;
+GRANT ALL ON `yourdb`.* TO 'admin'@'%' ;
+FLUSH PRIVILEGES ;
+
+
+
+
+
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';
+ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'root';
+ALTER USER 'default'@'%' IDENTIFIED WITH mysql_native_password BY 'secret';
+
+
+
+
+This issue still exists, but I don't know if this is PMA or something else, anyway as workaround:
+
+$ docker-compose exec mysql bash
+$ mysql -u root -p 
+You should be able to login as 'root' or your other password.
+
+Execute the following commands:
+
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';
+ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'root';
+ALTER USER 'default'@'%' IDENTIFIED WITH mysql_native_password BY 'secret';
+This should give you access in PMA.
+
+
+
+
+
+
+
+
+
+
+
+
+
+prompt: 
+
+I want to setup proxysql for mysql 9.1.0, I am using latest proxysql version 2.7.3-debian image. 
+
+I have created a test database & a test user. 
+
+➤ kubectl exec -it -n demo mysql9-0 -- bash
+Defaulted container "mysql" out of: mysql, mysql-coordinator, mysql-init (init)
+bash-5.1$  mysql -uroot -p$MYSQL_ROOT_PASSWORD
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 1928
+Server version: 9.1.0 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> create user `test`@'%' identified by 'pass';
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> create database test;
+Query OK, 1 row affected (0.03 sec)
+
+mysql> use test;
+Database changed
+mysql> show tables;
+Empty set (0.00 sec)
+
+mysql> create table testtb(name varchar(103), primary key(name));
+Query OK, 0 rows affected (0.09 sec)
+
+mysql> grant all privileges on test.* to 'test'@'%';
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> flush privileges;
+Query OK, 0 rows affected (0.02 sec)
+
+
+
+
+I have the test user in my proxysql's runtime mysql users config: 
+ProxySQLAdmin > select * from runtime_mysql_servers;
++--------------+-------------------------------+------+-----------+--------+--------+-------------+-----------------+---------------------+---------+----------------+---------+
+| hostgroup_id | hostname                      | port | gtid_port | status | weight | compression | max_connections | max_replication_lag | use_ssl | max_latency_ms | comment |
++--------------+-------------------------------+------+-----------+--------+--------+-------------+-----------------+---------------------+---------+----------------+---------+
+| 2            | mysql9-0.mysql9-pods.demo.svc | 3306 | 0         | ONLINE | 1      | 0           | 1000            | 0                   | 0       | 0              |         |
+| 3            | mysql9-0.mysql9-pods.demo.svc | 3306 | 0         | ONLINE | 1      | 0           | 1000            | 0                   | 0       | 0              |         |
+| 3            | mysql9-1.mysql9-pods.demo.svc | 3306 | 0         | ONLINE | 1      | 0           | 1000            | 0                   | 0       | 0              |         |
+| 3            | mysql9-2.mysql9-pods.demo.svc | 3306 | 0         | ONLINE | 1      | 0           | 1000            | 0                   | 0       | 0              |         |
++--------------+-------------------------------+------+-----------+--------+--------+-------------+-----------------+---------------------+---------+----------------+---------+
+4 rows in set (0.001 sec)
+
+ProxySQLAdmin > select * from runtime_mysql_users;
++----------+------------------------------------------------------------------------+--------+---------+-------------------+----------------+---------------+------------------------+--------------+---------+----------+-----------------+------------+---------+
+| username | password                                                               | active | use_ssl | default_hostgroup | default_schema | schema_locked | transaction_persistent | fast_forward | backend | frontend | max_connections | attributes | comment |
++----------+------------------------------------------------------------------------+--------+---------+-------------------+----------------+---------------+------------------------+--------------+---------+----------+-----------------+------------+---------+
+| root     | $A$005$McEs\:f-`lzJ|:rUpug2iFfLJcVffeMybnHHSOVmm0RvkIfJ.8m4Dsc0ph0 | 1      | 0       | 2                 |                | 0             | 1                      | 0            | 0       | 1        | 10000           |            |         |
+| test     | $A$005$1)B5{ODZzZ
+                              \}<|2dodF1BeZUntb6oEmxQQxLyNERWQOST5D8mhATqwFgA | 1      | 0       | 2                 |                | 0             | 1                      | 0            | 0       | 1        | 10000           |            |         |
+| root     | $A$005$McEs\:f-`lzJ|:rUpug2iFfLJcVffeMybnHHSOVmm0RvkIfJ.8m4Dsc0ph0 | 1      | 0       | 2                 |                | 0             | 1                      | 0            | 1       | 0        | 10000           |            |         |
+| test     | $A$005$1)B5{ODZzZ
+                              \}<|2dodF1BeZUntb6oEmxQQxLyNERWQOST5D8mhATqwFgA | 1      | 0       | 2                 |                | 0             | 1                      | 0            | 1       | 0        | 10000           |            |         |
++----------+------------------------------------------------------------------------+--------+---------+-------------------+----------------+---------------+------------------------+--------------+---------+----------+-----------------+------------+---------+
+4 rows in set (0.001 sec)
+
+ProxySQLAdmin > 
+
+
+
+
+I am trying to connect from a ubuntu pod. but Access denied
+root@ubuntu-bb47d8d6c-4zs7w:/# mysql -utest -ppass -hmysql-proxy9.demo.svc -P6033
+mysql: [Warning] Using a password on the command line interface can be insecure.
+ERROR 1045 (28000): ProxySQL Error: Access denied for user 'test'@'10.244.0.7' (using password: YES)
+
+proxy log pod: 
+2025-04-24 14:18:28 MySQL_Session.cpp:5807:handler___status_CONNECTING_CLIENT___STATE_SERVER_HANDSHAKE_WrongCredentials(): [ERROR] ProxySQL Error: Access denied for user 'test'@'10.244.0.7' (using password: YES)
+
+
+
+
+
+
+For mysql 8.4.3 I have faced the same problem in proxyql, i have fixed it using mysql_native_password auth plugin, 
+Solution Worked: for 8.4.0 But 9.1.0 not working
+CREATE USER 'test2'@'%' IDENTIFIED WITH mysql_native_password BY 'pass';
+GRANT ALL PRIVILEGES ON test.* TO 'test2'@'%';
+FLUSH PRIVILEGES;
+
+This ensures the stored hash uses the older *… SHA-1 format that ProxySQL fully supports .
+
+But mysql 9.1.0 removed the previously deprecated auth plugin mysql_native_password, now I need use caching_sha2_password. 
+
+
+
+
+https://stackoverflow.com/questions/78799511/issue-with-proxysql-2-6-and-caching-sha2-password-plugin-with-percona-8-mysql-cl?utm_source=chatgpt.com
+https://stackoverflow.com/questions/61438510/why-error-1045-28000-access-denied-in-proxysql-server
+
+
+
+
+
+Why ProxySQL still fails
+ProxySQL 2.7 reads the hash and assumes $A$… means the old native‑password.
+To avoid the ambiguity you must either:
+
+Store the password in clear‑text in mysql_users (ProxySQL then chooses the right plugin automatically), or
+
+Store the hash with the unambiguous $C$… prefix.
+
+Option 1 – clear‑text in ProxySQL
+sql
+￼Copy
+￼Edit
+DELETE FROM mysql_users WHERE username='test';
+INSERT INTO mysql_users
+  (username,password,default_hostgroup,active,frontend,backend,use_ssl)
+VALUES
+  ('test','pass',2,1,1,1,1);
+
+LOAD MYSQL USERS TO RUNTIME;
+SAVE MYSQL USERS TO DISK;
+(requires admin-hash_passwords = false and use_ssl = 1)
+
+
+
+
+Ensure use_ssl = 1 when using caching_sha2_password, or the plugin will refuse the handshake.
+
+
+do I need to enable the tls for proxysql & MySQL?  for this? 
+￼
+￼
+ChatGPT said:
+Short answer
+Yes – the simplest, most reliable way to make caching_sha2_password work through ProxySQL is to turn on TLS/SSL for the connection between ProxySQL and MySQL (the backend link) and set use_ssl = 1 for that hostgroup and for the corresponding entry in mysql_users.
+TLS on the frontend (client → ProxySQL) is optional but strongly recommended if your clients and ProxySQL are on different hosts or networks.
+
+Backend (ProxySQL → MySQL): TLS required for caching_sha2_password.

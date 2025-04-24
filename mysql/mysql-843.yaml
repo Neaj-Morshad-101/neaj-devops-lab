@@ -1,7 +1,7 @@
 apiVersion: kubedb.com/v1
 kind: MySQL
 metadata:
-  name: mysql-8
+  name: mysql843
   namespace: demo
 spec:
   version: 8.4.3

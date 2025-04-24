@@ -1,12 +1,12 @@
 kubectl exec -it -n demo mysql-server-0 -- bash
 root@mysql-server-0:/# mysql -uroot -p$MYSQL_ROOT_PASSWORD
-mysql> create user `test`@'%' identified by 'pass';
-mysql> create database test;
-mysql> use test;
-mysql> show tables;
-mysql> create table testtb(name varchar(103), primary key(name));
-mysql> grant all privileges on test.* to 'test'@'%';
-mysql> flush privileges;
+create user `test`@'%' identified by 'pass';
+create database test;
+use test;
+show tables;
+create table testtb(name varchar(103), primary key(name));
+grant all privileges on test.* to 'test'@'%';
+flush privileges;
 select * FROM performance_schema.replication_group_members;
 
 MariaDB Replication	SHOW SLAVE STATUS\G
@@ -17,9 +17,8 @@ proxysql@proxy-server-0:/$ mysql -uadmin -padmin -h127.0.0.1 -P6032 --prompt="Pr
 SHOW TABLES FROM main;
 select * from mysql_servers;
 select * from runtime_mysql_servers;
-
-
 select username from mysql_users;
+select password from mysql_users;
 select * from mysql_users;
 ProxySQLAdmin >
 INSERT INTO mysql_users (username, password, active, default_hostgroup, backend, frontend, transaction_persistent) 

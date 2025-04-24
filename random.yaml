@@ -1,3 +1,22 @@
+
+dbv1.ResourceKindRedis: configdata.Restrictions{
+      {
+        VersionConstraint: "<= 7.4.*",
+        Distributions:     []string{"Official"},
+      },
+      {
+        VersionConstraint: ">= 7.2.5",
+        Distributions:     []string{"ValKey"},
+      },
+    },
+
+
+
+
+
+
+
+
 datadir="/var/lib/proxysql"
 admin_variables=
 {
