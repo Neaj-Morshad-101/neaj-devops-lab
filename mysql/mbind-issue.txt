@@ -93,7 +93,7 @@ That said, many typical database workloads (especially smaller‐scale or cloud 
 Memory Binding and NUMA: The mbind call is part of how MySQL optimizes memory use on systems with NUMA (Non-Uniform Memory Access) architecture. In NUMA systems, memory is split across multiple "nodes," and each node is tied to specific CPUs. By binding memory to a node close to the CPU that’s using it, the database can reduce latency and boost performance.
 
 mbind: Operation not permitted
-extra errors: 
+extra errors: (when numa optimization off)
 get_mempolicy: Operation not permitted
 2025-04-22T09:46:31.528182Z 1 [Warning] [MY-011873] [InnoDB] Failed to set NUMA memory policy to MPOL_INTERLEAVE: Operation not permitted
 2025-04-22T09:46:31.536199Z 0 [Warning] [MY-011879] [InnoDB] Failed to set NUMA memory policy of buffer pool page frames with mbind(0x7a9cafa3e000,137236480,MPOL_INTERLEAVE,...,...,MPOL_MF_MOVE) failed with Operation not permitted

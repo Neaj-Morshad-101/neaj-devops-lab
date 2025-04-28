@@ -1,3 +1,46 @@
+
+# Source: kubedbcom-proxysql-editor-options/templates/autoscaler.yaml
+apiVersion: autoscaling.kubedb.com/v1alpha1
+kind: ProxySQLAutoscaler
+metadata:
+  name: hi
+  namespace: demo
+  labels:
+    app.kubernetes.io/name: proxysqls.kubedb.com
+    app.kubernetes.io/instance: hi
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    kubernetes.io/instance-type: "db.t.micro,db.t.large"            /// check it later. 
+
+
+
+
+
+
+
+# Source: kubedbcom-proxysql-editor-options/templates/db.yaml
+apiVersion: kubedb.com/v1
+kind: ProxySQL
+metadata:
+  name: hi
+  namespace: demo
+  labels:
+    app.kubernetes.io/name: proxysqls.kubedb.com
+    app.kubernetes.io/instance: hi
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    app.kubernetes.io/cluster-tier: GeneralPurpose
+    kubernetes.io/instance-type: "db.t.medium"
+
+
+
+
+
+  podResources:
+    machine: ""
+
+
+
 using godebug: std5, ag4 ready 
 using env: std, ag4
 no env & godebug: not ready, std2, ag1

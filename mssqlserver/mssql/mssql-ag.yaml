@@ -1,7 +1,7 @@
 apiVersion: kubedb.com/v1alpha2
 kind: MSSQLServer
 metadata:
-  name: ag-env-shard
+  name: ag-passive
   namespace: demo
 spec:
   version: "2022-cu16"
@@ -17,6 +17,7 @@ spec:
       databases:
         - agdb1
         - agdb2
+      secondaryAccess: "NO"
   tls:
     issuerRef:
       name: mssqlserver-ca-issuer

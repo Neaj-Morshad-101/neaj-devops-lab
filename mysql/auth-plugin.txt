@@ -38,8 +38,6 @@ PROXYSQL
 .
 
 
-
-
 Solution Worked: for 8.4.0 But 9.1.0 not working
 CREATE USER 'test2'@'%' IDENTIFIED WITH mysql_native_password BY 'pass';
 GRANT ALL PRIVILEGES ON test.* TO 'test2'@'%';
@@ -163,6 +161,30 @@ With this, your ProxySQL-backed MySQL 9 user authentication will work seamlessly
 If you must avoid clear-text in ProxySQL’s config, extract MySQL’s caching-SHA2 hash and store it:
 
 On MySQL:
+
+mysql> SELECT authentication_string
+    -> FROM mysql.user
+    -> WHERE user='test2' AND host='%';
++------------------------------------------------------------------------+
+| authentication_string                                                  |
++------------------------------------------------------------------------+
+| $A$005$K@Dy+v2c?v-Z%6i?g9BWmWnzEXABN3OSER3awyXWxWhEFYneXVoVbVVq9nKA |
++------------------------------------------------------------------------+
+1 row in set (0.00 sec)
+
+
+
+mysql> SELECT HEX(authentication_string) AS hex_hash
+    -> FROM mysql.user
+    -> WHERE user='test2' AND host='%';
++----------------------------------------------------------------------------------------------------------------------------------------------+
+| hex_hash                                                                                                                                     |
++----------------------------------------------------------------------------------------------------------------------------------------------+
+| 24412430303524134B0F4044792B7632633F761F2D5A2536693F673942576D576E7A455841424E334F5345523361777958577857684546596E6558566F5662565671396E4B41 |
++----------------------------------------------------------------------------------------------------------------------------------------------+
+1 row in set (0.00 sec)
+
+
 
 sql
 Copy
