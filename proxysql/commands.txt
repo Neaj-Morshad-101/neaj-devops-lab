@@ -1,6 +1,6 @@
 MySQL Backend: 
 kubectl exec -it -n demo mysql-server-0 -- bash
-root@mysql-server-0:/# mysql -uroot -p$MYSQL_ROOT_PASSWORD
+mysql -uroot -p$MYSQL_ROOT_PASSWORD
 
 // create user 
 create user `test`@'%' identified by 'pass';
@@ -16,8 +16,8 @@ show tables;
 create table testtb(name varchar(103), primary key(name));
 
 // mysql.user
-SELECT HEX(authentication_string) FROM mysql.user;
 SELECT user, authentication_string FROM mysql.user;
+SELECT user, HEX(authentication_string) FROM mysql.user;
 
 // status
 select * FROM performance_schema.replication_group_members;
@@ -73,6 +73,8 @@ SELECT * FROM stats.stats_mysql_connection_pool;
 SELECT * FROM stats.stats_mysql_users;
 SELECT * FROM stats.stats_mysql_query_digest;
 
+// tls 
+SELECT * FROM global_variables WHERE variable_name LIKE 'mysql-ssl%' OR variable_name = 'mysql-have_ssl';
 
 
 
@@ -80,8 +82,8 @@ Ubuntu Client:
 kubectl exec -it -n demo ubuntu-bb47d8d6c-c5l5g -- bash
 apt update
 apt install mysql-client -y
-mysql -utest -ppass -hmysql-proxy.demo.svc -P6033
-mysql> select @@hostname 
+mysql -utest -ppass -hmysql-proxy9.demo.svc -P6033
+select @@hostname -- see which host you are connected to 
 
 # insert data
 create database test;
@@ -136,3 +138,15 @@ EOF
 cat run_query.sh
 chmod +x run_query.sh
 ./run_query.sh
+
+
+
+
+
+
+Kubernetes:
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ./ca.key -out ./ca.crt -subj "/CN=proxysql/O=kubedb"
+kubectl create secret tls proxy-ca --cert=ca.crt --key=ca.key --namespace=demo
+
+
+
