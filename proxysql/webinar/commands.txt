@@ -76,7 +76,8 @@ Query OK, 1 row affected (0.01 sec)
 
 mysql> select * from testtb;
 
-root@ubuntu-bb47d8d6c-x9fv7:/# cat << 'EOF' > run_query.sh
+root@ubuntu-bb47d8d6c-x9fv7:/# 
+cat << 'EOF' > run_query.sh
 #!/usr/bin/env bash
 
 USER="test"

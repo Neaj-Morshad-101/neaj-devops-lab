@@ -1,67 +1,100 @@
+MySQL Backend: 
 kubectl exec -it -n demo mysql-server-0 -- bash
 root@mysql-server-0:/# mysql -uroot -p$MYSQL_ROOT_PASSWORD
+
+// create user 
 create user `test`@'%' identified by 'pass';
+CREATE USER 'test'@'%' IDENTIFIED WITH mysql_native_password BY 'pass';      -- for 8.4.0 This ensures the stored hash uses the older *… SHA-1 format that ProxySQL fully supports .
+grant all privileges on test.* to 'test'@'%';
+flush privileges;
+
+
+// create database
 create database test;
 use test;
 show tables;
 create table testtb(name varchar(103), primary key(name));
-grant all privileges on test.* to 'test'@'%';
-flush privileges;
+
+// mysql.user
+SELECT HEX(authentication_string) FROM mysql.user;
+SELECT user, authentication_string FROM mysql.user;
+
+// status
 select * FROM performance_schema.replication_group_members;
 
+// mariadb
 MariaDB Replication	SHOW SLAVE STATUS\G
 MariaDB Galera	SHOW STATUS LIKE 'wsrep%';
 
+
+
+
+
+
+// ProxySQL Cluster 
 kubectl exec -it -n demo mysql-proxy-0 -- bash
-proxysql@proxy-server-0:/$ mysql -uadmin -padmin -h127.0.0.1 -P6032 --prompt="ProxySQLAdmin > "
-SHOW TABLES FROM main;
+proxysql@proxy-server-0:/$ 
+mysql -uadmin -padmin -h127.0.0.1 -P6032 --prompt="ProxySQLAdmin > "
+ProxySQLAdmin >
+
+// mysql servers 
 select * from mysql_servers;
 select * from runtime_mysql_servers;
+LOAD MYSQL SERVERS TO RUNTIME; 
+SAVE MYSQL SERVERS TO DISK;
+
+// mysql users 
+select username, password from mysql_users;
 select username from mysql_users;
 select password from mysql_users;
-select * from mysql_users;
-ProxySQLAdmin >
+select * from mysql_users; 
 INSERT INTO mysql_users (username, password, active, default_hostgroup, backend, frontend, transaction_persistent) 
              VALUES ('test', 'pass', 1, 2, 1, 1, 1);
 LOAD MYSQL USERS TO RUNTIME;
 SAVE MYSQL USERS TO DISK;
 SELECT username, default_hostgroup, backend, frontend FROM mysql_users WHERE username='test';
 
-check on all proxysql pods: if no stats
+// tables 
+SHOW TABLES FROM main;
+
+// hostgroups configuration
+select * from mysql_group_replication_hostgroups;
+select * from mysql_galera_hostgroups;
+mysql_galera_hostgroups: In memory config.
+runtime_mysql_galera_hostgroups: Runtime config.
+disk.mysql_galera_hostgroups: Persistent config.
+
+// stats 
+# check on all proxysql pods (svc may connect to different proxysql pod)
 select hostgroup,srv_host, Queries from stats_mysql_connection_pool; 
-select hostname, Queries, Client_Connections_created from stats_proxysql_servers_metrics;
+# is used to check per-server usage statistics in ProxySQL
+select hostname, Queries, Client_Connections_created from stats_proxysql_servers_metrics; 
 SELECT * FROM stats.stats_mysql_connection_pool;
 SELECT * FROM stats.stats_mysql_users;
 SELECT * FROM stats.stats_mysql_query_digest;
- 
-select * from mysql_group_replication_hostgroups;
-select * from mysql_galera_hostgroups;
 
 
 
 
-
-
-ubuntu: 
+Ubuntu Client: 
 kubectl exec -it -n demo ubuntu-bb47d8d6c-c5l5g -- bash
 apt update
 apt install mysql-client -y
 mysql -utest -ppass -hmysql-proxy.demo.svc -P6033
-
 mysql> select @@hostname 
-mysql> insert into testtb(name) values("Kim Torres");
-Query OK, 1 row affected (0.01 sec)
 
-mysql> insert into testtb(name) values("Tony SoFua");
-Query OK, 1 row affected (0.01 sec)
+# insert data
+create database test;
+create table testtb(name varchar(103), primary key(name));
+show databases;
+use test;
+show tables;
+insert into testtb(name) values("Kim Torres");
+insert into testtb(name) values("Tony SoFua");
+select * from testtb;
 
-mysql> select * from testtb;
-
-Configure ProxySQL
-Global variables
-Global variables to control timeout and interval check:
-
-    mysql> select * from global_variables where variable_name like '%monitor_galera%';
+# Global variables
+select * from global_variables where variable_name like '%monitor_galera%';
     +----------------------------------------------------+----------------+
     | variable_name                                      | variable_value |
     +----------------------------------------------------+----------------+
@@ -69,15 +102,8 @@ Global variables to control timeout and interval check:
     | mysql-monitor_galera_healthcheck_timeout           | 600            |
     | mysql-monitor_galera_healthcheck_max_timeout_count | 3              |
     +----------------------------------------------------+----------------+
-    3 rows in set (0.01 sec)
 
-
-mysql_galera_hostgroups: In memory config.
-runtime_mysql_galera_hostgroups: Runtime config.
-disk.mysql_galera_hostgroups: Persistent config.
-
-
-mysql> select * from mysql_galera_hostgroups\G
+select * from mysql_galera_hostgroups\G
 *************************** 1. row ***************************
        writer_hostgroup: 0
 backup_writer_hostgroup: 2
@@ -87,395 +113,26 @@ backup_writer_hostgroup: 2
             max_writers: 1
   writer_is_also_reader: 1
 max_transactions_behind: 100
-                comment: NULL
-1 row in set (0.00 sec)
 
 
-check it:
-active – when enabled, ProxySQL monitors the hostgroups and moves servers between the appropriate hostgroups. If disabled, Galera monitoring is disabled for the given cluster and ProxySQL doesn’t perform any reconfiguration, despite the fact that hostgroups and servers are still configured in mysql_servers
+// Load Balancing Test 
+cat << 'EOF' > run_query.sh
+#!/usr/bin/env bash
 
+USER="test"
+PASS="pass"
+HOST="mysql-proxy843.demo.svc"
+PORT=6033
+COUNT=10000
 
+for i in $(seq 1 $COUNT); do
+  mysql -u"$USER" -p"$PASS" -h"$HOST" -P"$PORT" \
+    -e "SELECT * FROM testtb;" >/dev/null 2>&1
+done
 
-LOAD MYSQL USERS TO RUNTIME;
-LOAD MYSQL SERVERS TO RUNTIME; 
-SAVE MYSQL SERVERS TO DISK;
+echo "Executed SELECT on testtb $COUNT times."
+EOF
 
-
-
-Who is setting hostgropu 1??? fix it. same issue found for MySQL & MariaDB
-
-ProxySQLAdmin > select * from runtime_mysql_servers;
-+--------------+-------------------------------+------+-----------+--------+--------+-------------+-----------------+---------------------+---------+----------------+---------+
-| hostgroup_id | hostname                      | port | gtid_port | status | weight | compression | max_connections | max_replication_lag | use_ssl | max_latency_ms | comment |
-+--------------+-------------------------------+------+-----------+--------+--------+-------------+-----------------+---------------------+---------+----------------+---------+
-| 1            | mysql-server-standby.demo.svc | 3306 | 0         | ONLINE | 1      | 0           | 1000            | 0                   | 0       | 0              |         |
-| 1            | mysql-server.demo.svc         | 3306 | 0         | ONLINE | 1      | 0           | 1000            | 0                   | 0       | 0              |         |
-+--------------+-------------------------------+------+-----------+--------+--------+-------------+-----------------+---------------------+---------+----------------+---------+
-
-
-ProxySQLAdmin > SELECT * FROM stats.stats_mysql_connection_pool;
-+-----------+-------------------------------------------+----------+--------+----------+----------+--------+---------+-------------+---------+-------------------+-----------------+-----------------+------------+
-| hostgroup | srv_host                                  | srv_port | status | ConnUsed | ConnFree | ConnOK | ConnERR | MaxConnUsed | Queries | Queries_GTID_sync | Bytes_data_sent | Bytes_data_recv | Latency_us |
-+-----------+-------------------------------------------+----------+--------+----------+----------+--------+---------+-------------+---------+-------------------+-----------------+-----------------+------------+
-| 2         | mysql-server-0.mysql-server-pods.demo.svc | 3306     | ONLINE | 0        | 1        | 1      | 0       | 1           | 3       | 0                 | 70              | 66              | 71         |
-| 3         | mysql-server-0.mysql-server-pods.demo.svc | 3306     | ONLINE | 0        | 0        | 0      | 0       | 0           | 0       | 0                 | 0               | 0               | 71         |
-| 3         | mysql-server-1.mysql-server-pods.demo.svc | 3306     | ONLINE | 0        | 1        | 1      | 0       | 1           | 2       | 0                 | 40              | 0               | 75         |
-| 3         | mysql-server-2.mysql-server-pods.demo.svc | 3306     | ONLINE | 0        | 1        | 1      | 0       | 1           | 2       | 0                 | 49              | 23              | 81         |
-
-
-
-ProxySQLAdmin > SELECT * FROM stats.stats_mysql_connection_pool;
-+-----------+-------------------------------------------+----------+--------------+----------+----------+--------+---------+-------------+---------+-------------------+-----------------+-----------------+------------+
-| hostgroup | srv_host                                  | srv_port | status       | ConnUsed | ConnFree | ConnOK | ConnERR | MaxConnUsed | Queries | Queries_GTID_sync | Bytes_data_sent | Bytes_data_recv | Latency_us |
-+-----------+-------------------------------------------+----------+--------------+----------+----------+--------+---------+-------------+---------+-------------------+-----------------+-----------------+------------+
-| 2         | mysql-server-0.mysql-server-pods.demo.svc | 3306     | OFFLINE_HARD | 0        | 0        | 0      | 0       | 0           | 0       | 0                 | 0               | 0               | 78         |
-| 2         | mysql-server-2.mysql-server-pods.demo.svc | 3306     | ONLINE       | 0        | 1        | 1      | 0       | 1           | 3       | 0                 | 126             | 0               | 88         |
-| 3         | mysql-server-2.mysql-server-pods.demo.svc | 3306     | ONLINE       | 0        | 1        | 1      | 0       | 1           | 1       | 0                 | 20              | 27              | 88         |
-| 3         | mysql-server-1.mysql-server-pods.demo.svc | 3306     | ONLINE       | 0        | 1        | 1      | 0       | 1           | 11      | 0                 | 220             | 279             | 67         |
-| 3         | mysql-server-0.mysql-server-pods.demo.svc | 3306     | OFFLINE_HARD | 0        | 0        | 0      | 0       | 0           | 0       | 0                 | 0               | 0               | 78         |
-| 5         | mysql-server-0.mysql-server-pods.demo.svc | 3306     | ONLINE       | 0        | 0        | 0      | 0       | 0           | 0       | 0                 | 0               | 0               | 78         |
-+-----------+-------------------------------------------+----------+--------------+----------+----------+--------+---------+-------------+---------+-------------------+-----------------+-----------------+------------+
-6 rows in set (0.004 sec)
-
-
-
-
-
-
-ProxySQLAdmin > SELECT * FROM stats.stats_mysql_connection_pool;
-+-----------+-----------------------------------------------+----------+--------------+----------+----------+--------+---------+-------------+---------+-------------------+-----------------+-----------------+------------+
-| hostgroup | srv_host                                      | srv_port | status       | ConnUsed | ConnFree | ConnOK | ConnERR | MaxConnUsed | Queries | Queries_GTID_sync | Bytes_data_sent | Bytes_data_recv | Latency_us |
-+-----------+-----------------------------------------------+----------+--------------+----------+----------+--------+---------+-------------+---------+-------------------+-----------------+-----------------+------------+
-| 2         | mariadb-server-0.mariadb-server-pods.demo.svc | 3306     | SHUNNED      | 0        | 0        | 0      | 0       | 0           | 0       | 0                 | 0               | 0               | 91         |
-| 2         | mariadb-server-1.mariadb-server-pods.demo.svc | 3306     | SHUNNED      | 0        | 0        | 2      | 0       | 1           | 12      | 0                 | 580             | 0               | 72         |
-| 2         | mariadb-server-2.mariadb-server-pods.demo.svc | 3306     | ONLINE       | 0        | 1        | 1      | 0       | 1           | 1       | 0                 | 49              | 0               | 0          |
-| 3         | mariadb-server-0.mariadb-server-pods.demo.svc | 3306     | ONLINE       | 0        | 1        | 1      | 0       | 1           | 35      | 0                 | 700             | 2370            | 91         |
-| 3         | mariadb-server-1.mariadb-server-pods.demo.svc | 3306     | ONLINE       | 0        | 1        | 1      | 0       | 1           | 6       | 0                 | 120             | 840             | 72         |
-| 3         | mariadb-server-2.mariadb-server-pods.demo.svc | 3306     | ONLINE       | 0        | 1        | 1      | 0       | 1           | 7       | 0                 | 140             | 1750            | 0          |
-| 4         | mariadb-server-0.mariadb-server-pods.demo.svc | 3306     | ONLINE       | 0        | 0        | 0      | 0       | 0           | 0       | 0                 | 0               | 0               | 91         |
-| 4         | mariadb-server-1.mariadb-server-pods.demo.svc | 3306     | ONLINE       | 0        | 0        | 0      | 0       | 0           | 0       | 0                 | 0               | 0               | 0          |
-| 1         | mariadb-server-2.mariadb-server-pods.demo.svc | 3306     | OFFLINE_HARD | 0        | 0        | 0      | 0       | 0           | 0       | 0                 | 0               | 0               | 0          |
-+-----------+-----------------------------------------------+----------+--------------+----------+----------+--------+---------+-------------+---------+-------------------+-----------------+-----------------+------------+
-9 rows in set (0.004 sec)
-
-ProxySQLAdmin > select * from mysql_servers;
-+--------------+-----------------------------------------------+------+-----------+--------+--------+-------------+-----------------+---------------------+---------+----------------+---------+
-| hostgroup_id | hostname                                      | port | gtid_port | status | weight | compression | max_connections | max_replication_lag | use_ssl | max_latency_ms | comment |
-+--------------+-----------------------------------------------+------+-----------+--------+--------+-------------+-----------------+---------------------+---------+----------------+---------+
-| 2            | mariadb-server-0.mariadb-server-pods.demo.svc | 3306 | 0         | ONLINE | 1      | 0           | 1000            | 0                   | 0       | 0              |         |
-| 3            | mariadb-server-0.mariadb-server-pods.demo.svc | 3306 | 0         | ONLINE | 1      | 0           | 1000            | 0                   | 0       | 0              |         |
-| 2            | mariadb-server-1.mariadb-server-pods.demo.svc | 3306 | 0         | ONLINE | 1      | 0           | 1000            | 0                   | 0       | 0              |         |
-| 3            | mariadb-server-1.mariadb-server-pods.demo.svc | 3306 | 0         | ONLINE | 1      | 0           | 1000            | 0                   | 0       | 0              |         |
-| 2            | mariadb-server-2.mariadb-server-pods.demo.svc | 3306 | 0         | ONLINE | 1      | 0           | 1000            | 0                   | 0       | 0              |         |
-| 3            | mariadb-server-2.mariadb-server-pods.demo.svc | 3306 | 0         | ONLINE | 1      | 0           | 1000            | 0                   | 0       | 0              |         |
-+--------------+-----------------------------------------------+------+-----------+--------+--------+-------------+-----------------+---------------------+---------+----------------+---------+
-6 rows in set (0.001 sec)
-
-ProxySQLAdmin > select username from mysql_users;
-+-------------+
-| username    |
-+-------------+
-| healthcheck |
-| root        |
-| test        |
-+-------------+
-3 rows in set (0.000 sec)
-
-
-
-
-
-
-
-
-
-
-
-
-proxysql@mariadb-proxy-0:/etc/custom-config$ cat proxysql.cnf 
-datadir="/var/lib/proxysql"
-admin_variables=
-{
-	cluster_mysql_query_rules_save_to_disk="true"
-	cluster_mysql_users_save_to_disk="true"
-	cluster_proxysql_servers_diffs_before_sync="3"
-	cluster_username="cluster"
-	cluster_password="ZezJJpZLomxPVKW8"
-	admin_credentials="admin:admin;cluster:ZezJJpZLomxPVKW8"
-	cluster_proxysql_servers_save_to_disk="true"
-	cluster_check_interval_ms="200"
-	cluster_mysql_servers_save_to_disk="true"
-	cluster_mysql_query_rules_diffs_before_sync="3"
-	cluster_mysql_users_diffs_before_sync="3"
-	mysql_ifaces="0.0.0.0:6032"
-	refresh_interval="2000"
-	cluster_check_status_frequency="100"
-	cluster_mysql_servers_diffs_before_sync="3"
-}
-mysql_variables=
-{
-	have_ssl="false"
-	monitor_galera_healthcheck_timeout="800"
-	sessions_sort="true"
-	monitor_password="xa1pef70;Bw9TUfl"
-	max_connections="2048"
-	ssl_p2s_cert="/var/lib/certs/tls.crt"
-	threads="4"
-	ssl_p2s_ca="/var/lib/certs/ca.crt"
-	default_query_timeout="36000000"
-	monitor_ping_interval="200000"
-	server_version="8.0.27"
-	monitor_history="60000"
-	ping_timeout_server="200"
-	poll_timeout="2000"
-	monitor_galera_healthcheck_interval="2000"
-	monitor_username="proxysql"
-	monitor_connect_interval="200000"
-	ping_interval_server_msec="10000"
-	commands_stats="true"
-	ssl_p2s_key="/var/lib/certs/tls.key"
-	connect_timeout_server="10000"
-	default_query_delay="0"
-	have_compress="true"
-	stacksize="1048576"
-	interfaces="0.0.0.0:6033;/tmp/proxysql.sock"
-	default_schema="information_schema"
-}
-mysql_users=
-(
-	{
-		default_schema=""
-		default_hostgroup=2
-		fast_forward=0
-		password="*915365CBFDFA2762C45C832ECC2EDE3848ED001C"
-		transaction_persistent=1
-		frontend=1
-		username="healthcheck"
-		max_connections=10000
-		schema_locked=0
-		backend=1
-		active=1
-		use_ssl=0
-		comment=""
-		attributes=""
-	},
-	{
-		password="*8E0A72DA873AAC3930452A2F3A8EDE05CDD1C513"
-		comment=""
-		use_ssl=0
-		default_schema=""
-		frontend=1
-		fast_forward=0
-		max_connections=10000
-		active=1
-		schema_locked=0
-		username="root"
-		transaction_persistent=1
-		backend=1
-		attributes=""
-		default_hostgroup=2
-	},
-	{
-		backend=1
-		max_connections=10000
-		username="test"
-		default_hostgroup=2
-		attributes=""
-		use_ssl=0
-		password="*196BDEDE2AE4F84CA44C47D54D78478C7E2BD7B7"
-		schema_locked=0
-		transaction_persistent=1
-		fast_forward=0
-		frontend=1
-		default_schema=""
-		comment=""
-		active=1
-	}
-)
-mysql_query_rules=
-(
-	{
-		rule_id=1
-		apply=1
-		destination_hostgroup=2
-		negate_match_pattern=0
-		match_digest="^SELECT.*FOR UPDATE$"
-		active=1
-		flagIN=0
-		re_modifiers="CASELESS"
-	},
-	{
-		flagIN=0
-		destination_hostgroup=3
-		rule_id=2
-		match_digest="^SELECT"
-		active=1
-		apply=1
-		re_modifiers="CASELESS"
-		negate_match_pattern=0
-	},
-	{
-		rule_id=3
-		negate_match_pattern=0
-		re_modifiers="CASELESS"
-		destination_hostgroup=2
-		active=1
-		flagIN=0
-		apply=1
-		match_digest=".*"
-	}
-)
-datadir="/var/lib/proxysql"
-admin_variables=
-{
-	cluster_mysql_query_rules_save_to_disk="true"
-	cluster_mysql_users_save_to_disk="true"
-	cluster_proxysql_servers_diffs_before_sync="3"
-	cluster_username="cluster"
-	cluster_password="ZezJJpZLomxPVKW8"
-	admin_credentials="admin:admin;cluster:ZezJJpZLomxPVKW8"
-	cluster_proxysql_servers_save_to_disk="true"
-	cluster_check_interval_ms="200"
-	cluster_mysql_servers_save_to_disk="true"
-	cluster_mysql_query_rules_diffs_before_sync="3"
-	cluster_mysql_users_diffs_before_sync="3"
-	mysql_ifaces="0.0.0.0:6032"
-	refresh_interval="2000"
-	cluster_check_status_frequency="100"
-	cluster_mysql_servers_diffs_before_sync="3"
-}
-mysql_variables=
-{
-	have_ssl="false"
-	monitor_galera_healthcheck_timeout="800"
-	sessions_sort="true"
-	monitor_password="xa1pef70;Bw9TUfl"
-	max_connections="2048"
-	ssl_p2s_cert="/var/lib/certs/tls.crt"
-	threads="4"
-	ssl_p2s_ca="/var/lib/certs/ca.crt"
-	default_query_timeout="36000000"
-	monitor_ping_interval="200000"
-	server_version="8.0.27"
-	monitor_history="60000"
-	ping_timeout_server="200"
-	poll_timeout="2000"
-	monitor_galera_healthcheck_interval="2000"
-	monitor_username="proxysql"
-	monitor_connect_interval="200000"
-	ping_interval_server_msec="10000"
-	commands_stats="true"
-	ssl_p2s_key="/var/lib/certs/tls.key"
-	connect_timeout_server="10000"
-	default_query_delay="0"
-	have_compress="true"
-	stacksize="1048576"
-	interfaces="0.0.0.0:6033;/tmp/proxysql.sock"
-	default_schema="information_schema"
-}
-mysql_users=
-(
-	{
-		default_schema=""
-		default_hostgroup=2
-		fast_forward=0
-		password="*915365CBFDFA2762C45C832ECC2EDE3848ED001C"
-		transaction_persistent=1
-		frontend=1
-		username="healthcheck"
-		max_connections=10000
-		schema_locked=0
-		backend=1
-		active=1
-		use_ssl=0
-		comment=""
-		attributes=""
-	},
-	{
-		password="*8E0A72DA873AAC3930452A2F3A8EDE05CDD1C513"
-		comment=""
-		use_ssl=0
-		default_schema=""
-		frontend=1
-		fast_forward=0
-		max_connections=10000
-		active=1
-		schema_locked=0
-		username="root"
-		transaction_persistent=1
-		backend=1
-		attributes=""
-		default_hostgroup=2
-	},
-	{
-		backend=1
-		max_connections=10000
-		username="test"
-		default_hostgroup=2
-		attributes=""
-		use_ssl=0
-		password="*196BDEDE2AE4F84CA44C47D54D78478C7E2BD7B7"
-		schema_locked=0
-		transaction_persistent=1
-		fast_forward=0
-		frontend=1
-		default_schema=""
-		comment=""
-		active=1
-	}
-)
-mysql_query_rules=
-(
-	{
-		rule_id = 1
-		active = 1
-		match_digest ="^SELECT.*FOR UPDATE$"
-		destination_hostgroup = 2
-		apply = 1
-	},
-	{
-		rule_id = 2
-		active = 1
-		match_digest ="^SELECT"
-		destination_hostgroup = 3
-		apply = 1
-	},
-	{
-		rule_id = 3
-		active = 1
-		match_digest =".*"
-		destination_hostgroup = 2
-		apply = 1
-	}
-)
-mysql_galera_hostgroups=
-(
-	{
-		writer_hostgroup = 2
-		backup_writer_hostgroup = 4
-		reader_hostgroup = 3
-		offline_hostgroup = 1
-		active = 1
-		max_writers = 1
-		writer_is_also_reader = 1
-		max_transactions_behind = 0
-	}
-)
- 
-proxysql_servers=
-(
-    { hostname = "mariadb-proxy-0.mariadb-proxy-pods.demo", port = 6032, weight = 1 },
-    { hostname = "mariadb-proxy-1.mariadb-proxy-pods.demo", port = 6032, weight = 1 },
-    { hostname = "mariadb-proxy-2.mariadb-proxy-pods.demo", port = 6032, weight = 1 }
-)
-
-mysql_servers=
-(
-    { hostgroup_id = 2 , hostname = "mariadb-server-0.mariadb-server-pods.demo.svc", port = 3306, weight = 1, use_ssl = 0 },
-    { hostgroup_id = 3 , hostname = "mariadb-server-0.mariadb-server-pods.demo.svc", port = 3306, weight = 1, use_ssl = 0 },
-    { hostgroup_id = 2 , hostname = "mariadb-server-1.mariadb-server-pods.demo.svc", port = 3306, weight = 1, use_ssl = 0 },
-    { hostgroup_id = 3 , hostname = "mariadb-server-1.mariadb-server-pods.demo.svc", port = 3306, weight = 1, use_ssl = 0 },
-    { hostgroup_id = 2 , hostname = "mariadb-server-2.mariadb-server-pods.demo.svc", port = 3306, weight = 1, use_ssl = 0 },
-    { hostgroup_id = 3 , hostname = "mariadb-server-2.mariadb-server-pods.demo.svc", port = 3306, weight = 1, use_ssl = 0 }
-
-)
+cat run_query.sh
+chmod +x run_query.sh
+./run_query.sh
