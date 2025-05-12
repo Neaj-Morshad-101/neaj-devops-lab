@@ -4,11 +4,10 @@ metadata:
   name: mariadb-galera
   namespace: demo
 spec:
-  version: "10.6.16"
+  version: "10.6.16" # 11.6.2
   replicas: 3
   storageType: Durable
   storage:
-    # storageClassName: "local-path"
     accessModes:
     - ReadWriteOnce
     resources:

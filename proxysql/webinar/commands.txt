@@ -1,3 +1,16 @@
+
+show user from mysql.user 
+
+
+select * from mysql_servers;
+select * from runtime_mysql_servers;
+select username from mysql_users;
+select password from mysql_users;
+select * from mysql_users;
+
+
+
+
 kubectl exec -it -n demo mysql-server-0 -- bash
 root@mysql-server-0:/# mysql -uroot -p$MYSQL_ROOT_PASSWORD
 create user `test`@'%' identified by 'pass';
@@ -8,6 +21,10 @@ create table testtb(name varchar(103), primary key(name));
 grant all privileges on test.* to 'test'@'%';
 flush privileges;
 select * FROM performance_schema.replication_group_members;
+
+
+
+
 
 MariaDB Replication	SHOW SLAVE STATUS\G
 MariaDB Galera	SHOW STATUS LIKE 'wsrep%';
@@ -42,6 +59,8 @@ select * from mysql_galera_hostgroups;
 
 
 
+
+
 ubuntu: 
 kubectl exec -it -n demo ubuntu-bb47d8d6c-c5l5g -- bash
 apt update
@@ -56,6 +75,49 @@ mysql> insert into testtb(name) values("Tony SoFua");
 Query OK, 1 row affected (0.01 sec)
 
 mysql> select * from testtb;
+
+root@ubuntu-bb47d8d6c-x9fv7:/# cat << 'EOF' > run_query.sh
+#!/usr/bin/env bash
+
+USER="test"
+PASS="pass"
+HOST="mariadb-proxy.demo.svc"
+PORT=6033
+COUNT=10000
+
+for i in $(seq 1 $COUNT); do
+  mysql -u"$USER" -p"$PASS" -h"$HOST" -P"$PORT" \
+    -e "SELECT * FROM testtb;" >/dev/null 2>&1
+done
+
+echo "Executed SELECT on testtb $COUNT times."
+EOF
+root@ubuntu-bb47d8d6c-x9fv7:/# cat run_query.sh
+#!/usr/bin/env bash
+
+USER="test"
+PASS="pass"
+HOST="mariadb-proxy.demo.svc"
+PORT=6033
+COUNT=10000
+
+for i in $(seq 1 $COUNT); do
+  mysql -u"$USER" -p"$PASS" -h"$HOST" -P"$PORT" \
+    -e "SELECT * FROM testtb;" >/dev/null 2>&1
+done
+
+echo "Executed SELECT on testtb $COUNT times."
+root@ubuntu-bb47d8d6c-x9fv7:/# chmod +x run_query.sh
+root@ubuntu-bb47d8d6c-x9fv7:/# ./run_query.sh
+
+
+
+
+
+
+
+
+
 
 Configure ProxySQL
 Global variables

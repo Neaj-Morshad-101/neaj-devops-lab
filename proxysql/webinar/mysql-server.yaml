@@ -1,16 +1,18 @@
 apiVersion: kubedb.com/v1
-kind: MariaDB
+kind: MySQL
 metadata:
-  name: mariadb-galera
+  name: mysql-server
   namespace: demo
 spec:
-  version: "10.6.16"
+  version: 8.0.36 # 8.4.3
   replicas: 3
+  topology:
+    mode: GroupReplication
   storageType: Durable
   storage:
-    # storageClassName: "local-path"
+    storageClassName: "standard"
     accessModes:
-    - ReadWriteOnce
+      - ReadWriteOnce
     resources:
       requests:
         storage: 1Gi

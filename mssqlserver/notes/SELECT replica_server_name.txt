@@ -1,0 +1,172 @@
+SELECT replica_server_name,
+       secondary_role_allow_connections,
+       availability_mode_desc
+  FROM sys.availability_replicas
+ WHERE replica_server_name = '<SecondaryReplicaName>';
+
+
+ secondary_role_allow_connections = 0 means No.
+
+
+
+ALTER AVAILABILITY GROUP [YourAG]
+  MODIFY REPLICA ON  
+    N'<SecondaryReplicaName>'  
+    WITH (
+      SECONDARY_ROLE (ALLOW_CONNECTIONS = NO),
+      AVAILABILITY_MODE = SYNCHRONOUS_COMMIT
+    );
+GO
+
+
+
+
+
+Test: Attempt a read-only connection:
+
+bash
+￼Copy
+￼Edit
+sqlcmd -S <AGListener> -d YourDB -U user -P pass -K ReadOnly
+It should be refused because the secondary disallows all connections.
+
+
+
+
+
+
+-- From the secondary server instance:
+SELECT name, state_desc
+  FROM sys.databases
+ WHERE replica_id = '<YourReplicaID>';
+
+
+
+
+
+
+
+
+
+When Creating a New Availability Group: Use the CREATE AVAILABILITY GROUP command and specify SECONDARY_ROLE (ALLOW_CONNECTIONS = NO) for each replica. Here’s an example:
+
+
+
+CREATE AVAILABILITY GROUP [MyAG]
+WITH (AUTOMATED_BACKUP_PREFERENCE = PRIMARY)
+FOR DATABASE [MyDB]
+REPLICA ON
+    'PrimaryServer' WITH (
+        ENDPOINT_URL = 'TCP://PrimaryServer:5022',
+        AVAILABILITY_MODE = SYNCHRONOUS_COMMIT,
+        FAILOVER_MODE = AUTOMATIC,
+        SECONDARY_ROLE (ALLOW_CONNECTIONS = NO)
+    ),
+    'SecondaryServer' WITH (
+        ENDPOINT_URL = 'TCP://SecondaryServer:5022',
+        AVAILABILITY_MODE = SYNCHRONOUS_COMMIT,
+        FAILOVER_MODE = AUTOMATIC,
+        SECONDARY_ROLE (ALLOW_CONNECTIONS = NO)
+    );
+
+
+SELECT replica_server_name, secondary_role_allow_connections_desc
+FROM sys.availability_replicas;
+
+
+
+
+
+
+
+
+
+
+
+
+How do you set up SQL Server AG's secondary replicas to sync only? I don't want them used for read queries; explicitly stop the read option. 
+
+
+Basically, I want to run the secondaries without the read option so that I don't have to buy a license for them. 
+
+
+Now, If I use SECONDARY_ROLE (ALLOW_CONNECTIONS = NO)
+
+Will I be able to connect to SQL Server? Run any basic query for monitoring or something? 
+
+
+Also, for failover stuff, I try to query all secondaries to elect the most updated secondary to primary. Now I think I will lose that capability also. 
+
+
+
+Any recommendation for this schenario? 
+
+
+
+
+
+
+
+
+
+
+
+
+3. Monitoring & Failover Selection Without Hitting Secondaries
+Instead of querying each secondary, run your health/failover-decision logic on the primary:
+
+sql
+￼Copy
+￼Edit
+SELECT 
+  ar.replica_server_name,
+  drs.last_commit_lsn,
+  drs.last_commit_time,
+  drs.synchronization_state_desc,
+  drs.secondary_lag_seconds
+FROM sys.availability_replicas AS ar
+JOIN sys.dm_hadr_database_replica_states AS drs
+  ON ar.replica_id = drs.replica_id
+WHERE drs.database_name = 'YourDatabase'
+  AND ar.replica_server_name <> @@SERVERNAME
+ORDER BY drs.last_commit_lsn DESC;
+last_commit_lsn and last_commit_time tell you which secondary is most up-to-date 
+Microsoft Learn
+.
+
+No need to open connections to passive replicas.
+
+
+
+
+
+
+
+
+
+Manual Failover: You can still initiate a manual failover (e.g., via SSMS connected to the primary or using ALTER AVAILABILITY GROUP ... FAILOVER commands). SQL Server will check the internal state before allowing it, but you lose the ability to perform your own detailed external pre-validation query against the target secondary just before you click the button or run the script. You are relying more heavily on the state reported by the primary or the internal cluster health.
+
+
+
+
+
+
+
+
+SELECT
+    DB_NAME(database_id) AS DatabaseName,
+    last_hardened_lsn,
+    last_received_lsn,
+    last_redone_lsn,
+    synchronization_state_desc,
+    secondary_lag_seconds
+FROM sys.dm_hadr_database_replica_states
+WHERE is_primary_replica = 0;
+
+
+
+
+SELECT 
+  DB_NAME(database_id) AS DB,
+  is_primary_replica
+FROM sys.dm_hadr_database_replica_states;

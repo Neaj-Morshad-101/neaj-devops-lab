@@ -1,14 +1,14 @@
 apiVersion: kubedb.com/v1
-kind: MariaDB
+kind: PerconaXtraDB
 metadata:
-  name: mariadb-galera
+  name: xtradb-galera
   namespace: demo
 spec:
-  version: "10.6.16"
+  version: "8.0.40" # 8.4.3
   replicas: 3
   storageType: Durable
   storage:
-    # storageClassName: "local-path"
+    storageClassName: "standard"
     accessModes:
     - ReadWriteOnce
     resources:

@@ -1,0 +1,9 @@
+$ helm install kubedb oci://ghcr.io/appscode-charts/kubedb \
+          --version v2025.4.30 \
+          --namespace kubedb --create-namespace \
+          --set-file global.license=$HOME/Downloads/kind-license.txt \
+          --set global.featureGates.MySQL=true \
+          --set global.featureGates.MariaDB=true \
+          --set global.featureGates.PerconaXtraDB=true \
+          --set global.featureGates.ProxySQL=true \
+          --wait --burst-limit=10000 --debug 

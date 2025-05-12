@@ -1,7 +1,7 @@
 apiVersion: kubedb.com/v1alpha2
 kind: MSSQLServer
 metadata:
-  name: mssql-standalone-tin
+  name: standalone
   namespace: demo
 spec:
   version: "2022-cu16"
@@ -11,7 +11,7 @@ spec:
       name: mssqlserver-ca-issuer
       kind: Issuer
       apiGroup: "cert-manager.io"
-    clientTLS: false
+    clientTLS: true
   podTemplate:
     spec:
       containers:
@@ -21,19 +21,15 @@ spec:
           value: "Y"
         - name: MSSQL_PID
           value: Evaluation
-      # - name: mssql-coordinator
-      #   env:
-      #   - name: GODEBUG
-      #     value: "x509negativeserial=1"
-  # monitor:
-  #   agent: prometheus.io/operator
-  #   prometheus:
-  #     exporter:
-  #       port: 9399
-  #     serviceMonitor:
-  #       labels:
-  #         release: prometheus
-  #       interval: 10s
+  monitor:
+    agent: prometheus.io/operator
+    prometheus:
+      exporter:
+        port: 9399
+      serviceMonitor:
+        labels:
+          release: prometheus
+        interval: 10s
   storage:
     # storageClassName: "longhorn"
     accessModes:
