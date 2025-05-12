@@ -30,7 +30,19 @@ Now, solution for mysql 9:
 Check manullay inserting the hash (not sync users)
 https://proxysql.com/documentation/password-management/
 
-Check with TLS
+DELETE FROM mysql_users WHERE username = 'test';
+INSERT INTO mysql_users (username, password, active, default_hostgroup, backend, frontend, transaction_persistent) 
+             VALUES ('test', 'pass', 1, 2, 1, 1, 1);
+LOAD MYSQL USERS TO RUNTIME;
+SAVE MYSQL USERS TO DISK;
+
+Plain text pass insert working fine. 
+
+INSERT INTO mysql_users (username, password, active, default_hostgroup, backend, frontend, transaction_persistent) VALUES ('test2', CACHING_SHA2_PASSWORD('pass'), 1, 2, 1, 1, 1);
+Hash pass insert is not working. 
+
+
+Checked with TLS: not resolved.
 
 
 Enable SSL/TLS on ProxySQL Frontend: The caching_sha2_password protocol strongly prefers (and often requires depending on configuration) a secure connection between the client and the server (ProxySQL in this case).

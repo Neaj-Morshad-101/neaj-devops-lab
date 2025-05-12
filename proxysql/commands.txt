@@ -4,8 +4,11 @@ mysql -uroot -p$MYSQL_ROOT_PASSWORD
 
 // create user 
 create user `test`@'%' identified by 'pass';
-CREATE USER 'test'@'%' IDENTIFIED WITH mysql_native_password BY 'pass';      -- for 8.4.0 This ensures the stored hash uses the older *… SHA-1 format that ProxySQL fully supports .
 grant all privileges on test.* to 'test'@'%';
+flush privileges;
+CREATE USER 'test'@'%' IDENTIFIED WITH mysql_native_password BY 'pass';      -- for 8.4.0 This ensures the stored hash uses the older *… SHA-1 format that ProxySQL fully supports .
+create user `test2`@'%' identified by 'pass';
+grant all privileges on test.* to 'test2'@'%';
 flush privileges;
 
 
@@ -45,14 +48,20 @@ SAVE MYSQL SERVERS TO DISK;
 
 // mysql users 
 select username, password from mysql_users;
+SELECT username, HEX(password) FROM mysql_users;
 select username from mysql_users;
 select password from mysql_users;
 select * from mysql_users; 
+
+DELETE FROM mysql_users WHERE username = 'test';
 INSERT INTO mysql_users (username, password, active, default_hostgroup, backend, frontend, transaction_persistent) 
              VALUES ('test', 'pass', 1, 2, 1, 1, 1);
+
+INSERT INTO mysql_users (username, password, active, default_hostgroup, backend, frontend, transaction_persistent) VALUES ('test2', CACHING_SHA2_PASSWORD('pass'), 1, 2, 1, 1, 1);
+
 LOAD MYSQL USERS TO RUNTIME;
 SAVE MYSQL USERS TO DISK;
-SELECT username, default_hostgroup, backend, frontend FROM mysql_users WHERE username='test';
+SELECT username, default_hostgroup, backend, frontend FROM mysql_users;
 
 // tables 
 SHOW TABLES FROM main;
