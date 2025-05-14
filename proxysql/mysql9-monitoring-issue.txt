@@ -8,3 +8,13 @@ mysql9:
 
 
 mysql8.4: is working fine.............. 
+
+
+
+mysql 9:
+2025-05-14 14:00:45 MySQL_Monitor.cpp:3731:extract_gr_srv_st(): [ERROR] Invalid resultset for GR monitoring query from server mysql9-0.mysql9-pods.demo.svc:3306. Either 'mysql_fetch_fields=NULL' or unexpected 'mysql_num_fields=3'. Please report this incident
+2025-05-14 14:00:45 MySQL_Monitor.cpp:3981:gr_report_fetching_errs(): [ERROR] Got error. mmsd 0x72da37c06700 , MYSQL 0x72da36c04100 , FD 30 : Invalid or malformed resultset
+2025-05-14 14:00:45 MySQL_Monitor.cpp:3731:extract_gr_srv_st(): [ERROR] Invalid resultset for GR monitoring query from server mysql9-2.mysql9-pods.demo.svc:3306. Either 'mysql_fetch_fields=NULL' or unexpected 'mysql_num_fields=3'. Please report this incident
+2025-05-14 14:00:45 MySQL_Monitor.cpp:3981:gr_report_fetching_errs(): [ERROR] Got error. mmsd 0x72da37c06500 , MYSQL 0x72da37482a00 , FD 16 : Invalid or malformed resultset
+2025-05-14 14:00:45 MySQL_Monitor.cpp:3731:extract_gr_srv_st(): [ERROR] Invalid resultset for GR monitoring query from server mysql9-1.mysql9-pods.demo.svc:3306. Either 'mysql_fetch_fields=NULL' or unexpected 'mysql_num_fields=3'. Please report this incident
+2025-05-14 14:00:45 MySQL_Monitor.cpp:3981:gr_report_fetching_errs(): [ERROR] Got error. mmsd 0x72da37c06600 , MYSQL 0x72da31890f00 , FD 33 : Invalid or malformed resultset

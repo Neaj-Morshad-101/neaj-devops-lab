@@ -42,6 +42,74 @@ INSERT INTO mysql_users (username, password, active, default_hostgroup, backend,
 Hash pass insert is not working. 
 
 
+
+Passwords in plain text are simple as that, very easy to read. If database and config file are kept in a safe location the security concern is limited, yet present.
+caching_sha2_password: 
+When dealing with hashed passwords, the only configuration requirement is allowing an SSL connection to be created between ProxySQL and the client. This is achieved either by:
+Setting variable mysql-have_ssl to true (default value since 2.6.0).
+Setting variable mysql-default_authentication_plugin to caching_sha2_password. This will override mysql-have_ssl, enabling SSL in frontend connections.
+
+mysql-default_authentication_plugin
+System Variable	Name	mysql-default_authentication_plugin
+Dynamic	Yes
+Permitted Values	Type	String
+Default	mysql_native_password
+Valid Values	mysql_clear_password
+mysql_native_password
+caching_sha2_password
+Introduced in 2.6.0, allows selecting the authentication plugin that ProxySQL announces to the client in the Initial Handshake Packet. This option doesn’t disable any of the authentication methods supported by ProxySQL, just allows to optimize the client-server communication during handshake by making the default authentication announced by the server, match the authentication the client is expected to request. Thus avoiding unnecessary AuthSwitchRequests.
+
+This variable overrides mysql-have_ssl, enabling SSL for fronted connections when set to caching_sha2_password. This is because caching_sha2_password requires a safe channel for performing full authentication, due to clear text password sharing. If a user password is stored as a hashed caching_sha2_password, yet no secure channel (SSL connection) is able to be created between client and ProxySQL, authentication is expected to fail, this is a requirement of caching_sha2_password itself.
+
+
+ProxySQLAdmin > SELECT variable_name, variable_value
+    ->                FROM global_variables
+    ->                WHERE variable_name IN (
+    ->                  'mysql-default_authentication_plugin',
+    ->                  'mysql-have_ssl',
+    ->                  'mysql-ssl_cert',
+    ->                  'mysql-ssl_key',
+    ->                  'mysql-ssl_ca'
+    ->                );
++-------------------------------------+-----------------------+
+| variable_name                       | variable_value        |
++-------------------------------------+-----------------------+
+| mysql-default_authentication_plugin | mysql_native_password |
+| mysql-have_ssl                      | false                 |
++-------------------------------------+-----------------------+
+2 rows in set (0.002 sec)
+
+ProxySQLAdmin > SET mysql-default_authentication_plugin = 'caching_sha2_password';
+Query OK, 1 row affected (0.001 sec)
+
+ProxySQLAdmin > -- 2. Load the change into runtime:
+ProxySQLAdmin > LOAD MYSQL VARIABLES TO RUNTIME;
+Query OK, 0 rows affected (0.002 sec)
+
+ProxySQLAdmin > 
+ProxySQLAdmin > -- 3. Persist the change on disk:
+ProxySQLAdmin > SAVE MYSQL VARIABLES TO DISK;
+Query OK, 167 rows affected (0.036 sec)
+
+
+this worked man 
+
+
+
+
+  mysql:  SELECT HEX(authentication_string) FROM mysql.user WHERE user='$USERNAME';
+
+  proxysql: UPDATE mysql_users SET password=UNHEX('$HEX_PASSWORD') WHERE username='$USERNAME';
+
+
+SELECT SUBSTR(password,0,5) AS pass_start, LENGTH(password) AS pass_length FROM mysql_users WHERE username='$USERNAME';
+
+
+
+
+
+
+
 Checked with TLS: not resolved.
 
 

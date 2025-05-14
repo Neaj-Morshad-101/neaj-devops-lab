@@ -82,9 +82,17 @@ SELECT * FROM stats.stats_mysql_connection_pool;
 SELECT * FROM stats.stats_mysql_users;
 SELECT * FROM stats.stats_mysql_query_digest;
 
+// monitor
+select * from monitor.mysql_server_connect_log order by time_start_us desc;
+select * from monitor.mysql_server_ping_log order by time_start_us desc limit 6;
+
 // tls 
 SELECT * FROM global_variables WHERE variable_name LIKE 'mysql-ssl%' OR variable_name = 'mysql-have_ssl';
 
+Import caching_sha2_passwords: 
+mysql-server: SELECT HEX(authentication_string) FROM mysql.user WHERE user='$USERNAME';
+proxysql: UPDATE mysql_users SET password=UNHEX('$HEX_PASSWORD') WHERE username='$USERNAME';
+verify: SELECT SUBSTR(password,0,5) AS pass_start, LENGTH(password) AS pass_length FROM mysql_users WHERE username='$USERNAME';
 
 
 Ubuntu Client: 
