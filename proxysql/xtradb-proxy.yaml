@@ -1,12 +1,27 @@
 apiVersion: kubedb.com/v1
 kind: ProxySQL
 metadata:
+  name: xtradb-proxy843
+  namespace: demo
+spec:
+  version: "2.7.3-debian"
+  replicas: 1
+  syncUsers: true
+  backend:
+    name: xtradb-galera843
+  deletionPolicy: WipeOut
+
+---
+
+apiVersion: kubedb.com/v1
+kind: ProxySQL
+metadata:
   name: xtradb-proxy
   namespace: demo
 spec:
   version: "2.7.3-debian"
-  replicas: 3
-  syncUsers: false
+  replicas: 1
+  syncUsers: true
   backend:
     name: xtradb-galera
   deletionPolicy: WipeOut

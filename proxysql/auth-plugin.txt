@@ -41,8 +41,6 @@ Plain text pass insert working fine.
 INSERT INTO mysql_users (username, password, active, default_hostgroup, backend, frontend, transaction_persistent) VALUES ('test2', CACHING_SHA2_PASSWORD('pass'), 1, 2, 1, 1, 1);
 Hash pass insert is not working. 
 
-
-
 Passwords in plain text are simple as that, very easy to read. If database and config file are kept in a safe location the security concern is limited, yet present.
 caching_sha2_password: 
 When dealing with hashed passwords, the only configuration requirement is allowing an SSL connection to be created between ProxySQL and the client. This is achieved either by:

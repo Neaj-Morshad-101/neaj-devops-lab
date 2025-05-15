@@ -6,7 +6,7 @@ mysql -uroot -p$MYSQL_ROOT_PASSWORD
 create user `test`@'%' identified by 'pass';
 grant all privileges on test.* to 'test'@'%';
 flush privileges;
-CREATE USER 'test'@'%' IDENTIFIED WITH mysql_native_password BY 'pass';      -- for 8.4.0 This ensures the stored hash uses the older *… SHA-1 format that ProxySQL fully supports .
+CREATE USER 'test3'@'%' IDENTIFIED WITH mysql_native_password BY 'pass';      -- for 8.4.0 This ensures the stored hash uses the older *… SHA-1 format that ProxySQL fully supports .
 create user `test2`@'%' identified by 'pass';
 grant all privileges on test.* to 'test2'@'%';
 flush privileges;
@@ -53,9 +53,11 @@ select username from mysql_users;
 select password from mysql_users;
 select * from mysql_users; 
 
-DELETE FROM mysql_users WHERE username = 'test';
+DELETE FROM mysql_users WHERE username = 'test2';
 INSERT INTO mysql_users (username, password, active, default_hostgroup, backend, frontend, transaction_persistent) 
-             VALUES ('test', 'pass', 1, 2, 1, 1, 1);
+             VALUES ('test2', 'pass', 1, 2, 1, 1, 1);
+LOAD MYSQL USERS TO RUNTIME;
+SAVE MYSQL USERS TO DISK;
 
 INSERT INTO mysql_users (username, password, active, default_hostgroup, backend, frontend, transaction_persistent) VALUES ('test2', CACHING_SHA2_PASSWORD('pass'), 1, 2, 1, 1, 1);
 
@@ -89,17 +91,34 @@ select * from monitor.mysql_server_ping_log order by time_start_us desc limit 6;
 // tls 
 SELECT * FROM global_variables WHERE variable_name LIKE 'mysql-ssl%' OR variable_name = 'mysql-have_ssl';
 
-Import caching_sha2_passwords: 
+
+caching_sha2_passwords: 
+SELECT variable_name, variable_value FROM global_variables
+          WHERE variable_name IN (
+                   'mysql-default_authentication_plugin',
+                   'mysql-have_ssl',
+                   'mysql-ssl_cert',
+                   'mysql-ssl_key',
+                   'mysql-ssl_ca'
+          );
+SET mysql-default_authentication_plugin = 'caching_sha2_password';
+LOAD MYSQL VARIABLES TO RUNTIME;      SAVE MYSQL VARIABLES TO DISK;
 mysql-server: SELECT HEX(authentication_string) FROM mysql.user WHERE user='$USERNAME';
 proxysql: UPDATE mysql_users SET password=UNHEX('$HEX_PASSWORD') WHERE username='$USERNAME';
 verify: SELECT SUBSTR(password,0,5) AS pass_start, LENGTH(password) AS pass_length FROM mysql_users WHERE username='$USERNAME';
+
+
+
+
+
+
 
 
 Ubuntu Client: 
 kubectl exec -it -n demo ubuntu-bb47d8d6c-c5l5g -- bash
 apt update
 apt install mysql-client -y
-mysql -utest -ppass -hmysql-proxy9.demo.svc -P6033
+mysql -utest -ppass -hmysql-proxy843.demo.svc -P6033
 select @@hostname -- see which host you are connected to 
 
 # insert data
