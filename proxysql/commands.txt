@@ -48,6 +48,7 @@ SAVE MYSQL SERVERS TO DISK;
 
 // mysql users 
 select username, password from mysql_users;
+select username, password from runtime_mysql_users;
 SELECT username, HEX(password) FROM mysql_users;
 select username from mysql_users;
 select password from mysql_users;
@@ -107,6 +108,8 @@ mysql-server: SELECT HEX(authentication_string) FROM mysql.user WHERE user='$USE
 proxysql: UPDATE mysql_users SET password=UNHEX('$HEX_PASSWORD') WHERE username='$USERNAME';
 verify: SELECT SUBSTR(password,0,5) AS pass_start, LENGTH(password) AS pass_length FROM mysql_users WHERE username='$USERNAME';
 
+# Global variables
+select * from global_variables where variable_name like '%monitor_galera%';
 
 
 
@@ -118,7 +121,7 @@ Ubuntu Client:
 kubectl exec -it -n demo ubuntu-bb47d8d6c-c5l5g -- bash
 apt update
 apt install mysql-client -y
-mysql -utest -ppass -hmysql-proxy843.demo.svc -P6033
+mysql -utest -ppass -hmysql-proxy.demo.svc -P6033
 select @@hostname -- see which host you are connected to 
 
 # insert data
@@ -131,27 +134,6 @@ insert into testtb(name) values("Kim Torres");
 insert into testtb(name) values("Tony SoFua");
 select * from testtb;
 
-# Global variables
-select * from global_variables where variable_name like '%monitor_galera%';
-    +----------------------------------------------------+----------------+
-    | variable_name                                      | variable_value |
-    +----------------------------------------------------+----------------+
-    | mysql-monitor_galera_healthcheck_interval          | 1000           |
-    | mysql-monitor_galera_healthcheck_timeout           | 600            |
-    | mysql-monitor_galera_healthcheck_max_timeout_count | 3              |
-    +----------------------------------------------------+----------------+
-
-select * from mysql_galera_hostgroups\G
-*************************** 1. row ***************************
-       writer_hostgroup: 0
-backup_writer_hostgroup: 2
-       reader_hostgroup: 1
-      offline_hostgroup: 4
-                 active: 1
-            max_writers: 1
-  writer_is_also_reader: 1
-max_transactions_behind: 100
-
 
 // Load Balancing Test 
 cat << 'EOF' > run_query.sh
@@ -159,9 +141,9 @@ cat << 'EOF' > run_query.sh
 
 USER="test"
 PASS="pass"
-HOST="mysql-proxy843.demo.svc"
+HOST="mariadb-proxy11.demo.svc"
 PORT=6033
-COUNT=10000
+COUNT=3000
 
 for i in $(seq 1 $COUNT); do
   mysql -u"$USER" -p"$PASS" -h"$HOST" -P"$PORT" \

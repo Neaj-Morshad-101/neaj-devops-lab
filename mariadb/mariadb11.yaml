@@ -1,0 +1,17 @@
+apiVersion: kubedb.com/v1
+kind: MariaDB
+metadata:
+  name: mariadb11
+  namespace: demo
+spec:
+  version: 11.6.2
+  replicas: 3
+  storageType: Durable
+  storage:
+    # storageClassName: "local-path"
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+  deletionPolicy: WipeOut

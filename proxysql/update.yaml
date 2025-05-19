@@ -1,4 +1,4 @@
-# neajmorshad/proxysql:2.7.3-debian_linux_amd64
+# neajmorshad/proxysql:2.7.3-debian_linux_amd64            neajmorshad/proxysql:_linux_amd64
 
 apiVersion: catalog.kubedb.com/v1alpha1
 kind: ProxySQLVersion
@@ -10,7 +10,7 @@ spec:
   podSecurityPolicies:
     databasePolicyName: ""
   proxysql:
-    image: neajmorshad/proxysql:2.7.3-debian_linux_amd64
+    image: neajmorshad/proxysql:_linux_amd64
   securityContext:
     runAsUser: 999
   updateConstraints:
