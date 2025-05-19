@@ -138,16 +138,23 @@ select * from testtb;
 // Load Balancing Test 
 cat << 'EOF' > run_query.sh
 #!/usr/bin/env bash
+set -euo pipefail
 
 USER="test"
 PASS="pass"
-HOST="mariadb-proxy11.demo.svc"
+HOST="mysql-proxy9.demo.svc"
 PORT=6033
 COUNT=3000
 
 for i in $(seq 1 $COUNT); do
-  mysql -u"$USER" -p"$PASS" -h"$HOST" -P"$PORT" \
-    -e "SELECT * FROM testtb;" >/dev/null 2>&1
+  if ! output=$(mysql -u"$USER" -p"$PASS" -h"$HOST" -P"$PORT" \
+    -D test \
+    -e "SELECT * FROM testtb;" 2>&1)
+  then
+    echo >&2 "[$(date +'%Y-%m-%d %H:%M:%S')] ERROR at iteration $i:"
+    echo >&2 "$output"
+    exit 1
+  fi
 done
 
 echo "Executed SELECT on testtb $COUNT times."

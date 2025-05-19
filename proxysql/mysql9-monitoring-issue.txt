@@ -2,6 +2,7 @@ mysql9:
 2025-04-23 13:16:20 MySQL_Monitor.cpp:4648:monitor_dns_resolver_thread(): [ERROR] An error occurred while resolving hostname: mysql-proxy-9-0.mysql-proxy-9-pods.demo [-2]
 
 
+proxyql with mysql 9: 
 2025-04-23 13:16:20 MySQL_Monitor.cpp:3731:extract_gr_srv_st(): [ERROR] Invalid resultset for GR monitoring query from server mysql-9-2.mysql-9-pods.demo.svc:3306. Either 'mysql_fetch_fields=NULL' or unexpected 'mysql_num_fields=3'. Please report this incident
 2025-04-23 13:16:20 MySQL_Monitor.cpp:3981:gr_report_fetching_errs(): [ERROR] Got error. mmsd 0x797b82438600 , MYSQL 0x797b81800000 , FD 34 : Invalid or malformed resultset
 

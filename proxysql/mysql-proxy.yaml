@@ -4,10 +4,10 @@ metadata:
   name: mysql-proxy9
   namespace: demo
 spec:
-  version: "2.7.3-debian" # "2.6.3-debian"
+  version: 3.0.1-debian # "2.7.3-debian" # "2.6.3-debian"
   replicas: 1
   syncUsers: true
-  backend:
+  backend:  
     name: mysql9
   # tls:
   #   issuerRef:
@@ -25,17 +25,17 @@ spec:
   #     - "127.0.0.1"
   deletionPolicy: WipeOut
 
----
+# ---
 
-apiVersion: kubedb.com/v1
-kind: ProxySQL
-metadata:
-  name: mysql-proxy843
-  namespace: demo
-spec:
-  version: "2.7.3-debian" # "2.6.3-debian"
-  replicas: 1
-  syncUsers: true
-  backend:
-    name: mysql843
-  deletionPolicy: WipeOut
+# apiVersion: kubedb.com/v1
+# kind: ProxySQL
+# metadata:
+#   name: mysql-proxy843
+#   namespace: demo
+# spec:
+#   version: "2.7.3-debian" # "2.6.3-debian"
+#   replicas: 1
+#   syncUsers: true
+#   backend:
+#     name: mysql843
+#   deletionPolicy: WipeOut
