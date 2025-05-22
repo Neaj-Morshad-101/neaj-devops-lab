@@ -1,3 +1,53 @@
+6. CAP Theorem
+In the presence of a network partition, a distributed system must choose between Consistency (all nodes see the same data) and Availability (every request receives a response) 
+interviewing.io
+.
+
+Systems trade off along the CA, CP, or AP axes based on use-case requirements.
+
+
+
+
+I have set up a SQL Server Distributed Availability Group (DAG) in Kubernetes using SQL Server on Ubuntu images. The setup consists of two availability groups (AGs) across two separate clusters:
+
+Setup Details:
+Primary Cluster (AG1)
+Pods: ag1-0 (Primary), ag1-1, ag1-2. The Primary is Exposed via the LoadBalancer service. Remote Cluster (AG2):
+Pods: ag2-0 (The Primary of AG2, Acting as a forwarder of DAG), ag2-1, ag2-2. The Forwarder (ag2-0) is Exposed via the LoadBalancer service.
+
+Distributed AG Configuration:
+AG1 and AG2 are part of the DAG. Each AG’s primary is dynamically selected using the pod's label role=primary. LISTENER_URL in the DAG configuration points to the LoadBalancer service of each AG.
+Issue: DAG Not Syncing After AG1 Failover
+
+For testing, I triggered a failover in AG1 using:
+ALTER AVAILABILITY GROUP [AG1] FORCE_FAILOVER_ALLOW_DATA_LOSS;
+The global primary changed from ag1-0 to ag1-1, and I updated the role=primary label accordingly (removed from ag1-0, added to ag1-1. However, AG2 (the forwarder and its replicas) stopped syncing and became unhealthy.
+
+From ag2-0 (forwarder) logs, I only see connection timeouts and disconnections from the global primary. AG2 is not automatically reconnecting to the new primary (ag1-1), even though the LoadBalancer service in LISTENER_URL now points to ag1-1.
+
+Logs from ag2-0 (Forwarder) Shows Like
+A connection timeout has occurred while attempting to establish a connection to GLOBAL PRIMARY. Either a networking or firewall issue exists, or the endpoint address provided for the replica is not the database mirroring endpoint of the host server instance
+Steps I Tried:
+Checked DAG Configuration – The LISTENER_URL is correctly set to the LoadBalancer of AG1, which now points to ag1-1.
+Ran the Resume Command: ALTER DATABASE [agtestdb] SET HADR RESUME; This did not resolve the issue.
+Verified Network Connectivity
+
+Questions:
+1️⃣ What steps are required to ensure AG2 correctly syncs with the new global primary (ag1-1) after an AG1's internal failover?
+2️⃣ Is there a specific command that needs to be run on the forwarder (ag2-0) or the new global primary (ag1-1) to reestablish synchronization?
+3️⃣ Why isn’t AG2 automatically reconnecting, even though the LoadBalancer service points to the correct primary?
+4️⃣ Are there any best practices for handling SQL Server DAG failovers in Kubernetes?
+
+Any insights would be greatly appreciated! 🚀
+
+sql-serverkubernetesfailoveravailability-group
+
+
+
+
+
+
+
 
 
 
