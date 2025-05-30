@@ -2,10 +2,6 @@ Certificate:
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ./ca.key -out ./ca.crt -subj "/CN=MSSQLServer/O=kubedb"
 
 
-mssqlserver, ops-manager, petset 
-make deploy-to-kind 
-
-
 Kubenetes Commands:
 create:
 kubectl create secret tls mssqlserver-ca --cert=ca.crt  --key=ca.key --namespace=demo 
@@ -30,6 +26,7 @@ kubectl get pods -n demo --selector=app.kubernetes.io/instance=mssqlserver-ag -o
 
 
 
+
 Monitoring:
 kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-prometheus 9090
 kubectl port-forward -n monitoring prometheus-prometheus-kube-prometheus-prometheus-0 9090
@@ -44,24 +41,24 @@ http://localhost:4000/login
 
 
 
+
+
+
 General SQL Server Commands:
 cat /var/opt/mssql/mssql.conf
 mssql running?
 ps aux | grep -v grep | grep -c sqlservr
-	/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $MSSQL_SA_PASSWORD -No
+
+connect: 
+/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $MSSQL_SA_PASSWORD -No
 /opt/mssql-tools18/bin/sqlcmd -S ${host},${port} -U ${username} -P ${password} -d ${database}
 with TLS:
 sqlcmd -S ${host},${port} -U ${username} -P ${password} -d ${database} -N
 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P JzbyIXY6i5Wa4TSi -Q SHUTDOWN -No
+
 SELECT SERVERPROPERTY('IsSingleUser')
 SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE';
-
-
-
-ALTERS:
 ALTER LOGIN sa WITH PASSWORD = 'Pa55w0rd'
-
-
 
 Status:
 SELECT physical_memory_kb / 1024 AS physical_memory_mb FROM sys.dm_os_sys_info;
@@ -103,15 +100,15 @@ first fail-over:
 INSERT INTO Data(ID, Name, Age) VALUES (4, 'John Doe', 25);
 2nd fail-over: 
 INSERT INTO Data(ID, Name, Age) VALUES (5, 'John Doe', 25);
-INSERT INTO Data(ID, Name, Age) VALUES (6, 'John Doe', 25);
 Status: 
-SELECT encrypt_option FROM sys.dm_exec_connections WHERE session_id = @@SPID
 Insert Dummy Data: 
 CREATE TABLE test_data (id INT IDENTITY(1,1));
 GO
 INSERT INTO test_data DEFAULT VALUES;
 GO 100000
 SELECT COUNT(*) FROM test_data;
+
+
 
 
 
@@ -125,42 +122,46 @@ SELECT session_id, login_name, host_name, program_name, is_user_process FROM sys
 SELECT session_id, login_name, host_name, program_name, is_user_process FROM sys.dm_exec_sessions WHERE is_user_process = 1 ORDER BY session_id;
 To update max connections: https://learn.microsoft.com/en-us/sql/database-engine/configure-windows/configure-the-user-connections-server-configuration-option?view=sql-server-ver16
 
+
+
+
+
+
 Availability Group Related Command:
 Status:
+SELECT name FROM sys.availability_groups;
 SELECT replica_server_name FROM sys.availability_replicas;
 SELECT synchronization_health_desc from sys.dm_hadr_availability_group_states
-SELECT is_local, role_desc, synchronization_health_desc from sys.dm_hadr_availability_replica_states
+SELECT is_local, role_desc, replica_id, group_id, synchronization_health_desc, connected_state_desc, operational_state_desc from sys.dm_hadr_availability_replica_states
 SELECT synchronization_health_desc from sys.dm_hadr_availability_replica_states WHERE is_local = 1 
 SELECT name FROM sys.availability_groups
 SELECT required_synchronized_secondaries_to_commit FROM sys.availability_groups WHERE name = 'mssqlag';
 select database_id, group_id, replica_id, synchronization_state_desc, synchronization_health_desc, database_state_desc, suspend_reason_desc from sys.dm_hadr_database_replica_states;
-
 
 Config Change: 
 ALTER AVAILABILITY GROUP [ag2] OFFLINE
 ALTER AVAILABILITY GROUP [ag2] SET (ROLE = SECONDARY);
 ALTER AVAILABILITY GROUP mssqlagcluster SET (REQUIRED_SYNCHRONIZED_SECONDARIES_TO_COMMIT = 0);
 
-
-
 AG Database:
 select database_name from sys.availability_databases_cluster;
+select name, state_desc, recovery_model_desc from sys.databases where name = 'agtestdb';
 SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE';
 ALTER DATABASE [agtestdb] SET HADR RESUME;
 ALTER DATABASE [agdb2] SET HADR RESUME;
 ALTER DATABASE [agdb1] SET HADR OFF;
-DROP DATABASE [agdb1];
+DROP DATABASE [agtestdb];
 ALTER AVAILABILITY GROUP [ag2] REMOVE DATABASE [agtestdb];
+When you remove a database from an AG on the primary, the secondary is left “orphaned” in NORECOVERY (restoring) mode. To bring that database online on the secondary, you need to finish the restore by recovering it:
+RESTORE DATABASE [agtestdb] WITH RECOVERY;
+
 
 If for some reason, the database is still in a resolving state, consider the option of setting it offline and then set it back online again. To do this execute the statements below:
 USE master;
 GO
 ALTER DATABASE 'yourdatabasenamehere' SET OFFLINE WITH ROLLBACK IMMEDIATE
 ALTER DATABASE 'ag2' SET ONLINE
-RESTORE DATABASE 'yourdatabasenamehere' WITH RECOVERY
-
-
-
+RESTORE DATABASE [agtestdb] WITH RECOVERY;
 
 AG Replica Related:
 Join:
@@ -197,5 +198,26 @@ ALTER DATABASE [YourDatabase] SET HADR AVAILABILITY GROUP = [YourAGName];
 
 
 
+
+
 DAG: 
+status:
+# You can check distributed AG health with command;
+SELECT ag.[name] AS [AG Name], ag.is_distributed, ar.replica_server_name AS [Underlying AG], ars.role_desc AS [Role], ars.synchronization_health_desc AS [Sync Status] FROM sys.availability_groups AS ag INNER JOIN sys.availability_replicas AS ar ON ag.group_id = ar.group_id INNER JOIN sys.dm_hadr_availability_replica_states AS ars ON ar.replica_id = ars.replica_id WHERE ag.is_distributed = 1
+
+SELECT ag.[name] AS [Distributed AG Name], ar.replica_server_name AS [Underlying AG], dbs.[name] AS [Database], ars.role_desc AS [Role], drs.synchronization_health_desc AS [Sync Status], drs.log_send_queue_size, drs.log_send_rate, drs.redo_queue_size, drs.redo_rate FROM sys.databases AS dbs INNER JOIN sys.dm_hadr_database_replica_states AS drs ON dbs.database_id = drs.database_id INNER JOIN sys.availability_groups AS ag ON drs.group_id = ag.group_id INNER JOIN sys.dm_hadr_availability_replica_states AS ars ON ars.replica_id = drs.replica_id INNER JOIN sys.availability_replicas AS ar ON ar.replica_id = ars.replica_id WHERE ag.is_distributed = 1
+
+SELECT r.replica_server_name, r.endpoint_url,
+rs.connected_state_desc, rs.role_desc, rs.operational_state_desc,
+rs.recovery_health_desc,rs.synchronization_health_desc,
+r.availability_mode_desc, r.failover_mode_desc
+FROM sys.dm_hadr_availability_replica_states rs
+INNER JOIN sys.availability_replicas r
+ON rs.replica_id=r.replica_id
+ORDER BY r.replica_server_name
+
+/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Pa55w0rd!" -No -Q "SELECT ag.name AS group_name, ag.is_distributed, ar.replica_server_name AS replica_name, ar.availability_mode_desc, ar.failover_mode_desc, ar.primary_role_allow_connections_desc AS allow_connections_primary, ar.secondary_role_allow_connections_desc AS allow_connections_secondary, ar.seeding_mode_desc AS seeding_mode FROM sys.availability_replicas AS ar JOIN sys.availability_groups AS ag ON ar.group_id = ag.group_id"
+
+
 DROP AVAILABILITY GROUP [DAG];
+
