@@ -1,7 +1,7 @@
 apiVersion: kubedb.com/v1alpha2
 kind: MSSQLServer
 metadata:
-  name: ag
+  name: ag1
   namespace: demo
 spec:
   version: "2022-cu16"
@@ -12,12 +12,19 @@ spec:
   # configSecret:
   #   name: ms-custom-config
   topology:
-    mode: AvailabilityGroup
+    mode: DistributedAG
     availabilityGroup: 
       databases:
         - agdb1
         - agdb2
       secondaryAccessMode: "Passive"
+      # loginSecretName: dbm-login-secret1
+      # masterKeySecretName: masterKeySecret1
+      # endpointCertSecretName: endpointCertSecret1
+    distributedAG:
+      role: Primary   # Secondary
+      remoteURL:  ag2.demo.svc:5022
+
   tls:
     issuerRef:
       name: mssqlserver-ca-issuer
@@ -33,23 +40,6 @@ spec:
         labels:
           release: prometheus
         interval: 10s
-
-    serviceTemplates:
-    - alias: primary
-      spec:
-        type: LoadBalancer
-        ports:
-          - name: primary
-            port: 1433            # the port inside the cluster
-            targetPort: 1433      # forwards to the pod’s container port 1433
-            protocol: TCP
-    - alias: secondary
-      spec:
-        type: NodePort
-        ports:
-          - name: secondary
-            port: 1433
-            nodePort: 300006
   podTemplate:
     spec:
       containers:
@@ -67,8 +57,9 @@ spec:
           #     memory: "2Gi"
       # - name: mssql-coordinator
       #   env:
-      #   - name: GODEBUG
+      #   - name: GODEBUG 
       #     value: "x509negativeserial=1"
+
   # serviceTemplates:
   # - alias: primary
   #   spec:
@@ -76,6 +67,24 @@ spec:
   #     ports:
   #       - name: endpoint
   #         port: 5022
+
+
+  serviceTemplates:
+  - alias: primary
+    spec:
+      type: LoadBalancer
+      ports:
+        - name: primary
+          port: 1433            # the port inside the cluster
+          targetPort: 1433      # forwards to the pod’s container port 1433
+          protocol: TCP
+  - alias: secondary
+    spec:
+      type: NodePort
+      ports:
+        - name: secondary
+          port: 1433
+          nodePort: 300006
   storageType: Durable
   storage:
     # storageClassName: "longhorn"

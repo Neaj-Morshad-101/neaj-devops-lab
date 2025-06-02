@@ -142,7 +142,7 @@ set -euo pipefail
 
 USER="test"
 PASS="pass"
-HOST="mysql-proxy9.demo.svc"
+HOST="mysql-proxy843.demo.svc"
 PORT=6033
 COUNT=3000
 
