@@ -73,18 +73,11 @@ spec:
   - alias: primary
     spec:
       type: LoadBalancer
-      ports:
-        - name: primary
-          port: 1433            # the port inside the cluster
-          targetPort: 1433      # forwards to the pod’s container port 1433
-          protocol: TCP
-  - alias: secondary
-    spec:
-      type: NodePort
-      ports:
-        - name: secondary
-          port: 1433
-          nodePort: 300006
+      # ports:
+      #   - name: primary
+      #     port: 1433            # the port inside the cluster
+      #     targetPort: 1433      # forwards to the pod’s container port 1433
+      #     protocol: TCP
   storageType: Durable
   storage:
     # storageClassName: "longhorn"
