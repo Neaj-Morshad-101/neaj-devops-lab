@@ -135,8 +135,10 @@ SELECT synchronization_health_desc from sys.dm_hadr_availability_group_states
 SELECT is_local, role_desc, replica_id, group_id, synchronization_health_desc, connected_state_desc, operational_state_desc from sys.dm_hadr_availability_replica_states
 SELECT synchronization_health_desc from sys.dm_hadr_availability_replica_states WHERE is_local = 1 
 SELECT name FROM sys.availability_groups
-SELECT required_synchronized_secondaries_to_commit FROM sys.availability_groups WHERE name = 'mssqlag';
+SELECT required_synchronized_secondaries_to_commit FROM sys.availability_groups WHERE name = 'ag1';
 select database_id, group_id, replica_id, synchronization_state_desc, synchronization_health_desc, database_state_desc, suspend_reason_desc from sys.dm_hadr_database_replica_states;
+SELECT replica_server_name, secondary_role_allow_connections_desc FROM sys.availability_replicas WHERE group_id = ( SELECT group_id FROM sys.availability_groups WHERE name = 'ag1' );
+
 
 Config Change: 
 ALTER AVAILABILITY GROUP [ag2] OFFLINE
@@ -145,10 +147,9 @@ ALTER AVAILABILITY GROUP mssqlagcluster SET (REQUIRED_SYNCHRONIZED_SECONDARIES_T
 
 AG Database:
 select database_name from sys.availability_databases_cluster;
-select name, state_desc, recovery_model_desc from sys.databases where name = 'agtestdb';
+select name, state_desc, recovery_model_desc from sys.databases where name = 'agdb1';
 SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE';
-ALTER DATABASE [agtestdb] SET HADR RESUME;
-ALTER DATABASE [agdb2] SET HADR RESUME;
+ALTER DATABASE [agdb1] SET HADR RESUME;
 ALTER DATABASE [agdb1] SET HADR OFF;
 DROP DATABASE [agtestdb];
 ALTER AVAILABILITY GROUP [ag2] REMOVE DATABASE [agtestdb];

@@ -17,13 +17,16 @@ spec:
       databases:
         - agdb1
         - agdb2
-      secondaryAccessMode: "Passive"
+      secondaryAccessMode: "All"
       # loginSecretName: dbm-login-secret1
       # masterKeySecretName: masterKeySecret1
       # endpointCertSecretName: endpointCertSecret1
     distributedAG:
+      name: mydag
       role: Primary   # Secondary
-      remoteURL:  ag2.demo.svc:5022
+      remoteAGName: ag2      # remote this, we can find it in the other cluster by connecting to the remote's primary & running query 
+      myURL: 10.2.0.236
+      remoteURL:  ag2.demo.svc
 
   tls:
     issuerRef:
@@ -31,15 +34,15 @@ spec:
       kind: Issuer
       apiGroup: "cert-manager.io"
     clientTLS: false
-  monitor:
-    agent: prometheus.io/operator
-    prometheus:
-      exporter:
-        port: 9399
-      serviceMonitor:
-        labels:
-          release: prometheus
-        interval: 10s
+  # monitor:
+  #   agent: prometheus.io/operator
+  #   prometheus:
+  #     exporter:
+  #       port: 9399
+  #     serviceMonitor:
+  #       labels:
+  #         release: prometheus
+  #       interval: 10s
   podTemplate:
     spec:
       containers:
@@ -59,15 +62,6 @@ spec:
       #   env:
       #   - name: GODEBUG 
       #     value: "x509negativeserial=1"
-
-  # serviceTemplates:
-  # - alias: primary
-  #   spec:
-  #     type: ClusterIP
-  #     ports:
-  #       - name: endpoint
-  #         port: 5022
-
 
   serviceTemplates:
   - alias: primary

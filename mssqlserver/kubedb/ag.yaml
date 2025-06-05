@@ -17,7 +17,7 @@ spec:
       databases:
         - agdb1
         - agdb2
-      secondaryAccessMode: "Passive"
+      secondaryAccessMode: "All"
   tls:
     issuerRef:
       name: mssqlserver-ca-issuer

@@ -103,7 +103,8 @@ SELECT variable_name, variable_value FROM global_variables
                    'mysql-ssl_ca'
           );
 SET mysql-default_authentication_plugin = 'caching_sha2_password';
-LOAD MYSQL VARIABLES TO RUNTIME;      SAVE MYSQL VARIABLES TO DISK;
+LOAD MYSQL VARIABLES TO RUNTIME;      
+SAVE MYSQL VARIABLES TO DISK;
 mysql-server: SELECT HEX(authentication_string) FROM mysql.user WHERE user='$USERNAME';
 proxysql: UPDATE mysql_users SET password=UNHEX('$HEX_PASSWORD') WHERE username='$USERNAME';
 verify: SELECT SUBSTR(password,0,5) AS pass_start, LENGTH(password) AS pass_length FROM mysql_users WHERE username='$USERNAME';
@@ -111,6 +112,7 @@ verify: SELECT SUBSTR(password,0,5) AS pass_start, LENGTH(password) AS pass_leng
 # Global variables
 select * from global_variables where variable_name like '%monitor_galera%';
 
+SELECT COUNT(*) AS connection_count FROM stats_mysql_processlist;
 
 
 
