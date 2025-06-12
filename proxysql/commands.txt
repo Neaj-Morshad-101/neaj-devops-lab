@@ -1,99 +1,144 @@
-MySQL Backend: 
+# ProxySQL Commands Reference
+
+## MySQL Backend Commands
+### Connection
+```bash
 kubectl exec -it -n demo mysql-server-0 -- bash
 mysql -uroot -p$MYSQL_ROOT_PASSWORD
+```
 
-// create user 
-create user `test`@'%' identified by 'pass';
-grant all privileges on test.* to 'test'@'%';
-flush privileges;
-CREATE USER 'test3'@'%' IDENTIFIED WITH mysql_native_password BY 'pass';      -- for 8.4.0 This ensures the stored hash uses the older *… SHA-1 format that ProxySQL fully supports .
-create user `test2`@'%' identified by 'pass';
-grant all privileges on test.* to 'test2'@'%';
-flush privileges;
+### User Management
+```sql
+-- Create users
+CREATE USER `test`@'%' IDENTIFIED BY 'pass';
+GRANT ALL PRIVILEGES ON test.* TO 'test'@'%';
+FLUSH PRIVILEGES;
 
+-- For MySQL 8.4.0 (uses older SHA-1 format that ProxySQL fully supports)
+CREATE USER 'test3'@'%' IDENTIFIED WITH mysql_native_password BY 'pass';
 
-// create database
-create database test;
-use test;
-show tables;
-create table testtb(name varchar(103), primary key(name));
+-- Another user example
+CREATE USER `test2`@'%' IDENTIFIED BY 'pass';
+GRANT ALL PRIVILEGES ON test.* TO 'test2'@'%';
+FLUSH PRIVILEGES;
 
-// mysql.user
+-- View user information
 SELECT user, authentication_string FROM mysql.user;
 SELECT user, HEX(authentication_string) FROM mysql.user;
+```
 
-// status
-select * FROM performance_schema.replication_group_members;
+### Database Operations
+```sql
+-- Create and use database
+CREATE DATABASE test;
+USE test;
+SHOW TABLES;
+CREATE TABLE testtb(name VARCHAR(103), PRIMARY KEY(name));
+```
 
-// mariadb
-MariaDB Replication	SHOW SLAVE STATUS\G
-MariaDB Galera	SHOW STATUS LIKE 'wsrep%';
+### Replication Status
+```sql
+-- MySQL Group Replication status
+SELECT * FROM performance_schema.replication_group_members;
 
+-- MariaDB specific
+-- MariaDB Replication
+SHOW SLAVE STATUS\G
+-- MariaDB Galera
+SHOW STATUS LIKE 'wsrep%';
+```
 
-
-
-
-
-// ProxySQL Cluster 
+## ProxySQL Cluster Commands
+### Connection
+```bash
 kubectl exec -it -n demo mysql-proxy-0 -- bash
-proxysql@proxy-server-0:/$ 
 mysql -uadmin -padmin -h127.0.0.1 -P6032 --prompt="ProxySQLAdmin > "
-ProxySQLAdmin >
+```
 
-// mysql servers 
-select * from mysql_servers;
-select * from runtime_mysql_servers;
+### MySQL Servers Configuration
+```sql
+-- View and manage servers
+SELECT * FROM mysql_servers;
+SELECT * FROM runtime_mysql_servers;
 LOAD MYSQL SERVERS TO RUNTIME; 
 SAVE MYSQL SERVERS TO DISK;
+```
 
-// mysql users 
-select username, password from mysql_users;
-select username, password from runtime_mysql_users;
+### MySQL Users Configuration
+```sql
+-- View users
+SELECT username, password FROM mysql_users;
+SELECT username, password FROM runtime_mysql_users;
 SELECT username, HEX(password) FROM mysql_users;
-select username from mysql_users;
-select password from mysql_users;
-select * from mysql_users; 
+SELECT username FROM mysql_users;
+SELECT password FROM mysql_users;
+SELECT * FROM mysql_users; 
 
+-- Modify users
 DELETE FROM mysql_users WHERE username = 'test2';
 INSERT INTO mysql_users (username, password, active, default_hostgroup, backend, frontend, transaction_persistent) 
              VALUES ('test2', 'pass', 1, 2, 1, 1, 1);
 LOAD MYSQL USERS TO RUNTIME;
 SAVE MYSQL USERS TO DISK;
 
-INSERT INTO mysql_users (username, password, active, default_hostgroup, backend, frontend, transaction_persistent) VALUES ('test2', CACHING_SHA2_PASSWORD('pass'), 1, 2, 1, 1, 1);
-
+-- For caching_sha2_password authentication
+INSERT INTO mysql_users (username, password, active, default_hostgroup, backend, frontend, transaction_persistent) 
+             VALUES ('test2', CACHING_SHA2_PASSWORD('pass'), 1, 2, 1, 1, 1);
 LOAD MYSQL USERS TO RUNTIME;
 SAVE MYSQL USERS TO DISK;
+
+-- View user configuration
 SELECT username, default_hostgroup, backend, frontend FROM mysql_users;
+```
 
-// tables 
+### ProxySQL Tables
+```sql
+-- Show all tables
 SHOW TABLES FROM main;
+```
 
-// hostgroups configuration
-select * from mysql_group_replication_hostgroups;
-select * from mysql_galera_hostgroups;
-mysql_galera_hostgroups: In memory config.
-runtime_mysql_galera_hostgroups: Runtime config.
-disk.mysql_galera_hostgroups: Persistent config.
+### Host Groups Configuration
+```sql
+-- View host groups
+SELECT * FROM mysql_group_replication_hostgroups;
+SELECT * FROM mysql_galera_hostgroups;
 
-// stats 
-# check on all proxysql pods (svc may connect to different proxysql pod)
-select hostgroup,srv_host, Queries from stats_mysql_connection_pool; 
-# is used to check per-server usage statistics in ProxySQL
-select hostname, Queries, Client_Connections_created from stats_proxysql_servers_metrics; 
+-- Note on tables:
+-- mysql_galera_hostgroups: In memory config
+-- runtime_mysql_galera_hostgroups: Runtime config
+-- disk.mysql_galera_hostgroups: Persistent config
+```
+
+### Statistics and Monitoring
+```sql
+-- Check on all proxysql pods (svc may connect to different proxysql pod)
+SELECT hostgroup, srv_host, Queries FROM stats_mysql_connection_pool; 
+
+-- Check per-server usage statistics
+SELECT hostname, Queries, Client_Connections_created FROM stats_proxysql_servers_metrics; 
+
+-- Other statistics
 SELECT * FROM stats.stats_mysql_connection_pool;
 SELECT * FROM stats.stats_mysql_users;
 SELECT * FROM stats.stats_mysql_query_digest;
 
-// monitor
-select * from monitor.mysql_server_connect_log order by time_start_us desc;
-select * from monitor.mysql_server_ping_log order by time_start_us desc limit 6;
+-- Connection count
+SELECT COUNT(*) AS connection_count FROM stats_mysql_processlist;
+```
 
-// tls 
+### Monitoring Logs
+```sql
+-- View monitoring logs
+SELECT * FROM monitor.mysql_server_connect_log ORDER BY time_start_us DESC;
+SELECT * FROM monitor.mysql_server_ping_log ORDER BY time_start_us DESC LIMIT 6;
+```
+
+### TLS Configuration
+```sql
+-- View SSL configuration
 SELECT * FROM global_variables WHERE variable_name LIKE 'mysql-ssl%' OR variable_name = 'mysql-have_ssl';
 
-
-caching_sha2_passwords: 
+-- View authentication and SSL settings
 SELECT variable_name, variable_value FROM global_variables
           WHERE variable_name IN (
                    'mysql-default_authentication_plugin',
@@ -102,42 +147,56 @@ SELECT variable_name, variable_value FROM global_variables
                    'mysql-ssl_key',
                    'mysql-ssl_ca'
           );
+
+-- Configure authentication plugin
 SET mysql-default_authentication_plugin = 'caching_sha2_password';
 LOAD MYSQL VARIABLES TO RUNTIME;      
 SAVE MYSQL VARIABLES TO DISK;
-mysql-server: SELECT HEX(authentication_string) FROM mysql.user WHERE user='$USERNAME';
-proxysql: UPDATE mysql_users SET password=UNHEX('$HEX_PASSWORD') WHERE username='$USERNAME';
-verify: SELECT SUBSTR(password,0,5) AS pass_start, LENGTH(password) AS pass_length FROM mysql_users WHERE username='$USERNAME';
 
-# Global variables
-select * from global_variables where variable_name like '%monitor_galera%';
+-- Password handling between MySQL and ProxySQL
+-- On MySQL server:
+SELECT HEX(authentication_string) FROM mysql.user WHERE user='$USERNAME';
+-- On ProxySQL:
+UPDATE mysql_users SET password=UNHEX('$HEX_PASSWORD') WHERE username='$USERNAME';
+-- Verify:
+SELECT SUBSTR(password,0,5) AS pass_start, LENGTH(password) AS pass_length FROM mysql_users WHERE username='$USERNAME';
+```
 
-SELECT COUNT(*) AS connection_count FROM stats_mysql_processlist;
+### Global Variables
+```sql
+-- View global variables
+SELECT * FROM global_variables WHERE variable_name LIKE '%monitor_galera%';
+```
 
-
-
-
-
-
-Ubuntu Client: 
+## Client Testing
+### Ubuntu Client Setup
+```bash
 kubectl exec -it -n demo ubuntu-bb47d8d6c-c5l5g -- bash
 apt update
 apt install mysql-client -y
 mysql -utest -ppass -hmysql-proxy.demo.svc -P6033
-select @@hostname -- see which host you are connected to 
 
-# insert data
-create database test;
-create table testtb(name varchar(103), primary key(name));
-show databases;
-use test;
-show tables;
-insert into testtb(name) values("Kim Torres");
-insert into testtb(name) values("Tony SoFua");
-select * from testtb;
+-- Check which host you are connected to
+SELECT @@hostname;
+```
 
+### Data Operations
+```sql
+-- Create database and table
+CREATE DATABASE test;
+CREATE TABLE testtb(name VARCHAR(103), PRIMARY KEY(name));
+SHOW DATABASES;
+USE test;
+SHOW TABLES;
 
-// Load Balancing Test 
+-- Insert data
+INSERT INTO testtb(name) VALUES("Kim Torres");
+INSERT INTO testtb(name) VALUES("Tony SoFua");
+SELECT * FROM testtb;
+```
+
+### Load Balancing Test
+```bash
 cat << 'EOF' > run_query.sh
 #!/usr/bin/env bash
 set -euo pipefail
@@ -162,18 +221,14 @@ done
 echo "Executed SELECT on testtb $COUNT times."
 EOF
 
-cat run_query.sh
 chmod +x run_query.sh
 ./run_query.sh
+```
 
-
-
-
-
-
-Kubernetes:
+## Kubernetes TLS Setup
+```bash
+# Generate TLS certificate
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ./ca.key -out ./ca.crt -subj "/CN=proxysql/O=kubedb"
+
+# Create Kubernetes secret
 kubectl create secret tls proxy-ca --cert=ca.crt --key=ca.key --namespace=demo
-
-
-
