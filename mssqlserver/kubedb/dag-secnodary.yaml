@@ -1,7 +1,7 @@
 apiVersion: kubedb.com/v1alpha2
 kind: MSSQLServer
 metadata:
-  name: ag1
+  name: ag2
   namespace: demo
 spec:
   version: "2022-cu16"
@@ -23,10 +23,10 @@ spec:
       # endpointCertSecretName: endpointCertSecret1
     distributedAG:
       name: mydag
-      role: Primary   # Secondary
-      remoteAGName: ag2      # remote this, we can find it in the other cluster by connecting to the remote's primary & running query 
-      myURL: 10.2.0.236
-      remoteURL: 10.2.0.239
+      role: Secondary   # Secondary
+      remoteAGName: ag1      # remote this, we can find it in the other cluster by connecting to the remote's primary & running query 
+      myURL: 10.2.0.239
+      remoteURL: 10.2.0.236
 
   tls:
     issuerRef:
