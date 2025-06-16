@@ -1,0 +1,14 @@
+Cluster Status: 
+SHOW STATUS LIKE 'wsrep%';
+
+SHOW STATUS LIKE 'wsrep_cluster_size';
+
+SHOW STATUS LIKE 'wsrep_local_state_comment';
+￼
+SHOW STATUS LIKE 'wsrep_evs_state';
+￼
+SHOW STATUS LIKE 'wsrep_cluster_status';
+
+SHOW STATUS LIKE 'wsrep_connected';
+￼
+SHOW STATUS LIKE 'wsrep_ready';

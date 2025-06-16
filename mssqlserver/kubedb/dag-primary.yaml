@@ -26,7 +26,7 @@ spec:
       role: Primary   # Secondary
       remoteAGName: ag2      # remote this, we can find it in the other cluster by connecting to the remote's primary & running query 
       myURL: 10.2.0.236
-      remoteURL: 10.2.0.239
+      remoteURL: 10.2.0.181
 
   tls:
     issuerRef:
