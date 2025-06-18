@@ -18,11 +18,10 @@ spec:
       #   - agdb1
       #   - agdb2
       secondaryAccessMode: "All"
-      # loginSecretName: dbm-login-secret1
-      # masterKeySecretName: masterKeySecret1
-      # endpointCertSecretName: endpointCertSecret1
+      loginSecretName: ag1-dbm-login
+      masterKeySecretName: ag1-master-key
+      endpointCertSecretName: ag1-endpoint-cert
     distributedAG:
-      name: mydag
       role: Secondary   # Secondary
       remoteAGName: ag1      # remote this, we can find it in the other cluster by connecting to the remote's primary & running query 
       myURL: 10.2.0.181
