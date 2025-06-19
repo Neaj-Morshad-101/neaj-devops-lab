@@ -80,6 +80,6 @@ spec:
     resources:
       requests:
         storage: 1Gi
-  deletionPolicy: WipeOut
+  deletionPolicy: Halt
 
   
