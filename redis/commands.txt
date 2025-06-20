@@ -1,3 +1,15 @@
+For Redis
+`redis-cli -h ${host} -p ${port} -a ${password} -n <db_number>`
+(Redis 6.0+): `redis-cli -h ${host} -p ${port} --user ${username} -a ${password} -n <db_number>`
+<uri> option: `redis-cli -u redis://user:password@host:port/dbnum`
+
+with TLS:
+`redis-cli -h ${host} -p ${port} --tls --cert /path/to/client.crt --key /path/to/client.key --cacert /path/to/ca.crt --user ${username} -a ${password} -n <db_number>`
+<uri> option: `redis-cli -u rediss://username:password@host:port/dbnum --cacert /path/to/ca.crt --cert /path/to/client.crt --key /path/to/client.key`
+
+
+
+
 COMMANDS: 
 keys * 
 cluster nodes 
