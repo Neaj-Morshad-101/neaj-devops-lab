@@ -6,9 +6,9 @@ metadata:
 spec:
   version: "2022-cu16"
   replicas: 3
-  authSecret:
-    name: mssql-auth
-    externallyManaged: true
+  # authSecret:
+  #   name: mssql-auth
+  #   externallyManaged: true
   # configSecret:
   #   name: ms-custom-config
   topology:
@@ -22,10 +22,12 @@ spec:
       masterKeySecretName: ag1-master-key
       endpointCertSecretName: ag1-endpoint-cert
     distributedAG:
-      role: Secondary   # Secondary
-      remoteAGName: ag1      # remote this, we can find it in the other cluster by connecting to the remote's primary & running query 
-      myURL: 10.2.0.181
-      remoteURL: 10.2.0.236
+      self: 
+        role: Secondary   # Secondary
+        url: 10.2.0.181
+      remote:
+        name: ag1      # remote this, we can find it in the other cluster by connecting to the remote's primary & running query 
+        url: 10.2.0.236
 
   tls:
     issuerRef:
@@ -52,7 +54,7 @@ spec:
         - name: MSSQL_PID
           value: "Developer"
           # resources:
-          #   requests:
+          #   requests: 
           #     cpu: "1"
           #     memory: "1.5Gi"
           #   limits:

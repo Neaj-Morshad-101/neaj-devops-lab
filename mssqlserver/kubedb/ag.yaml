@@ -4,7 +4,7 @@ metadata:
   name: ag
   namespace: demo
 spec:
-  version: "2022-cu16"
+  version: "2022-cu19"
   replicas: 3
   # authSecret:
   #   name: mssql-auth
@@ -15,8 +15,7 @@ spec:
     mode: AvailabilityGroup
     availabilityGroup: 
       databases:
-        - agdb1
-        - agdb2
+        - agdb
       secondaryAccessMode: "All"
   tls:
     issuerRef:

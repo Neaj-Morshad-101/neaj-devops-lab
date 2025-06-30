@@ -5,10 +5,10 @@ metadata:
   namespace: demo
 spec:
   version: "2022-cu16"
-  replicas: 1
-  authSecret:
-    name: mssql-auth
-    externallyManaged: true
+  replicas: 3
+  # authSecret:
+  #   name: mssql-auth
+  #   externallyManaged: true 
   # configSecret:
   #   name: ms-custom-config
   topology:
@@ -21,10 +21,12 @@ spec:
       # masterKeySecretName: masterKeySecret1
       # endpointCertSecretName: endpointCertSecret1
     distributedAG:
-      role: Primary   # Secondary
-      remoteAGName: ag2      # remote this, we can find it in the other cluster by connecting to the remote's primary & running query 
-      myURL: 10.2.0.236
-      remoteURL: 10.2.0.181
+      self:
+        role: Primary   # Secondary
+        url: 10.2.0.236
+      remote:
+        name: ag2      # remote this, we can find it in the other cluster by connecting to the remote's primary & running query 
+        url: 10.2.0.181
 
   tls:
     issuerRef:
@@ -49,7 +51,7 @@ spec:
         - name: ACCEPT_EULA
           value: "Y"
         - name: MSSQL_PID
-          value: "Developer"
+          value: Evaluation
           # resources:
           #   requests:
           #     cpu: "1"
