@@ -5,24 +5,22 @@ metadata:
   namespace: demo
 spec:
   version: "2022-cu16"
-  replicas: 3
-  # authSecret:
-  #   name: mssql-auth
-  #   externallyManaged: true
+  replicas: 1
+  authSecret:
+    name: mssql-auth
+    externallyManaged: true
   # configSecret:
   #   name: ms-custom-config
   topology:
     mode: DistributedAG
     availabilityGroup: 
       databases:
-        - agdb1
-        - agdb2
+        - agdb
       secondaryAccessMode: "All"
       # loginSecretName: dbm-login-secret1
       # masterKeySecretName: masterKeySecret1
       # endpointCertSecretName: endpointCertSecret1
     distributedAG:
-      name: mydag
       role: Primary   # Secondary
       remoteAGName: ag2      # remote this, we can find it in the other cluster by connecting to the remote's primary & running query 
       myURL: 10.2.0.236
@@ -51,7 +49,7 @@ spec:
         - name: ACCEPT_EULA
           value: "Y"
         - name: MSSQL_PID
-          value: Evaluation
+          value: "Developer"
           # resources:
           #   requests:
           #     cpu: "1"

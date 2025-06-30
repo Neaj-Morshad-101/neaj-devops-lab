@@ -5,7 +5,7 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ./ca.key -out ./ca.c
 Kubenetes Commands:
 create:
 kubectl create secret tls mssqlserver-ca --cert=ca.crt  --key=ca.key --namespace=demo 
-kubectl create secret generic mssqlserver-auth --from-literal=username='sa' --from-literal=password='Pa55w0rd!' -n demo
+kubectl create secret generic mssql-auth --from-literal=username='sa' --from-literal=password='Pa55w0rd' -n demo
 kubectl create secret generic -n demo ms-custom-config --from-file=./mssql.conf
 
 connect:

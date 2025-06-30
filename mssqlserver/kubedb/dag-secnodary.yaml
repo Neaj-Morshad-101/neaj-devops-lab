@@ -6,9 +6,9 @@ metadata:
 spec:
   version: "2022-cu16"
   replicas: 3
-  # authSecret:
-  #   name: mssql-auth
-  #   externallyManaged: true
+  authSecret:
+    name: mssql-auth
+    externallyManaged: true
   # configSecret:
   #   name: ms-custom-config
   topology:
@@ -50,7 +50,7 @@ spec:
         - name: ACCEPT_EULA
           value: "Y"
         - name: MSSQL_PID
-          value: Evaluation
+          value: "Developer"
           # resources:
           #   requests:
           #     cpu: "1"
