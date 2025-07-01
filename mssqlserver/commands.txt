@@ -184,7 +184,8 @@ SELECT name FROM sys.availability_groups
 SELECT required_synchronized_secondaries_to_commit FROM sys.availability_groups WHERE name = 'ag1';
 select database_id, group_id, replica_id, synchronization_state_desc, synchronization_health_desc, database_state_desc, suspend_reason_desc from sys.dm_hadr_database_replica_states;
 SELECT replica_server_name, secondary_role_allow_connections_desc FROM sys.availability_replicas WHERE group_id = ( SELECT group_id FROM sys.availability_groups WHERE name = 'ag1' );
-
+SELECT ars.role_desc, ars.operational_state_desc FROM sys.dm_hadr_availability_replica_states AS ars INNER JOIN sys.availability_groups AS ag ON ars.group_id = ag.group_id 
+WHERE ars.is_local = 1  AND ars.role = 1 AND ag.name = N'ag1' AND ag.is_distributed = 0;
 
 Config Change: 
 ALTER AVAILABILITY GROUP [ag2] OFFLINE

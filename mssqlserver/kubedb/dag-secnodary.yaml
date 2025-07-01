@@ -14,9 +14,6 @@ spec:
   topology:
     mode: DistributedAG
     availabilityGroup: 
-      # databases:
-      #   - agdb1
-      #   - agdb2
       secondaryAccessMode: "All"
       loginSecretName: ag1-dbm-login
       masterKeySecretName: ag1-master-key
