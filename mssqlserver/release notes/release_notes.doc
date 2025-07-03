@@ -1,0 +1,696 @@
+Initial Release: 
+
+We are thrilled to announce that KubeDB now supports Microsoft SQL Server, one of the most popular relational database management systems (RDBMS) in the world. With this addition, KubeDB users can now seamlessly provision and manage SQL Server instances directly within their Kubernetes clusters. Besides provisioning, customizable health checker, custom template for pods & containers, authentication, multiple termination strategies, default container security etc. are included.
+
+This release includes support for Provisioning SQL Server Availability Group and Standalone SQL Server instance Utilize SQL Server’s high availability features by deploying instances in availability group mode. KubeDB leverages the Raft Consensus Algorithm for cluster coordination, enabling automatic leader election and failover decisions. Quorum support ensures the reliability and fault tolerance of your SQL Server deployments.
+
+You can also Deploy SQL Server instances in standalone mode for simple, single-node configurations. Here’s a sample YAML to provision one.
+
+apiVersion: kubedb.com/v1alpha2
+kind: MSSQLServer
+metadata:
+  name: sqlserver-standalone
+  namespace: sample
+spec:
+  version: "2022-cu12"
+  replicas: 1
+  storageType: Durable
+  storage:
+    storageClassName: "standard"
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+  terminationPolicy: Delete
+Here’s a sample YAML to provision the Availability Group cluster. To generate the certificate used for internal endpoint authentication of availability group replicas, an Issuer named mssqlserver-ca-issuer need to be created prior to deploying the following manifest.
+
+apiVersion: kubedb.com/v1alpha2
+kind: MSSQLServer
+metadata:
+  name: sqlserver-ag
+  namespace: demo
+spec:
+  version: "2022-cu12"
+  replicas: 3
+  topology:
+    mode: AvailabilityGroup
+    availabilityGroup:
+      databases:
+        - AgDB1
+        - AgDB2
+  internalAuth:
+    endpointCert:
+      issuerRef:
+        apiGroup: cert-manager.io
+        name: mssqlserver-ca-issuer
+        kind: Issuer
+  storageType: Durable
+  storage:
+    storageClassName: "standard"
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+  terminationPolicy: Delete
+supported versions:
+2022-CU12-ubuntu-22.04
+
+
+
+
+TLS Release: 
+
+
+Microsoft SQL Server
+In this release, we are introducing TLS support for Microsoft SQL Server. By implementing TLS support, Microsoft SQL Server enhances the security of client-to-server encrypted communication.
+
+With TLS enabled, client applications can securely connect to the Microsoft SQL Server cluster, ensuring that data transmitted between clients and servers remains encrypted and protected from unauthorized access or tampering. This encryption adds an extra layer of security, essential for sensitive data environments where confidentiality and integrity are paramount.
+
+To configure TLS/SSL in Microsoft SQL Server, KubeDB utilizes the cert-manager to issue certificates. So, first, you have to ensure the cluster has the cert-manager installed. To install cert-manager in your cluster, follow the steps here .
+
+To issue a certificate, the following Custom Resource (CR) of cert-manager is used:
+
+Issuer/ClusterIssuer: Issuers and ClusterIssuers represent certificate authorities (CAs) that can generate signed certificates by honoring certificate signing requests. All cert-manager certificates require a referenced issuer in a ready condition to attempt to serve the request. You can learn more details here .
+
+Certificate: The cert-manager has the concept of Certificates that define the desired x509 certificate which will be renewed and kept up to date. You can learn more details here .
+
+Here’s a sample YAML for TLS-enabled Microsoft SQL Server:
+
+apiVersion: kubedb.com/v1alpha2
+kind: MSSQLServer
+metadata:
+  name: mssql-standalone-tls
+  namespace: demo
+spec:
+  version: "2022-cu12"
+  replicas: 1
+  storageType: Durable
+  tls:
+    issuerRef:
+      name: mssqlserver-issuer
+      kind: Issuer
+      apiGroup: "cert-manager.io"
+    certificates:
+      - alias: client
+        subject:
+          organizations:
+            - kubedb
+        emailAddresses:
+          - abc@appscode.com
+      - alias: server
+        subject:
+          organizations:
+            - kubedb
+        emailAddresses:
+          - abc@appscode.com
+    clientTLS: true
+  storage:
+    storageClassName: "standard"
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+  deletionPolicy: WipeOut
+The users must specify the spec.tls.issuerRef field. If user set spec.tls.clientTLS: true, then tls enabled MS SQL Server will be provisioned. The user have to install csi-driver-cacerts which will be used to add self-signed ca certificates to the OS trusted certificate issuers (/etc/ssl/certs/ca-certificates.crt).
+
+If tls.clientTLS: false is specified then tls will not be enabled for SQL Server but the Issuer will be used to configure tls enabled wal-g proxy-server which is required for SQL Server backup operation.
+
+KubeDB uses the issuer or clusterIssuer referenced in the tls.issuerRef field, and the certificate specs provided in tls.certificate to generate certificate secrets using Issuer/ClusterIssuers specification. These certificate secrets includes ca.crt, tls.crt and tls.key etc. and are used to configure Microsoft SQL Server
+
+
+
+Monitoring Release: 
+
+This release introduces an enhanced monitoring feature for KubeDB-managed MicroSoft SQL Server deployments by integrating Grafana dashboards. The dashboards provide comprehensive insights into various SQL Server metrics, statuses, as well as visual representations of memory and CPU consumption. With this dashboard, users can effortlessly assess the overall health and performance of their SQL Server clusters, enabling more informed decision-making and efficient resource management.
+
+Have a look here for a step-by-step guide on using the monitoring feature of Microsoft SQL Server.
+
+Here’s a preview of the Summary dashboard for SQL Server.
+
+MSSQLServer Monitoring
+
+
+
+
+
+OPS Request Release: 
+
+This release brings several important updates, including OpsRequest and AutoScaling support for Microsoft SQL Server, enhanced Grafana Dashboard integration for improved monitoring, and compatibility with the latest SQL Server version, 2022 CU14.
+
+OpsRequest
+Microsoft SQL Server Ops Request support has been introduced through this release. SQL Server Ops Request provides a declarative configuration for the SQL Server administrative operations like database restart, vertical scaling, volume expansion, etc. in a Kubernetes native way. Ops Requests for Restart, Vertical Scaling, Volume Expansion, Version Update, and Horizontal Scaling have been added in this release.
+
+Restart
+Restart ops request is used to perform a smart restart of the SQL Server availability group cluster. An example YAML is provided below:
+
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MSSQLServerOpsRequest
+metadata:
+  name: mssql-restart
+  namespace: demo
+spec:
+  type: Restart
+  databaseRef:
+    name: mssqlserver-ag
+  timeout: 3m
+  apply: Always
+Vertical Scaling
+Vertical Scaling allows you to vertically scale the SQL Server nodes (i.e. pods). The necessary information required for vertical scaling must be provided in the spec.verticalScaling field. Here’s an example yaml for vertical scaling OpsRequest:
+
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MSSQLServerOpsRequest
+metadata:
+  name: mssql-vscale
+  namespace: demo
+spec:
+  type: VerticalScaling
+  databaseRef:
+    name: mssql-ag-cluster
+  verticalScaling:
+    mssqlserver:
+      resources:
+        requests:
+          memory: "2Gi"
+          cpu: "800m"
+        limits:
+          memory: "2Gi"
+          cpu: "800m"
+Volume Expansion
+Volume Expansion is used to expand the storage of the SQL Server nodes (i.e. pods). The necessary information required for volume expansion must be provided in spec.volumeExpansion field. An example yaml is provided below:
+
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MSSQLServerOpsRequest
+metadata:
+  name: mssql-vol-exp
+  namespace: demo
+spec:
+  type: VolumeExpansion
+  databaseRef:
+    name: mssql-ag-cluster
+  volumeExpansion:   
+    mode: "Online"
+    mssqlserver: 20Gi
+Horizontal Scaling
+Horizontal Scaling allows to horizontally scale SQL Server pods. It can both upscale and downscale the SQL Server Availability Group replicas. The necessary information for horizontal scaling must be provided in the spec.horizontalScaling.replicas field. An example YAML is provided below:
+
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MSSQLServerOpsRequest
+metadata:
+  name: mssql-horizontal-scale
+  namespace: demo
+spec:
+  type: HorizontalScaling
+ databaseRef:
+    name: mssql-ag-cluster
+  horizontalScaling:
+    replicas: 5
+Update Version
+Update version allows updating the version of Microsoft SQL Server. It can work in both ways: older version to new version and vice versa new version to older version. The necessary information for the update version must be provided in the spec.updateVersion.targetVersion field. An example YAML is provided below:
+
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MSSQLServerOpsRequest
+metadata:
+ name: update-mssql-cluster
+ namespace: demo
+spec
+ type: UpdateVersion
+databaseRef:
+    name: mssqlserver-ag
+  updateVersion:
+    targetVersion: 2022-cu14
+Autoscaler
+This release also adds Autoscaler support for Microsoft SQL Server by introducing MSSQLServerAutoscaler, a Kubernetes Custom Resource Definitions (CRD). It provides a declarative configuration for autoscaling SQL Server compute resources and storage of database components in a Kubernetes native way.
+
+Here’s a sample YAML to deploy Autoscaler for KubeDB managed SQL Server Availability Group cluster.
+
+apiVersion: autoscaling.kubedb.com/v1alpha1
+kind: MSSQLServerAutoscaler
+metadata:
+  name: mssql-autoscaler
+  namespace: demo
+spec:
+  databaseRef:
+    name: mssql-ag-cluster
+  compute:
+    mssqlserver:
+      trigger: "On"
+      podLifeTimeThreshold: 5m
+      resourceDiffPercentage: 20
+      minAllowed:
+        cpu: 800m
+        memory: 2Gi
+      maxAllowed:
+        cpu: 2
+        memory: 4Gi
+      controlledResources: ["cpu", "memory"]
+      containerControlledValues: "RequestsAndLimits"
+  storage:
+    mssqlserver:
+      expansionMode: "Online"
+      trigger: "On"
+      usageThreshold: 60
+      scalingThreshold: 50
+Monitoring
+This release enhanced monitoring features for KubeDB-managed MicroSoft SQL Server deployments by integrating more Grafana dashboards. Database dashboard for database insights and Pod dashboard for monitoring database pods specifically. The newly added pod and database dashboard provides comprehensive insights into various SQL Server metrics, and statuses, as well as visual representations of memory and CPU consumption. With these dashboards, users can effortlessly assess the overall health and performance of their SQL Server clusters, enabling more informed decision-making and efficient resource management.
+
+Have a look here for a step-by-step guide on using the monitoring feature of Microsoft SQL Server.
+
+Here’s a preview of the Pod dashboard for SQL Server.
+
+MSSQL Server Monitoring
+
+MSSQL Server Monitoring
+
+New Version support: 2022-cu14.
+
+
+
+
+Ops-Requests
+We are excited to introduce two new Ops-Requests for managing Microsoft SQL Server configurations in Kubernetes: Reconfigure, and Reconfigure TLS. These allow you to easily modify SQL Server settings and TLS configurations for enhanced flexibility and security. Below, you’ll find examples demonstrating how to use these new features.
+
+Reconfigure Ops-Request
+
+The Reconfigure operation enables you to update the configuration of an existing SQL Server cluster. This can be achieved using a custom configuration secret or by specifying configurations directly in the manifest.
+
+Example 1: Using a Custom Configuration Secret
+
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MSSQLServerOpsRequest
+metadata:
+  name: msops-reconfigure
+  namespace: demo
+spec:
+  type: Reconfigure
+  databaseRef:
+    name: mssqlserver-cluster
+  configuration:
+    configSecret:
+      name: new-custom-config # Reference to the custom configuration secret
+  timeout: 5m
+  apply: IfReady # Apply only if the database is ready
+Here, new-custom-config refers to the name of the custom configuration secret containing your desired SQL Server settings.
+
+Example 2: Applying Inline Configuration
+
+You can reconfigure using applyConfig like this:
+
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MSSQLServerOpsRequest
+metadata:
+  name: msops-reconfigure-apply
+  namespace: demo
+spec:
+  type: Reconfigure
+  databaseRef:
+    name: mssqlserver-cluster
+  configuration:
+    applyConfig:
+      mssql.conf: |-
+        [memory]
+        memorylimitmb = 3072        
+  timeout: 5m
+  apply: IfReady
+In this example, the applyConfig field is used to specify the new configuration for the mssql.conf file directly in the Ops-Request manifest.
+
+ReconfigureTLS OpsRequest
+
+The ReconfigureTLS operation allows you to add, remove, or modify TLS configurations for an existing SQL Server cluster. It also supports advanced use cases like rotating certificates or changing the certificate issuer.
+
+Example 1: Adding TLS to a Cluster
+
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MSSQLServerOpsRequest
+metadata:
+  name: msops-add-tls
+  namespace: demo
+spec:
+  type: ReconfigureTLS
+  databaseRef:
+    name: mssql-cluster
+  tls:
+    issuerRef:
+      name: mssqlserver-ca-issuer # Name of the cert-manager issuer
+      kind: Issuer # Issuer type (Issuer or ClusterIssuer)
+      apiGroup: "cert-manager.io"
+    certificates:
+      - alias: client
+        subject:
+          organizations:
+            - mssqlserver
+          organizationalUnits:
+            - client
+    clientTLS: true # Enable client TLS
+  timeout: 5m
+  apply: IfReady
+This example demonstrates how to add TLS to an existing SQL Server cluster using certificates issued by mssqlserver-ca-issuer.
+
+Other Supported TLS Actions:
+
+Remove TLS: Disable TLS for the SQL Server cluster.
+
+tls Spec:
+
+tls:
+  remove: true # Remove existing TLS configuration
+Rotate Certificates: Rotate the TLS certificates used by the SQL Server cluster.
+
+tls Spec:
+
+tls:
+  rotateCertificates: true # Trigger certificate rotation
+Change the Certificate Issuer: Update the issuer of the TLS certificate to a new one.
+
+tls Spec:
+
+tls:
+  issuerRef:
+    name: mssqlserver-new-ca-issuer # New cert-manager issuer name
+    kind: Issuer # Issuer type (Issuer or ClusterIssuer)
+    apiGroup: "cert-manager.io" 
+MSSQLServer Breaking Changes
+spec.internalAuth: The spec.internalAuth section has been removed. TLS/SSL configurations for internal endpoint authentication of SQL Server Availability Group replicas should now be defined under spec.tls.
+Leader Election Configuration: The field spec.leaderElection is now moved under spec.topology.availabilityGroup.leaderElection.
+Below is the updated structure reflecting these changes:
+
+tls:
+  issuerRef:
+    apiGroup: cert-manager.io
+    kind: Issuer
+    name: mssqlserver-ca-issuer
+  certificates:
+    - alias: endpoint
+      secretName: mssqlserver-endpoint-cert
+      subject:
+        organizationalUnits:
+          - endpoint
+        organizations:
+          - kubedb
+  clientTLS: true
+topology:
+  availabilityGroup:
+    databases:
+      - agdb1
+      - agdb2
+    leaderElection:
+      electionTick: 10
+      heartbeatTick: 1
+      period: 300ms
+      transferLeadershipInterval: 1s
+      transferLeadershipTimeout: 1m0s
+  mode: AvailabilityGroup
+Note: Use spec.tls to configure all TLS/SSL-related settings, including endpoint authentication for Availability Group replicas.
+
+Configuring MSSQL Environment Variables
+When deploying Microsoft SQL Server on Linux containers, environment variables are used to configure various settings, including the product edition.
+
+You have to specify the SQL Server product edition using the MSSQL_PID environment variable. The acceptable values for MSSQL_PID are:
+
+Developer: Uses the Developer Edition (default if no MSSQL_PID is specified).
+
+Express: Uses the Express Edition.
+
+Standard: Uses the Standard Edition.
+
+Enterprise: Uses the Enterprise Edition.
+
+EnterpriseCore: Uses the Enterprise Edition Core.
+
+<valid product id>: Uses the edition associated with the specified product ID.
+
+In addition, the ACCEPT_EULA environment variable is required to confirm your acceptance of the End-User Licensing Agreement . It must be set, to allow the SQL Server container to run.
+
+
+
+
+
+
+
+
+
+
+
+Arbiter release:
+When using a SQL Server Availability Group cluster, we employ the Raft consensus algorithm for selecting the primary node. Raft relies on a quorum-based voting system, which ideally requires an odd number of nodes to avoid split votes. However, many users prefer a two-replica setup for cost efficiency, a primary for write/read operations and a secondary for read queries.
+
+To resolve the potential split vote issue in a two-node deployment, we introduce an extra node known as an Arbiter. This lightweight node participates solely in leader election (voting) and does not store any database data.
+
+Key Points:
+Voting-Only Role: The Arbiter participates solely in the leader election process. It casts a vote to help achieve quorum but does not store or process any database data.
+Lightweight & Cost-Effective: The Arbiter is deployed in its own PetSet with a dedicated PVC using minimal storage (default 2GB). This allows you to run a two-node cluster (one primary and one secondary) without extra expense.
+Automatic Inclusion: When you deploy a SQL Server Availability Group cluster with an even number of replicas (e.g., two), KubeDB automatically adds the Arbiter node. This extra vote ensures that a clear primary is elected.
+
+Example YAML for a Two-Node Cluster (with Arbiter):
+
+apiVersion: kubedb.com/v1alpha2
+kind: MSSQLServer
+metadata:
+  name: ms-even-cluster
+  namespace: demo
+spec:
+  version: "2022-cu16"
+  replicas: 2
+  topology:
+    mode: AvailabilityGroup
+    availabilityGroup:
+      databases:
+        - agdb1
+        - agdb2
+  tls:
+    issuerRef:
+      name: mssqlserver-ca-issuer
+      kind: Issuer
+      apiGroup: "cert-manager.io"
+    clientTLS: false
+  podTemplate:
+    spec:
+      containers:
+        - name: mssql
+          env:
+            - name: ACCEPT_EULA
+              value: "Y"
+            - name: MSSQL_PID
+              value: Evaluation
+  storageType: Durable
+  storage:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+  deletionPolicy: WipeOut
+What Happens on Deployment
+After applying the YAML:
+
+Two Replica Pods (e.g., ms-even-cluster-0 and ms-even-cluster-1) are created as the primary and secondary SQL Server nodes.
+A separate PetSet is automatically created for the arbiter node (e.g., ms-even-cluster-arbiter). The arbiter pod runs a single container that participates only in leader election.
+You might see the resources are created like this:
+
+kubectl get ms,petset,pods,secrets,issuer,pvc -n demo
+
+NAME                                     VERSION     STATUS   AGE
+mssqlserver.kubedb.com/ms-even-cluster   2022-cu16   Ready    33m
+
+NAME                                                   AGE
+petset.apps.k8s.appscode.com/ms-even-cluster           30m
+petset.apps.k8s.appscode.com/ms-even-cluster-arbiter   29m
+
+NAME                            READY   STATUS    RESTARTS   AGE
+pod/ms-even-cluster-0           2/2     Running   0          30m
+pod/ms-even-cluster-1           2/2     Running   0          30m
+pod/ms-even-cluster-arbiter-0   1/1     Running   0          29m
+
+NAME                                                   STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+persistentvolumeclaim/data-ms-even-cluster-0           Bound    pvc-cf684a28-6840-4996-aecb-ac3f9d7b0961   1Gi        RWO            standard       <unset>                 31m
+persistentvolumeclaim/data-ms-even-cluster-1           Bound    pvc-6d9948e8-5e12-4409-90cc-57f6429037d9   1Gi        RWO            standard       <unset>                 31m
+persistentvolumeclaim/data-ms-even-cluster-arbiter-0   Bound    pvc-24f3a40f-ab24-4483-87d
+
+
+
+
+
+
+
+
+
+
+
+DAG Release: 
+
+In this release, we are thrilled to introduce support for Distributed Availability Groups (DAGs) for Microsoft SQL Server. This powerful feature allows you to create a "group of groups," enabling robust disaster recovery and seamless migration scenarios across different Kubernetes clusters, data centers, or cloud regions. KubeDB now automates the complex setup of creating, joining, and managing these distributed topologies in a Kubernetes-native way.
+
+
+Distributed Availability Group (DAG) Support
+A Distributed AG extends a standard Availability Group (AG) by linking two separate AGs into one logical unit. This is ideal for disaster recovery, where each AG can reside in a different geographical location. KubeDB manages each local AG cluster using the Raft consensus algorithm for leader election and failover, and then orchestrates the connection between them to form the DAG.
+
+To form a Distributed AG, you will deploy two separate MSSQLServer resources, each configured as a standard Availability Group. One will be designated as the primary role in the DAG, and the other will be designated as the secondary role. KubeDB handles the underlying T-SQL commands (CREATE AVAILABILITY GROUP ... WITH (DISTRIBUTED) on the primary and ALTER AVAILABILITY GROUP ... JOIN on the secondary) to establish the connection.
+
+The configuration is defined in the spec.topology.distributedAG field of the MSSQLServer custom resource.
+```yaml
+spec:
+  topology:
+    mode: DistributedAG
+    distributedAG:
+      self:
+        role: Primary
+        url: <local_listener_url>
+      remote:
+        url: <remote_listener_url>
+        name: <remote_ag_name>
+```
+
+Before deploying a Distributed AG, please ensure the following requirements are met:
+Network Reachability: Each Availability Group's listener endpoints (self.url and remote.url) must be mutually reachable. The primary AG needs to connect to the secondary's endpoint, and after a failover, the roles reverse.
+Shared Credentials & Certificates: For the endpoints to authenticate and communicate correctly, both Availability Groups must be configured with identical endpoint credentials.
+Empty Secondary AG: The MSSQLServer resource for the Secondary role must be created without any databases specified in its availabilityGroup spec (spec.topology.availabilityGroup.databases). The databases will be automatically seeded from the primary AG after the DAG is joined. Attempting to join with existing databases will result in an error.
+
+Configuring Shared Credentials for Distributed AGs: 
+Since both participating Availability Groups must share identical endpoint credentials to establish a secure communication channel. This is essential for data replication and for handling failover scenarios. Specifically, the Endpoint Certificate, DBM Login Password, and Master Key Password must be the same on both sites.
+
+To simplify this process, KubeDB provides a CLI command to automate the extraction and transfer of these credentials.
+Generate Configuration from Primary:
+First, run the kubectl-dba command against your primary MSSQLServer instance (ag1 in this example). This extracts the required secrets into a single YAML file.
+`kubectl-dba mssql dag-config ag1 -n demo`
+Apply Configuration to Secondary:
+Next, apply the generated manifest to the cluster where your secondary Availability Group will run. This creates the identical secrets needed for authentication.
+`kubectl apply -f ./dag-config.yaml`
+With the secrets applied, you can now deploy the MSSQLServer resource for the Secondary role, ensuring its spec.topology.availabilityGroup section references these newly created secret names.
+
+Deploying a two-site Distributed Availability Group: 
+Primary Availability Group (ag1):
+This MSSQLServer resource defines the first AG and configures it to be the Primary of the Distributed AG.
+```yaml
+apiVersion: kubedb.com/v1alpha2
+kind: MSSQLServer
+metadata:
+  name: ag1
+  namespace: demo
+spec:
+  version: "2022-cu16"
+  replicas: 3
+  topology:
+    mode: DistributedAG
+    availabilityGroup:
+      # Databases in the primary AG will be replicated to the secondary.
+      databases:
+        - agdb
+      secondaryAccessMode: "All"
+    distributedAG:
+      self:
+        role: Primary  # This AG's role in the DAG is Primary.
+        url: "10.2.0.236" # This is the reachable listener URL of this AG.
+      remote:
+        name: ag2  # This is the name of the remote AG.
+        url: "10.2.0.181"  # This is the reachable listener URL of the remote AG.
+  tls:
+    issuerRef:
+      name: mssqlserver-ca-issuer
+      kind: Issuer
+      apiGroup: "cert-manager.io"
+    clientTLS: false
+  podTemplate:
+    spec:
+      containers:
+      - name: mssql
+        env:
+        - name: ACCEPT_EULA
+          value: "Y"
+        - name: MSSQL_PID
+          value: Evaluation
+  serviceTemplates:
+  - alias: primary
+    spec:
+      type: LoadBalancer
+  storage:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+  deletionPolicy: WipeOut
+```
+
+
+
+Secondary Availability Group (ag2): 
+After copying the shared secrets from the primary cluster using `kubectl apply -f ./dag-config.yaml`, deploy this MSSQLServer resource in the secondary cluster.
+
+```yaml 
+apiVersion: kubedb.com/v1alpha2
+kind: MSSQLServer
+metadata:
+  name: ag2
+  namespace: demo
+spec:
+  version: "2022-cu16"
+  replicas: 3
+  topology:
+    mode: DistributedAG
+    availabilityGroup:
+      # databases: [] Databases field must be empty for the secondary AG.
+      secondaryAccessMode: "All"
+      # Reference the secrets you copied from the primary cluster.
+      loginSecretName: ag1-dbm-login
+      masterKeySecretName: ag1-master-key
+      endpointCertSecretName: ag1-endpoint-cert
+    distributedAG:
+      self:
+        role: Secondary # This AG's role in the DAG is Secondary.
+        url: "10.2.0.181" # This is the reachable listener URL of this AG.
+      remote:
+        name: ag1 # This is the name of the remote (primary) AG.
+        url: "10.2.0.236"  # This is the reachable listener URL of the remote (primary) AG.
+  tls:
+    issuerRef:
+      name: mssqlserver-ca-issuer
+      kind: Issuer
+      apiGroup: "cert-manager.io"
+    clientTLS: false
+  podTemplate:
+    spec:
+      containers:
+      - name: mssql
+        env:
+        - name: ACCEPT_EULA
+          value: "Y"
+        - name: MSSQL_PID
+          value: Evaluation
+  serviceTemplates:
+  - alias: primary
+    spec:
+      type: LoadBalancer
+  storage:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+  deletionPolicy: WipeOut
+```
+Once both resources are deployed and have reached the Ready phase, KubeDB will have established the Distributed AG. Data added to databases in ag1 will automatically replicate to the replicas in ag2, providing a robust disaster recovery solution.
+
+Performing a Data Center Failover
+A key use case for a Distributed Availability Group (DAG) is a controlled manual failover between sites, such as for a disaster recovery (DR) event. The following steps show how to fail over the primary role from ag1 to ag2.
+Prepare for Zero Data Loss (If Primary Site is Online): 
+To prevent data loss, switch the DAG to synchronous replication before failing over. Execute this command on the primary replicas of both ag1 and ag2:
+```SQL
+ALTER AVAILABILITY GROUP [dag]
+MODIFY AVAILABILITY GROUP ON
+  'ag1' WITH (AVAILABILITY_MODE = SYNCHRONOUS_COMMIT),
+  'ag2' WITH (AVAILABILITY_MODE = SYNCHRONOUS_COMMIT);
+```
+Wait for the data to be fully synchronized. If the primary site is offline, skip this step.
+Change Primary Role to Secondary:
+On the primary replica of the current primary AG (ag1), take the DAG offline by changing its role. This will disconnect all clients.
+`ALTER AVAILABILITY GROUP [mydag] SET (ROLE = SECONDARY);`
+
+Promote the New Primary: 
+On the primary replica of the current secondary AG (ag2), execute the failover. This promotes ag2 to be the new primary for the entire DAG.
+`ALTER AVAILABILITY GROUP [mydag] FORCE_FAILOVER_ALLOW_DATA_LOSS;`
+After this command, ag2 will begin accepting read/write traffic, and data will start replicating back to ag1.
+You also need to update the `spec.topology.distributedAG.self.role` to match the updated role for both `MSSQLServer` resources. 
+
+For a more detailed guide for DAG setup and failover, please check out our documentation [Distributed Availability Group ](https://kubedb.com/docs/v2025.5.30/guides/mssqlserver/clustering/dag_cluster/)
