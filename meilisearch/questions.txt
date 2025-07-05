@@ -1,4 +1,38 @@
-Ary we self managing this? or using cloud services? 
+I looked into Meilisearch a bit, and it seems the open-source version doesn’t support native clustering. If we support it, would a standalone setup support be enough?
+
+Are we self-hosting Meilisearch or using a managed cloud service?
+
+The Meilisearch Cloud offering advertises “native support for clusterization” and read-side high availability
 
 
-Seems like appscode/blog search is not working (only searching on titles, not blog contents). Is it expected?
+They have some experimental stuff to configure clustering like setup, but It may have limitations:
+
+Experimental replication parameters: 
+https://github.com/orgs/meilisearch/discussions/725
+
+Implement sharding with remote federated search: 
+https://www.meilisearch.com/docs/learn/multi_search/implement_sharding
+
+
+As far as I read: 
+We can shard the data across multiple standalone Meilisearch instances and federate queries to fan‐out a search request to each shard/instance and merge the results client‑side.
+
+We may lack the built‑in consensus, leader election, or automated data sync.
+
+
+
+So, user are reponsible for both replication and sharding at the application layer:
+
+Replication: 
+For writes we need to POST every document insert/update to all Meili instances so every replica stays in sync.
+
+Sharding:
+We split it into shards and route writes only to the instance(s) responsible for each shard.
+On search, we have to send the query to each relevant shard‑instance and merges the results.
+
+
+
+reference:
+https://www.meilisearch.com/docs/learn/resources/experimental_features_overview
+https://www.meilisearch.com/docs/learn/self_hosted/configure_meilisearch_at_launch
+https://www.meilisearch.com/docs/learn/multi_search/multi_search_vs_federated_search
