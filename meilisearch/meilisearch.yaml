@@ -1,0 +1,75 @@
+# meilisearch-sts.yaml
+
+# 1. Headless Service
+# This service is required by the StatefulSet to control the network domain
+# for the pods. It does not load-balance; it's purely for network identity.
+apiVersion: v1
+kind: Service
+metadata:
+  name: meilisearch-headless-svc # The name of this service must match spec.serviceName in the StatefulSet
+  labels:
+    app: meilisearch
+spec:
+  ports:
+    - port: 7700
+      name: http
+  clusterIP: None # This makes the service "headless"
+  selector:
+    app: meilisearch # Selects pods with this label
+---
+# 2. StatefulSet
+# This manages the Meilisearch pod and its persistent storage.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: meilisearch
+spec:
+  # This must match the name of the Headless Service above
+  serviceName: "meilisearch-headless-svc"
+  replicas: 1 # Meilisearch (Open Source) runs as a single instance
+  selector:
+    matchLabels:
+      app: meilisearch # Must match the labels in the pod template
+  template:
+    metadata:
+      labels:
+        app: meilisearch
+    spec:
+      containers:
+      - name: meilisearch
+        image: getmeili/meilisearch:v1.8 # Using a specific version is best practice
+        ports:
+        - containerPort: 7700
+          name: http
+        env:
+        # WARNING: Hardcoding secrets is NOT recommended for production.
+        # Use a Kubernetes Secret in a real environment.
+        - name: MEILI_MASTER_KEY
+          value: "aSampleMasterKey"
+        - name: MEILI_ENV
+          value: "production"
+        volumeMounts:
+        - name: meilisearch-data # This name must match a volumeClaimTemplates name
+          mountPath: /meili_data
+        # Probes are essential for Kubernetes to know the health of your app
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 7700
+          initialDelaySeconds: 5
+          periodSeconds: 2
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 7700
+          initialDelaySeconds: 20
+          periodSeconds: 10
+  # This template defines the PersistentVolumeClaim that will be created for each pod.
+  volumeClaimTemplates:
+  - metadata:
+      name: meilisearch-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ] # Standard for a single-pod volume
+      resources:
+        requests:
+          storage: 2Gi # Adjust storage size as needed

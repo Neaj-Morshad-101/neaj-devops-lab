@@ -1,0 +1,55 @@
+neaj@laptop ~/g/s/g/N/y/meilisearch (main)> kubectl apply -f meilisearch.yaml 
+service/meilisearch-headless-svc created
+statefulset.apps/meilisearch created
+
+
+
+neaj@laptop ~/g/s/g/N/y/meilisearch (main) [1]> kubectl get all
+NAME                READY   STATUS    RESTARTS   AGE
+pod/meilisearch-0   1/1     Running   0          96s
+
+NAME                               TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)    AGE
+service/kubernetes                 ClusterIP   10.96.0.1    <none>        443/TCP    10m
+service/meilisearch-headless-svc   ClusterIP   None         <none>        7700/TCP   96s
+
+NAME                           READY   AGE
+statefulset.apps/meilisearch   1/1     96s
+neaj@laptop ~/g/s/g/N/y/meilisearch (main)> kubectl get pvc 
+NAME                             STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+meilisearch-data-meilisearch-0   Bound    pvc-43fbffc8-f15e-4436-8449-906230882c4e   2Gi        RWO            standard       <unset>                 107s
+
+
+
+neaj@laptop ~/g/s/g/N/y/meilisearch (main)> curl http://localhost:7700/health
+
+{"status":"available"}⏎                                                                                                                                         
+
+
+neaj@laptop ~/g/s/g/N/y/meilisearch (main)> curl -X POST 'http://localhost:7700/indexes' \
+                                                  -H 'Content-Type: application/json' \
+                                                  -H 'Authorization: Bearer aSampleMasterKey' \
+                                                  --data-binary '{
+                                                "uid": "movies",
+                                                "primaryKey": "id"
+                                              }'
+{"taskUid":0,"indexUid":"movies","status":"enqueued","type":"indexCreation","enqueuedAt":"2025-07-05T08:42:06.087527572Z"}⏎                                     
+
+
+neaj@laptop ~/g/s/g/N/y/meilisearch (main)> curl -X POST 'http://localhost:7700/indexes/movies/documents' \
+                                                  -H 'Content-Type: application/json' \
+                                                  -H 'Authorization: Bearer aSampleMasterKey' \
+                                                  --data-binary '[
+                                                { "id": 1, "title": "Carol", "genres": ["Romance", "Drama"] },
+                                                { "id": 2, "title": "Wonder Woman", "genres": ["Action", "Adventure"] },
+                                                { "id": 3, "title": "Life of Pi", "genres": ["Adventure", "Drama"] },
+                                                { "id": 4, "title": "The Iron Giant", "genres": ["Animation", "Action"] },
+                                                { "id": 5, "title": "Spider-Man: Into the Spider-Verse", "genres": ["Animation", "Action"] }
+                                              ]'
+{"taskUid":1,"indexUid":"movies","status":"enqueued","type":"documentAdditionOrUpdate","enqueuedAt":"2025-07-05T08:42:42.686960184Z"}⏎                          
+
+
+neaj@laptop ~/g/s/g/N/y/meilisearch (main)> curl -X POST 'http://localhost:7700/indexes/movies/search' \
+                                                  -H 'Content-Type: application/json' \
+                                                  -H 'Authorization: Bearer aSampleMasterKey' \
+                                                  --data-binary '{ "q": "wonder" }'
+{"hits":[{"id":2,"title":"Wonder Woman","genres":["Action","Adventure"]}],"query":"wonder","processingTimeMs":0,"limit":20,"offset":0,"estimatedTotalHits":1}⏎
