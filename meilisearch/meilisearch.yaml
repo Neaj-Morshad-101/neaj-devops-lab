@@ -1,35 +1,43 @@
-# meilisearch-sts.yaml
+# meilisearch-sts.yaml (Correct Standalone Production Pattern)
 
-# 1. Headless Service
-# This service is required by the StatefulSet to control the network domain
-# for the pods. It does not load-balance; it's purely for network identity.
+# 1. Headless Service (Best practice for StatefulSets, even with 1 replica)
 apiVersion: v1
 kind: Service
 metadata:
-  name: meilisearch-headless-svc # The name of this service must match spec.serviceName in the StatefulSet
-  labels:
-    app: meilisearch
+  name: meilisearch-headless-svc
 spec:
+  clusterIP: None
   ports:
-    - port: 7700
-      name: http
-  clusterIP: None # This makes the service "headless"
+    - name: http
+      port: 7700
   selector:
-    app: meilisearch # Selects pods with this label
+    app: meilisearch
 ---
-# 2. StatefulSet
-# This manages the Meilisearch pod and its persistent storage.
+# 2. Standard Service to provide a stable endpoint
+apiVersion: v1
+kind: Service
+metadata:
+  name: meilisearch-service
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 7700
+      targetPort: 7700
+  selector:
+    app: meilisearch
+---
+# 3. StatefulSet for a single, resilient Meilisearch pod
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: meilisearch
 spec:
-  # This must match the name of the Headless Service above
   serviceName: "meilisearch-headless-svc"
-  replicas: 1 # Meilisearch (Open Source) runs as a single instance
+  replicas: 1 # <-- ALWAYS 1 for open-source Meilisearch
   selector:
     matchLabels:
-      app: meilisearch # Must match the labels in the pod template
+      app: meilisearch
   template:
     metadata:
       labels:
@@ -37,21 +45,19 @@ spec:
     spec:
       containers:
       - name: meilisearch
-        image: getmeili/meilisearch:v1.8 # Using a specific version is best practice
+        image: getmeili/meilisearch:v1.8
         ports:
         - containerPort: 7700
           name: http
         env:
-        # WARNING: Hardcoding secrets is NOT recommended for production.
-        # Use a Kubernetes Secret in a real environment.
+        # Use a Kubernetes Secret in production, but hardcoding for this example
         - name: MEILI_MASTER_KEY
           value: "aSampleMasterKey"
         - name: MEILI_ENV
           value: "production"
         volumeMounts:
-        - name: meilisearch-data # This name must match a volumeClaimTemplates name
+        - name: meilisearch-data
           mountPath: /meili_data
-        # Probes are essential for Kubernetes to know the health of your app
         readinessProbe:
           httpGet:
             path: /health
@@ -64,12 +70,12 @@ spec:
             port: 7700
           initialDelaySeconds: 20
           periodSeconds: 10
-  # This template defines the PersistentVolumeClaim that will be created for each pod.
+  # This PVC template ensures data persists across pod restarts
   volumeClaimTemplates:
   - metadata:
       name: meilisearch-data
     spec:
-      accessModes: [ "ReadWriteOnce" ] # Standard for a single-pod volume
+      accessModes: [ "ReadWriteOnce" ]
       resources:
         requests:
-          storage: 2Gi # Adjust storage size as needed
+          storage: 5Gi # Adjust as needed

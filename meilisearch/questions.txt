@@ -1,0 +1,4 @@
+Ary we self managing this? or using cloud services? 
+
+
+Seems like appscode/blog search is not working (only searching on titles, not blog contents). Is it expected?

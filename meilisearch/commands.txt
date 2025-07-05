@@ -1,22 +1,27 @@
-neaj@laptop ~/g/s/g/N/y/meilisearch (main)> kubectl apply -f meilisearch.yaml 
+neaj@laptop ~/g/s/g/N/y/meilisearch (main)> kubectl apply -f meilisearch.yaml
 service/meilisearch-headless-svc created
+service/meilisearch-service created
 statefulset.apps/meilisearch created
 
 
 
-neaj@laptop ~/g/s/g/N/y/meilisearch (main) [1]> kubectl get all
+neaj@laptop ~/g/s/g/N/y/meilisearch (main)> kubectl get all 
 NAME                READY   STATUS    RESTARTS   AGE
-pod/meilisearch-0   1/1     Running   0          96s
+pod/meilisearch-0   1/1     Running   0          8m54s
 
-NAME                               TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)    AGE
-service/kubernetes                 ClusterIP   10.96.0.1    <none>        443/TCP    10m
-service/meilisearch-headless-svc   ClusterIP   None         <none>        7700/TCP   96s
+NAME                               TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+service/kubernetes                 ClusterIP   10.96.0.1       <none>        443/TCP    4h5m
+service/meilisearch-headless-svc   ClusterIP   None            <none>        7700/TCP   8m54s
+service/meilisearch-service        ClusterIP   10.96.200.208   <none>        7700/TCP   8m54s
 
 NAME                           READY   AGE
-statefulset.apps/meilisearch   1/1     96s
+statefulset.apps/meilisearch   1/1     8m54s
+
+
 neaj@laptop ~/g/s/g/N/y/meilisearch (main)> kubectl get pvc 
 NAME                             STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
-meilisearch-data-meilisearch-0   Bound    pvc-43fbffc8-f15e-4436-8449-906230882c4e   2Gi        RWO            standard       <unset>                 107s
+meilisearch-data-meilisearch-0   Bound    pvc-9b853a19-252a-46a1-8893-b8083b440328   5Gi        RWO            standard       <unset>                 9m12s
+
 
 
 
