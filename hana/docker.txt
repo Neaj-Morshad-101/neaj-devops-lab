@@ -1,0 +1,705 @@
+
+Part 1: Prerequisites - Before You Begin
+
+
+1. A Supported Linux Host
+Operating System: While the official documentation lists SLES 12.x, HANA is known to run on modern Linux distributions like Ubuntu 20.04/22.04 or SLES 15. The key is having a compatible kernel and the ability to set kernel parameters.
+Architecture: x86-64.
+Hardware:
+RAM: 32 GB or more is highly recommended. The HANA instance inside the container needs at least 16-24GB of memory to start reliably.
+CPU: At least 4 modern CPU cores.
+Disk Space: At least 100 GB of free space on a fast drive (SSD is strongly recommended).
+
+
+
+2. Docker Engine
+You must have Docker Engine installed and running. Follow the official Docker installation guide for your Linux distribution.
+Ensure your user is part of the docker group to run commands without sudo (optional but recommended):
+Generated bash
+sudo usermod -aG docker $USER
+newgrp docker # Apply group changes to the current shell
+
+
+
+
+3. Configure Host Kernel Parameters (sysctl)
+HANA requires specific kernel settings on the host machine for memory management and file handling. These are not optional.
+Open the sysctl configuration file with root privileges:
+Generated bash
+sudo nano /etc/sysctl.conf
+￼content_copy
+￼download
+Use code with caution.
+Bash
+Add the following lines to the end of the file. If any of these keys already exist, update their values.
+Generated ini
+fs.file-max=20000000
+fs.aio-max-nr=262144
+vm.memory_failure_early_kill=1
+vm.max_map_count=135217728
+net.ipv4.ip_local_port_range=40000 60999
+￼content_copy
+￼download
+Use code with caution.
+Ini
+Apply the changes immediately without rebooting:
+Generated bash
+sudo sysctl -p
+￼content_copy
+￼download
+Use code with caution.
+Bash
+This command will print the values it just set. Verify they match what you added.
+
+
+
+
+
+2. Configure Kernel Parameters on the Host
+HANA requires specific kernel settings on the host machine to manage memory and resources correctly.
+Open the /etc/sysctl.conf file with root privileges:
+sudo nano /etc/sysctl.conf
+
+Add or modify the following lines at the end of the file:
+
+# SAP HANA on Docker recommendations
+fs.file-max = 20000000
+fs.aio-max-nr = 262144
+vm.memory_failure_early_kill = 1
+vm.max_map_count = 135217728
+net.ipv4.ip_local_port_range = 40000 60999
+
+Save the file (Ctrl+O, Enter, then Ctrl+X in nano).
+Apply the changes immediately without rebooting:
+sudo sysctl -p
+
+
+
+
+
+
+
+
+
+
+Part 2: Preparing the Environment
+
+
+
+Step 1: Create a Persistent Data Directory
+The HANA data needs to live outside the container so it's not lost when the container is removed. We'll create a directory on the host and mount it into the container.
+Create the directory:
+Generated bash
+mkdir -p ~/hana_docker_data
+￼content_copy
+￼download
+Use code with caution.
+Bash
+HANA inside the container runs as a specific user (hxeadm) with user ID 12000 and group ID 79. We must set the ownership of our data directory to match this so the process inside the container has permission to write to it.
+Generated bash
+sudo chown 12000:79 ~/hana_docker_data
+
+
+
+
+
+
+
+➤ mkdir -p ~/hana_docker_data
+
+neaj@neaj-pc:~
+➤ sudo chown 12000:79 ~/hana_docker_data
+
+
+neaj@neaj-pc:~
+➤ cd hana_docker_data/
+neaj@neaj-pc:~/hana_docker_data
+➤ sudo chown 12000:79 ~/hana_docker_data
+
+
+
+
+
+
+
+Step 2: Create the Master Password File
+The container requires a master password to be provided in a JSON file.
+Create the password file inside your new data directory:
+Generated bash
+nano ~/hana_docker_data/password.json
+￼content_copy
+￼download
+Use code with caution.
+Bash
+Add the following content. Replace YourStrongPassword1 with a password that meets the rules.
+Generated json
+{
+  "master_password": "YourStrongPassword1"
+}
+￼content_copy
+￼download
+Use code with caution.
+Json
+Password Rules:
+At least 8 characters
+1 uppercase letter, 1 lowercase letter, 1 number
+Cannot contain special characters like $ \ ' " `
+Set strict permissions on this file for security:
+Generated bash
+sudo chmod 600 ~/hana_docker_data/password.json
+sudo chown 12000:79 ~/hana_docker_data/password.json
+
+
+
+
+
+
+sudo nano ~/hana_docker_data/password.json
+
+
+{
+  "master_password": "Pa$$w0rd!"
+}
+
+
+
+neaj@neaj-pc:~/hana_docker_data
+➤ cat password.json 
+{
+  "master_password": "Pa$$w0rd!"
+}
+
+
+neaj@neaj-pc:~/hana_docker_data
+➤ sudo chmod 600 ~/hana_docker_data/password.json
+  sudo chown 12000:79 ~/hana_docker_data/password.json
+
+
+
+Part 3: Running the HANA Container
+
+
+Now you are ready to pull the image and run the container.
+Step 1: Pull the Docker Image
+Generated bash
+docker pull saplabs/hanaexpress
+￼content_copy
+￼download
+Use code with caution.
+Bash
+This will download the latest version of the HANA Express image.
+Step 2: Run the Docker Container
+This is the main command. It maps ports, mounts the data volume, sets resource limits, and passes the password file.
+Generated bash
+docker run -d \
+  --name hana-express \
+  -p 39013:39013 \
+  -p 39017:39017 \
+  -p 39041-39045:39041-39045 \
+  -p 1128-1129:1128-1129 \
+  -p 59013-59014:59013-59014 \
+  -v ~/hana_docker_data:/hana/mounts \
+  --ulimit nofile=1048576:1048576 \
+  saplabs/hanaexpress \
+  --passwords-url file:///hana/mounts/password.json \
+  --agree-to-sap-license
+￼content_copy
+￼download
+Use code with caution.
+Bash
+-d: Runs the container in detached mode (in the background).
+--name hana-express: Gives the container a memorable name.
+-p ...: Maps the necessary HANA ports from the container to your host machine.
+-v ~/hana_docker_data:/hana/mounts: This is the crucial volume mount. It maps the host directory to the /hana/mounts directory inside the container.
+--ulimit nofile=...: Sets the limit for open files, as required by HANA.
+--passwords-url file:///hana/mounts/password.json: Tells the startup script inside the container where to find the password file. Note the file:///hana/mounts/ path, which is the path inside the container.
+--agree-to-sap-license: You must agree to the license to start the container.
+
+
+
+
+➤ docker pull saplabs/hanaexpress
+
+Using default tag: latest
+latest: Pulling from saplabs/hanaexpress
+Digest: sha256:b26eec2c0eb1691453eacc013d9ce568a3ee6df62bfb4efa9a4d736ff0b79423
+Status: Image is up to date for saplabs/hanaexpress:latest
+docker.io/saplabs/hanaexpress:latest
+
+
+
+
+
+
+➤ docker run -d \
+        --name hana-express \
+        -p 39013:39013 \
+        -p 39017:39017 \
+        -p 39041-39045:39041-39045 \
+        -p 1128-1129:1128-1129 \
+        -p 59013-59014:59013-59014 \
+        -v ~/hana_docker_data:/hana/mounts \
+        --ulimit nofile=1048576:1048576 \
+        saplabs/hanaexpress \
+        --passwords-url file:///hana/mounts/password.json \
+        --agree-to-sap-license
+ef68bf5b1d159097adab804aaf92220a35112c5467d3e08de118e3ef305f8ef3
+
+
+
+
+Step 3: Monitor the Startup Process
+
+The first startup takes a long time (5-15 minutes) as HANA initializes its persistence and creates the tenant database. You must monitor the logs to ensure it completes successfully.
+
+docker logs -f hana-express
+
+use_sapstartsrv: false
+======== Starting HANA container run script ========
+Started at: Thu Jul 10 15:45:06 UTC 2025
+Script parameters: --passwords-url file:///hana/mounts/password.json --agree-to-sap-license
+HANA version: 2.00.082.00.1736514951
+WARNING: Unsupported Linux kernel version 6.11. Supported are 3.12 and 4.4+.
+New host: 'ef68bf5b1d15'
+Setting HANAs host name to 'ef68bf5b1d15' ...
+Checking allowed mountpoints ...
+Checking system requirements ...
+Checking /proc/sys prerequisites and limits...
+
+
+SAP HANA Lifecycle Management - HdbContainer 2.8.56
+***************************************************
+
+
+Checking container...
+Checking system requirements...
+Checking linux settings...
+SAP HANA instance executed.
+Log file written to '/var/tmp/HdbContainer_check_container_2025-07-10_15.45.06.log' on host 'ef68bf5b1d15'.
+Log files copied to '/hana/mounts/trace/ef68bf5b1d15' on host 'ef68bf5b1d15'.
+Check succeeded: /proc/sys prerequisites and limits
+Checking syscalls ...
+	WARNING: Operation not permitted: move_pages
+	WARNING: Operation not permitted: mbind
+Check failed: syscalls
+Please add permissions for the named operations by whitelisting them in a seccomp profile.
+You can get a matching profile by calling 'docker run --rm <hana_image> --print seccomp.json > seccomp.json' and apply it to the container start via 'docker run --security-opt seccomp=seccomp.json ...'.
+Checking mount consistency ...
+Checking content structure version ...
+Checking version compatibility ...
+Start type: initial
+Entering pre start phase ...
+Downloading password file from file:///hana/mounts/password.json (parameters: --max-time 30 --insecure) ...
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100    37  100    37    0     0  37000      0 --:--:-- --:--:-- --:--:-- 37000
+Deleting local password file: /hana/mounts/password.json
+Creating consistency check files ...
+Extracting initial content to /hana/shared/HXE/HDB90/ef68bf5b1d15
+tar: Removing leading `/' from member names
+/hana/shared/HXE/HDB90/localhost/lock/
+/hana/shared/HXE/HDB90/localhost/log/
+/hana/shared/HXE/HDB90/localhost/log/sapccm4x/
+/hana/shared/HXE/HDB90/localhost/log/sapccm4x/sapccmsr.ini
+/hana/shared/HXE/HDB90/localhost/log/sapccm4x/sapstartsrv_ccms.log
+/hana/shared/HXE/HDB90/localhost/log/logmon/
+/hana/shared/HXE/HDB90/localhost/log/grmg/
+/hana/shared/HXE/HDB90/localhost/tmp/
+/hana/shared/HXE/HDB90/localhost/tmp/RSUtil/
+/hana/shared/HXE/HDB90/localhost/trace/
+tar: trace: skipping existing file
+/hana/shared/HXE/HDB90/localhost/trace/hdbinst_offline_hdbinst_2025-05-29_16.46.39_683.log
+/hana/shared/HXE/HDB90/localhost/trace/hdbinst_afl_hdbinst_2025-05-29_16.47.06_732.cfg
+/hana/shared/HXE/HDB90/localhost/trace/hdbinst_epmmds_hdbinst_2025-05-29_16.47.10_735.cfg
+/hana/shared/HXE/HDB90/localhost/trace/hdbinst_configure_hdbinst_2025-05-29_16.47.13_737.cfg
+/hana/shared/HXE/HDB90/localhost/trace/hdbinst_configure_hdbinst_2025-05-29_16.47.13_737.cfg.xml
+/hana/shared/HXE/HDB90/localhost/trace/nameserver_localhost.00000.000.trc
+/hana/shared/HXE/HDB90/localhost/trace/nameserver_alert_localhost.trc
+/hana/shared/HXE/HDB90/localhost/trace/system_availability_localhost.trc
+/hana/shared/HXE/HDB90/localhost/trace/sapstartsrv.log
+/hana/shared/HXE/HDB90/localhost/trace/history.glf
+/hana/shared/HXE/HDB90/localhost/trace/available.log
+/hana/shared/HXE/HDB90/localhost/trace/hdbinst_configure_hdbinst_2025-05-29_16.47.13_737.log
+/hana/shared/HXE/HDB90/localhost/sec/
+/hana/shared/HXE/HDB90/localhost/sec/sap_system_pki_instance.pse
+/hana/shared/HXE/HDB90/localhost/wdisp/
+/hana/shared/HXE/HDB90/localhost/wdisp/admin/
+/hana/shared/HXE/HDB90/localhost/wdisp/cache/
+/hana/shared/HXE/HDB90/localhost/work/
+/hana/shared/HXE/HDB90/localhost/sapprofile.ini
+/hana/shared/HXE/HDB90/localhost/daemon.ini
+tar: Removing leading `/' from hard link targets
+/hana/shared/HXE/HDB90/localhost/log/sapccm4x/sapstartsrv_ccms.log
+Processing hooks in folder /hana/hooks/pre_start ...
+Hook candidates:
+	/hana/hooks/pre_start/010_license_agreement
+	/hana/hooks/pre_start/010_license_agreement.json (ignored, not an executable regular file)
+	/hana/hooks/pre_start/110_clean_hdbdaemon_status
+	/hana/hooks/pre_start/120_clean_pid_files
+	/hana/hooks/pre_start/130_update_clean_wdisp
+	/hana/hooks/pre_start/310_init_ssfs
+	/hana/hooks/pre_start/320_config_cert
+	/hana/hooks/pre_start/330_custom_afls
+Hook /hana/hooks/pre_start/010_license_agreement requires parameters: AGREE_TO_SAP_LICENSE
+Executing hook /hana/hooks/pre_start/010_license_agreement ...
+	License agreement check succeeded (AGREE_TO_SAP_LICENSE=true)
+Finished execution of hook /hana/hooks/pre_start/010_license_agreement (exit code 0)
+Executing hook /hana/hooks/pre_start/110_clean_hdbdaemon_status ...
+Finished execution of hook /hana/hooks/pre_start/110_clean_hdbdaemon_status (exit code 0)
+Executing hook /hana/hooks/pre_start/120_clean_pid_files ...
+	Removing PID files in /usr/sap/HXE/HDB90/ef68bf5b1d15/lock
+Finished execution of hook /hana/hooks/pre_start/120_clean_pid_files (exit code 0)
+Executing hook /hana/hooks/pre_start/130_update_clean_wdisp ...
+Finished execution of hook /hana/hooks/pre_start/130_update_clean_wdisp (exit code 0)
+Executing hook /hana/hooks/pre_start/310_init_ssfs ...
+	Creating system PKI master key ...
+	Record Statistics
+	=============================================
+	Encrypted and readable                : 0
+	Encrypted and not readable            : 0
+	Plaintext                             : 0
+	Removed by compacting                 : 0
+	Creating system PKI SSFS ...
+	Generating system PKI CA ...
+	Creating openssl.cnf file for CA ...
+	Creating self signed certificate for CA ...
+	Generating a RSA private key
+	................................++++
+	...............................................................................................++++
+	writing new private key to '/tmp/tmp.XxwxOi83GO/key.pem'
+	-----
+	Exporting PEM to P12 ...
+	Importing P12 into PSE ...
+	Found key 'INDEX=0,SIG=YES,ENC=NO,MD5-FINGERPRINT=E624 C5E9 04B3 10D3 5F6A 658B 7115 37E2,KEYID=A20334BF5A02CAB2F2CD80706BE656B906406CE5'
+	
+	!!! WARNING: For security reasons it is recommended to use a PIN/passphrase
+	!!! WARNING: which is at least 8 characters long and contains characters in
+	!!! WARNING: upper and lower case, numbers and non-alphanumeric symbols.
+	
+	PSE "/tmp/tmp.XxwxOi83GO/ca.pse" was written
+	
+	Generating system PKI CA done
+	Adding system PKI CA to system PKI SSFS ...
+	Creating pin for sap_system_pki_instance.pse
+	Storing pin for sap_system_pki_instance.pse in secure file store
+	Generating sap_system_pki_instance.pse ...
+	Creating openssl.cnf file for server certificate ...
+	Creating server certificate ...
+	Ignoring -days; not generating a certificate
+	Generating a RSA private key
+	..........................................++++
+	.........................++++
+	writing new private key to '/tmp/tmp.XxwxOi83GO/key2.pem'
+	-----
+	Signing server certificate ...
+	Building complete chain ...
+	Exporting PEM to P12 ...
+	Importing P12 into PSE ...
+	Found key 'INDEX=0,SIG=YES,ENC=YES,MD5-FINGERPRINT=CA49 AF4F F2B8 25EB E2CD 29BA BF1D 49A9,KEYID=6E1F56EFC31EF08C5C589810704FD944FC42BDD5'
+	
+	!!! WARNING: For security reasons it is recommended to use a PIN/passphrase
+	!!! WARNING: which is at least 8 characters long and contains characters in
+	!!! WARNING: upper and lower case, numbers and non-alphanumeric symbols.
+	
+	PSE "/usr/sap/HXE/HDB90/ef68bf5b1d15/sec/sap_system_pki_instance.pse" was written
+	
+	Generating sap_system_pki_instance.pse done
+	Delete tmp files ...
+	Creating instance SSFS master key ...
+	Record Statistics
+	=============================================
+	Encrypted and readable                : 0
+	Encrypted and not readable            : 0
+	Plaintext                             : 0
+	Removed by compacting                 : 0
+	Creating instance SSFS ...
+	done.
+Finished execution of hook /hana/hooks/pre_start/310_init_ssfs (exit code 0)
+Executing hook /hana/hooks/pre_start/320_config_cert ...
+	Checking for sapsrv.pse ...
+	Checking for SAPSSLA.pse ...
+	Checking for SAPSSLC.pse ...
+	Checking for SAPSSLS.pse ...
+	Checking for sap_system_pki_instance.pse ...
+	Checking for sapsrv_tenant.pse ...
+	generating certificate sapsrv.pse...
+	creating openssl.cnf file
+	creating self signed certificate with openssl
+	Generating a RSA private key
+	.........................................................................................................................................................................................................................................++++
+	.............................................................................++++
+	writing new private key to '/usr/sap/HXE/home/key.pem'
+	-----
+	export PEM to P12 with openssl
+	import P12 into PSE
+	Found key 'INDEX=0,SIG=NO,ENC=YES,MD5-FINGERPRINT=61B5 F6CC DBD4 4BED 59A2 B478 4D12 45E9,KEYID=1343B4F59FD3B1595C6BD7605D11E1E9D5515F4B'
+	
+	!!! WARNING: For security reasons it is recommended to use a PIN/passphrase
+	!!! WARNING: which is at least 8 characters long and contains characters in
+	!!! WARNING: upper and lower case, numbers and non-alphanumeric symbols.
+	
+	PSE "/usr/sap/HXE/HDB90/ef68bf5b1d15/sec/sapsrv.pse" was written
+	
+	delete tmp files
+	generating certificate sapsrv.pse done
+Finished execution of hook /hana/hooks/pre_start/320_config_cert (exit code 0)
+Executing hook /hana/hooks/pre_start/330_custom_afls ...
+	No custom AFLs found
+Finished execution of hook /hana/hooks/pre_start/330_custom_afls (exit code 0)
+Finished execution of hooks in folder /hana/hooks/pre_start
+Initializing persistence for first start of HANA (system db) ...
+
+
+SAP HANA Lifecycle Management - HdbContainer 2.8.56
+***************************************************
+
+
+Start reading from input channel...
+... Done.
+Initializing persistence...
+Installing initial topology
+  hdbnsutil: creating persistence ...
+  hdbnsutil: writing initial topology...
+  hdbnsutil: writing initial license: status check = 1
+SAP HANA instance executed.
+Log file written to '/var/tmp/HdbContainer_init_persistence_2025-07-10_15.46.08.log' on host 'ef68bf5b1d15'.
+Log files copied to '/hana/mounts/trace/ef68bf5b1d15' on host 'ef68bf5b1d15'.
+Persistence initialized.
+Finished pre start sequence
+Starting up HANA ...
+Environment variable IQDIR16 must be set before using HDB configured with Extended Storage Server
+Environment variable STREAMING_HOME  must be set before using HDB configured with Streaming Server
+Environment variable XSPATH must be set before using HDB configured with XS
+Environment variable LSS_HOME must be set before using HDB configured with Local Secure Server
+Waiting for HANA to finish start up ...
+HANA is up
+HDB info after HANA start
+USER          PID     PPID  %CPU        VSZ        RSS COMMAND
+hxeadm          1        0   0.0       7340       4152 /bin/bash /run_hana --passwords-url file:///hana/mounts/password.json --agree-to-sap-license
+hxeadm       1050        1   1.0     353268      51108 hdbdaemon
+hxeadm       1063     1050   137    3057664    1746900  \_ hdbnameserver
+hxeadm       1400     1050   5.5     745476     165716  \_ hdbcompileserver
+hxeadm       1401     1050   6.4     862560     179112  \_ hdbpreprocessor
+hxeadm       1437     1050  22.0    1228092     330416  \_ hdbdiserver
+hxeadm       1438     1050  72.7    1434040     402320  \_ hdbwebdispatcher
+hxeadm       1131        1   0.0     466684      38068 hdbrsutil  --start --port 39001 --volume 1 --volumesuffix mnt00001/hdb00001 --identifier 1752162390
+hxeadm       1512        1   0.0       6432       3396 /bin/sh /usr/sap/HXE/HDB90/HDB info
+hxeadm       1545     1512   100      23900       3584  \_ ps fx -U hxeadm -o user:8,pid:8,ppid:8,pcpu:5,vsz:10,rss:10,args
+Entering post start phase ...
+Creating tenant database ...
+0 rows affected (overall time 89.425707 sec; server time 89.424506 sec)
+
+HDB info after tenant database creation ...
+USER          PID     PPID  %CPU        VSZ        RSS COMMAND
+hxeadm          1        0   0.0       7340       4152 /bin/bash /run_hana --passwords-url file:///hana/mounts/password.json --agree-to-sap-license
+hxeadm       1050        1   0.2     359412      51492 hdbdaemon
+hxeadm       1063     1050  93.3    3895612    2541792  \_ hdbnameserver
+hxeadm       1400     1050   0.5     812304     174836  \_ hdbcompileserver
+hxeadm       1401     1050   0.5     928096     181544  \_ hdbpreprocessor
+hxeadm       1437     1050   1.2    1228092     334820  \_ hdbdiserver
+hxeadm       1438     1050   2.6    1469392     415028  \_ hdbwebdispatcher
+hxeadm       1591     1050  70.5    3223236    1882356  \_ hdbindexserver -port 39040
+hxeadm       1131        1   0.0     466684      38068 hdbrsutil  --start --port 39001 --volume 1 --volumesuffix mnt00001/hdb00001 --identifier 1752162390
+hxeadm       1647        1   0.0     466760      38476 hdbrsutil  --start --port 39040 --volume 2 --volumesuffix mnt00001/hdb00002.00003 --identifier 1752162438
+hxeadm       1815        1   0.0       6432       3200 /bin/sh /usr/sap/HXE/HDB90/HDB info
+hxeadm       1849     1815  66.6      23900       3620  \_ ps fx -U hxeadm -o user:8,pid:8,ppid:8,pcpu:5,vsz:10,rss:10,args
+Processing hooks in folder /hana/hooks/post_start ...
+Hook candidates:
+	/hana/hooks/post_start/201_hxe_optimize
+	/hana/hooks/post_start/203_set_hxe_info
+	/hana/hooks/post_start/hxe_scripts (ignored, not an executable regular file)
+Executing hook /hana/hooks/post_start/201_hxe_optimize ...
+	Optimizing HDB server...
+	 
+	Start "HXE" tenant database. This may take a while...
+	Enable debugger in workbench...
+	Enable statistics server...
+	Enable diserver server...
+	Do garbage collection...
+	Collect garbage on "hdbnameserver"...
+	Shrink resource container memory on "hdbnameserver"...
+	Collect garbage on "hdbindexserver"...
+	Shrink resource container memory on "hdbindexserver"...
+	Collect garbage on "hdbcompileserver"...
+	Shrink resource container memory on "hdbcompileserver"...
+	Collect garbage on "hdbpreprocessor"...
+	Shrink resource container memory on "hdbpreprocessor"...
+	Collect garbage on "hdbdiserver"...
+	Shrink resource container memory on "hdbdiserver"...
+	Reclaim data volume on hdbnameserver...
+	Reclaim data volume on hdbindexserver...
+	Release free log segments on hdbnameserver...
+	Release free log segments on hdbindexserver...
+	HDB is successfully optimized.
+Finished execution of hook /hana/hooks/post_start/201_hxe_optimize (exit code 0)
+Executing hook /hana/hooks/post_start/203_set_hxe_info ...
+Finished execution of hook /hana/hooks/post_start/203_set_hxe_info (exit code 0)
+Finished execution of hooks in folder /hana/hooks/post_start
+Finished post start sequence.
+Duration of start operations ...
+    (Pre start) Hook /hana/hooks/pre_start/010_license_agreement: 0s
+    (Pre start) Hook /hana/hooks/pre_start/110_clean_hdbdaemon_status: 0s
+    (Pre start) Hook /hana/hooks/pre_start/120_clean_pid_files: 0s
+    (Pre start) Hook /hana/hooks/pre_start/130_update_clean_wdisp: 0s
+    (Pre start) Hook /hana/hooks/pre_start/310_init_ssfs: 59s
+    (Pre start) Hook /hana/hooks/pre_start/320_config_cert: 1s
+    (Pre start) Hook /hana/hooks/pre_start/330_custom_afls: 0s
+    (Pre start) Prep persistence: 18s
+    Pre start: 79s
+    HANA startup: 28s
+    (Post start) Tenant creation: 90s
+    (Post start) License import: 0s
+    (Post start) Hook /hana/hooks/post_start/201_hxe_optimize: 13s
+    (Post start) Hook /hana/hooks/post_start/203_set_hxe_info: 0s
+    Post start: 107s
+    Overall: 215s
+Ready at: Thu Jul 10 15:48:41 UTC 2025
+Startup finished!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Look for the line: Startup finished! This confirms that the database is up and ready.
+
+You will see warnings like Unsupported Linux kernel version and Operation not permitted: move_pages. These are generally safe to ignore for a non-production Docker environment. The important part is that the startup sequence completes.
+
+
+
+
+
+
+
+
+Part 4: Connecting and Verifying
+
+
+
+Step 1: Connect to the Container Shell
+You can get a bash shell inside the running container to use command-line tools.
+Generated bash
+docker exec -it hana-express bash
+You will be logged in as the hxeadm user.
+
+
+
+neaj@neaj-pc:~/hana_docker_data
+➤ docker exec -it hana-express bash
+
+hxeadm@ef68bf5b1d15:/usr/sap/HXE/HDB90> 
+
+
+
+hxeadm@ef68bf5b1d15:/usr/sap/HXE/HDB90> HDB info
+USER          PID     PPID  %CPU        VSZ        RSS COMMAND
+hxeadm       2979        0   0.2       7212       4324 bash
+hxeadm       3072     2979   0.0       6432       3676  \_ /bin/sh /usr/sap/HXE/HDB90/HDB info
+hxeadm       3105     3072   200      23900       3800      \_ ps fx -U hxeadm -o user:8,pid:8,ppid:8,pcpu:5,vsz:10,rss:10,args
+hxeadm          1        0   0.0       7340       4152 /bin/bash /run_hana --passwords-url file:///hana/mounts/password.json --agree-to-sap-license
+hxeadm       1050        1   0.0     360436      51748 hdbdaemon
+hxeadm       1063     1050  13.7    3975744    2681032  \_ hdbnameserver
+hxeadm       1400     1050   0.4     856516     187252  \_ hdbcompileserver
+hxeadm       1401     1050   0.4     945208     200956  \_ hdbpreprocessor
+hxeadm       1437     1050   0.5    1151636     348000  \_ hdbdiserver
+hxeadm       1438     1050   0.6    1470684     434184  \_ hdbwebdispatcher
+hxeadm       1591     1050  16.6    4788352    3204388  \_ hdbindexserver -port 39040
+hxeadm       1131        1   0.0     466684      38068 hdbrsutil  --start --port 39001 --volume 1 --volumesuffix mnt00001/hdb00001 --identifier 1752162390
+hxeadm       1647        1   0.0     466760      38476 hdbrsutil  --start --port 39040 --volume 2 --volumesuffix mnt00001/hdb00002.00003 --identifier 1752162438
+hxeadm@ef68bf5b1d15:/usr/sap/HXE/HDB90> 
+
+
+Step 3: Log into the Database with hdbsql
+hdbsql is HANA's command-line SQL client.
+
+Connect to the SYSTEM Database:
+Generated bash
+# The default instance number is 90
+hdbsql -i 90 -d systemdb -u SYSTEM -p 'YourStrongPassword1'
+￼content_copy
+￼download
+Use code with caution.
+Bash
+Connect to the Tenant Database (HXE):
+Generated bash
+hdbsql -i 90 -d HXE -u SYSTEM -p 'YourStrongPassword1'
+￼content_copy
+￼download
+Use code with caution.
+Bash
+Run a test query:
+Generated sql
+hdbsql HXE=> SELECT * FROM "SYS"."M_DATABASES";
+
+
+
+
+
+hxeadm@ef68bf5b1d15:/usr/sap/HXE/HDB90> hdbsql -i 90 -d systemdb -u SYSTEM -p 'YourStrongPassword1'
+* 10: authentication failed: Detailed info for this error can be found with correlation ID 'C1279B905D4C5B43B6CE2EE61F285868' SQLSTATE: 28000
+hxeadm@ef68bf5b1d15:/usr/sap/HXE/HDB90> hdbsql -i 90 -d systemdb -u SYSTEM -p 'Pa$$w0rd!'
+
+Welcome to the SAP HANA Database interactive terminal.
+                                           
+Type:  \h for help with commands          
+       \q to quit                         
+
+hdbsql SYSTEMDB=>  SELECT * FROM "SYS"."M_DATABASES";
+DATABASE_NAME,DESCRIPTION,ACTIVE_STATUS,ACTIVE_STATUS_DETAILS,OS_USER,OS_GROUP,RESTART_MODE,FALLBACK_SNAPSHOT_CREATE_TIME
+"SYSTEMDB","SystemDB-HXE-90","YES","ACTIVE","","","DEFAULT",?
+"HXE","","YES","ACTIVE","","","DEFAULT",?
+2 rows selected (overall time 7672 usec; server time 301 usec)
+
+hdbsql SYSTEMDB=> \q
+hxeadm@ef68bf5b1d15:/usr/sap/HXE/HDB90> hdbsql -i 90 -d HXE -u SYSTEM -p 'Pa$$w0rd!'
+
+Welcome to the SAP HANA Database interactive terminal.
+                                           
+Type:  \h for help with commands          
+       \q to quit                         
+
+hdbsql HXE=> SELECT * FROM "SYS"."M_DATABASES";
+DATABASE_NAME,DESCRIPTION,ACTIVE_STATUS,ACTIVE_STATUS_DETAILS,OS_USER,OS_GROUP,RESTART_MODE,FALLBACK_SNAPSHOT_CREATE_TIME
+"HXE","","YES","ACTIVE","","","DEFAULT",?
+1 row selected (overall time 8480 usec; server time 1639 usec)
+
+hdbsql HXE=> 
+
+
+
+Step 4: Connect from an External GUI Tool (like DBeaver)
+Open your favorite SQL client.
+Create a new connection for SAP HANA.
+Connection Details:
+Host: localhost (since you mapped the ports to your host)
+Port: 39017 (This is the SQL port for the SYSTEMDB. The tenant DB port 39041 is often used too).
+Database: HXE (the tenant database name).
+User: SYSTEM.
+Password: YourStrongPassword1.
+Connect and run your queries.
+
+
+
+
+Troubleshooting Common Errors
+Error: ...failed to create shim task...write /proc/sys/kernel/shmmni: invalid argument
+Cause: You included --sysctl flags in your docker run command. These flags are not supported by all Docker/kernel versions and are no longer necessary with the saplabs/hanaexpress image. The host-level /etc/sysctl.conf changes are sufficient.
+Solution: Remove all --sysctl lines from your docker run command, as shown in the corrected command in this guide.
+Error: Conflict. The container name "/hana-express" is already in use...
+Cause: A previous docker run attempt failed but left behind a stopped container with the same name.
+Solution: Remove the old container before trying again: docker rm hana-express.
+Error: Check failed: syscalls
+Cause: Your host's security profile (like seccomp) is blocking system calls that HANA needs.
+Solution for non-production: You can run the container with --security-opt seccomp=unconfined. This is less secure but often works for local development. For a better solution, follow the instructions in the log to generate and apply a custom seccomp profile.
+
+

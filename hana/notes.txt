@@ -1,0 +1,97 @@
+https://github.com/kubedb/internal/issues/1314
+
+https://developers.sap.com/tutorials/hxe-ua-install-using-docker..html
+
+https://hub.docker.com/r/saplabs/hanaexpress
+
+
+
+
+
+
+Start with HANA, express edition. This is non-negotiable. Get it running.
+Follow the Official SAP Tutorials. They have excellent step-by-step guides for installation, backup, and basic administration.
+Master HANA Cockpit. This is the modern tool. Explore every tile and every screen. Understand what it's telling you.
+Practice SQL. Learn the CREATE USER, CREATE ROLE, GRANT, BACKUP DATA, RECOVER DATABASE commands.
+Read the Official Documentation. The SAP HANA Administration Guide is your bible. You don't need to memorize it, but you need to know where to find information.
+Join the Community. The SAP Community for HANA is a great place to ask questions.
+
+
+
+
+
+
+
+
+Clustering Modes in SAP HANA
+SAP HANA provides high availability and scalability primarily through two distinct clustering models: High Availability (HA) and Scale-Out.
+
+
+
+
+
+Virtualization Software: Oracle VirtualBox (free), VMware Workstation/Fusion, or a cloud account (AWS, Azure, GCP).
+CPU: At least 4 modern CPU cores dedicated to the VM.
+RAM: At least 24 GB of RAM dedicated to the VM. 32 GB is highly recommended. HANA will not install with less.
+Disk Space: At least 150 GB of fast SSD storage.
+
+
+
+
+
+
+
+
+
+Supported? 
+
+1. Running SAP HANA on Docker
+Official SAP Support Status: NOT SUPPORTED FOR PRODUCTION
+SAP's Stance: SAP does not officially support running production SAP HANA databases directly in a Docker container using docker run.
+Why?
+Lack of a Certified Stack: Production HANA requires a certified stack from the OS (SLES/RHEL for SAP) through the hardware/virtualization layer. Docker on a generic host (like a developer's laptop or a non-certified server) does not meet this requirement.
+No High Availability (HA): A single Docker container is a single point of failure. Docker itself provides no native tools for the complex HA and failover orchestration that HANA System Replication requires.
+Performance Guarantees: SAP cannot guarantee that HANA will meet its strict performance KPIs when running under the Docker engine's resource management, which can introduce overhead.
+What IS Supported/Accepted?
+SAP HANA, express edition: The free developer version is explicitly provided as a Docker image by SAP (via SUSE). This is an official endorsement for using Docker for non-production purposes.
+Development and Testing: Using Docker for development, learning, and automated testing (CI/CD) is a widely accepted and extremely common practice. It's the primary use case.
+In short: You can and should use Docker for learning and development. You absolutely should not use a single Docker container for a production HANA database.
+
+
+
+2. Running SAP HANA on Kubernetes
+This is where the conversation gets much more interesting and complex.
+Official SAP Support Status: SUPPORTED, BUT ONLY ON SPECIFIC PLATFORMS
+SAP's Stance: SAP does support running HANA on Kubernetes, but only within the context of specific, certified, and managed platforms. They do not support a "do-it-yourself" Kubernetes setup for production.
+The key is that SAP supports the solution, not the underlying open-source components individually.
+What are the Supported Kubernetes Platforms?
+The primary supported way to run SAP workloads (including HANA) on Kubernetes is through platforms built using Project Gardener, an open-source project initiated by SAP to manage Kubernetes clusters at scale.
+SAP BTP, Kyma Runtime: Kyma is an SAP project that provides a fully managed Kubernetes runtime on the SAP Business Technology Platform (BTP). When you use services on BTP, you are often running on a Gardener-managed Kubernetes cluster.
+SAP BTP, Gardener Service: Customers can use Gardener on BTP to provision and manage their own clusters on hyperscalers (AWS, Azure, GCP), which are then considered supported for running certain SAP applications.
+On-Premise with Vendor Solutions:
+SUSE Harvester with Rancher: SUSE is a key partner, and they have built solutions to run SAP workloads on their Kubernetes platforms.
+Red Hat OpenShift: Red Hat also has certified configurations and operators for running SAP applications on OpenShift.
+
+
+
+Why is a "Do-it-Yourself" Kubernetes Setup NOT Supported for Production?
+Running HANA on a generic Kubernetes cluster that you built yourself is not supported by SAP for production because of the immense complexity involved in meeting their requirements. An officially supported solution handles all of this for you:
+Certified Worker Nodes: The underlying virtual or physical machines for the K8s nodes must be SAP-certified.
+High-Performance Storage: A CSI (Container Storage Interface) driver must be available that can provide persistent storage meeting HANA's performance KPIs.
+Orchestration via a Certified Operator: A robust, certified Operator is needed to handle the complex lifecycle management:
+Correctly installing and configuring HANA (hdblcm).
+Managing the strict startup/shutdown sequence.
+Automating the HA failover (sr_takeover) and updating Kubernetes services correctly.
+Handling upgrades, backups, and restores in a HANA-aware manner.
+Kernel and OS Tuning: The host OS of the Kubernetes nodes must be SLES/RHEL for SAP and be correctly tuned.
+Networking: The CNI (Container Network Interface) must provide stable, low-latency networking.
+In short: SAP supports specific, end-to-end Kubernetes-based solutions, not the individual open-source components. A DIY setup is considered a development/learning environment.
+
+
+
+
+Summary Table
+Environment	Supported for Development / Learning?	Supported for Production?	Key Condition for Production Support
+Docker (Single Container)	Yes (Officially encouraged)	No (Absolutely not)	N/A
+DIY Kubernetes	Yes (Excellent for learning)	No	N/A
+Managed K8s Platforms	Yes	Yes	Must be a specific, SAP-certified solution (e.g., from SAP BTP, SUSE, or Red Hat).

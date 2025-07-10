@@ -1,0 +1,131 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: hana
+  namespace: hana
+spec:
+  clusterIP: None
+  selector:
+    app: hana
+  ports:
+    - name: sql
+      port: 39017
+      targetPort: 39017
+
+---
+
+# hana-data-pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hana-data
+  namespace: hana
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 200Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hana-log
+  namespace: hana
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 50Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hana-shared
+  namespace: hana
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 100Gi
+
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: hana
+  namespace: hana
+spec:
+  serviceName: "hana"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hana
+  template:
+    metadata:
+      labels:
+        app: hana
+    spec:
+      securityContext:
+        fsGroup: 1001       # matches sapsys group in the image
+      containers:
+      - name: hana
+        image: <your-registry>/sap-hana:full-<version>
+        resources:
+          requests:
+            memory: "128Gi"
+            cpu: "16"
+          limits:
+            memory: "256Gi"
+            cpu: "32"
+        env:
+        - name: HDBADM_PASS
+          valueFrom:
+            secretKeyRef:
+              name: hana-creds
+              key: HDBADM_PASS
+        ports:
+        - name: sql
+          containerPort: 39017
+        volumeMounts:
+        - name: data
+          mountPath: /hana/data
+        - name: log
+          mountPath: /hana/log
+        - name: shared
+          mountPath: /hana/shared
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ReadWriteOnce]
+      resources:
+        requests:
+          storage: 200Gi
+  - metadata:
+      name: log
+    spec:
+      accessModes: [ReadWriteOnce]
+      resources:
+        requests:
+          storage: 50Gi
+  - metadata:
+      name: shared
+    spec:
+      accessModes: [ReadWriteOnce]
+      resources:
+        requests:
+          storage: 100Gi
+
+--- 
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: hana-creds
+  namespace: hana
+type: Opaque
+stringData:
+  HDBADM_PASS: "YourStrongHanaAdminPassword!"

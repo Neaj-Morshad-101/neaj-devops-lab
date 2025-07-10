@@ -1,0 +1,19 @@
+# 1. Build & push your image
+docker build -t myregistry/sap-hana:full-2.0 -f Dockerfile.sap-hana .
+docker push myregistry/sap-hana:full-2.0
+
+# 2. Apply K8s manifests
+kubectl apply -f namespace.yaml
+kubectl apply -n hana -f hana-data-pvc.yaml
+kubectl apply -n hana -f hana-log-pvc.yaml
+kubectl apply -n hana -f hana-shared-pvc.yaml
+kubectl apply -n hana -f hana-creds.yaml
+kubectl apply -n hana -f hana-service.yaml
+kubectl apply -n hana -f hana-statefulset.yaml
+
+# 3. Watch for pod readiness
+kubectl -n hana rollout status sts/hana --timeout=15m
+
+# 4. Connect once ready
+kubectl -n hana exec -it sts/hana-0 -- \
+  hdbsql -i 00 -u SYSTEM -p $HDBADM_PASS "SELECT CURRENT_TIMESTAMP FROM DUMMY;"
