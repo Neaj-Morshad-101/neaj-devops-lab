@@ -703,3 +703,300 @@ Cause: Your host's security profile (like seccomp) is blocking system calls that
 Solution for non-production: You can run the container with --security-opt seccomp=unconfined. This is less secure but often works for local development. For a better solution, follow the instructions in the log to generate and apply a custom seccomp profile.
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Guide: Simulating a HANA System Replication Cluster with Docker
+This guide will walk you through setting up two HANA Express Docker containers, hana-primary and hana-secondary, and configuring them for system replication.
+Prerequisites
+A Powerful Linux Host: You need a single, powerful machine.
+RAM: 64 GB is strongly recommended. You will be running two full HANA instances, each needing ~24-32 GB of memory.
+CPU: 8+ modern CPU cores.
+Disk Space: 200 GB+ of fast SSD storage.
+Docker and Host Configuration: You must complete all the prerequisite steps from the single-instance Docker guide, specifically:
+Docker Engine is installed and running.
+Host kernel parameters in /etc/sysctl.conf are set and applied (sudo sysctl -p).
+Step 1: Prepare the Environment for Two Containers
+We need separate persistent data directories and password files for each container.
+For the Primary Container:
+Create the data directory and set permissions:
+Generated bash
+mkdir -p ~/hana_primary_data
+sudo chown 12000:79 ~/hana_primary_data
+￼content_copy
+￼download
+Use code with caution.
+Bash
+Create the password file:
+Generated bash
+nano ~/hana_primary_data/password.json
+￼content_copy
+￼download
+Use code with caution.
+Bash
+Add this content (use a strong password):
+Generated json
+{ "master_password": "YourPrimaryPa$$w0rd!" }
+￼content_copy
+￼download
+Use code with caution.
+Json
+Set permissions on the password file:
+Generated bash
+sudo chmod 600 ~/hana_primary_data/password.json
+sudo chown 12000:79 ~/hana_primary_data/password.json
+￼content_copy
+￼download
+Use code with caution.
+Bash
+For the Secondary Container:
+Create the data directory and set permissions:
+Generated bash
+mkdir -p ~/hana_secondary_data
+sudo chown 12000:79 ~/hana_secondary_data
+￼content_copy
+￼download
+Use code with caution.
+Bash
+Create the password file:
+Generated bash
+nano ~/hana_secondary_data/password.json
+￼content_copy
+￼download
+Use code with caution.
+Bash
+Add this content (it can be the same or a different password):
+Generated json
+{ "master_password": "YourSecondaryPa$$w0rd!" }
+￼content_copy
+￼download
+Use code with caution.
+Json
+Set permissions on the password file:
+Generated bash
+sudo chmod 600 ~/hana_secondary_data/password.json
+sudo chown 12000:79 ~/hana_secondary_data/password.json
+￼content_copy
+￼download
+Use code with caution.
+Bash
+Step 2: Deploy Both HANA Containers
+We will run two docker run commands. The key difference is the port mapping. We cannot map the same host port to two different containers, so we'll offset the ports for the secondary.
+Run the Primary Container (hana-primary)
+This uses the standard port mappings.
+Generated bash
+docker run -d \
+  --name hana-primary \
+  -h hana-primary \
+  -p 39013:39013 -p 39017:39017 -p 39041-39045:39041-39045 \
+  -v ~/hana_primary_data:/hana/mounts \
+  --ulimit nofile=1048576:1048576 \
+  saplabs/hanaexpress \
+  --passwords-url file:///hana/mounts/password.json \
+  --agree-to-sap-license
+￼content_copy
+￼download
+Use code with caution.
+Bash
+--name hana-primary: Names the container.
+-h hana-primary: Sets the hostname inside the container. This is important for replication.
+Run the Secondary Container (hana-secondary)
+Notice how the host ports (the number on the left of the colon) are different.
+Generated bash
+docker run -d \
+  --name hana-secondary \
+  -h hana-secondary \
+  -p 49013:39013 -p 49017:39017 -p 49041-49045:39041-39045 \
+  -v ~/hana_secondary_data:/hana/mounts \
+  --ulimit nofile=1048576:1048576 \
+  saplabs/hanaexpress \
+  --passwords-url file:///hana/mounts/password.json \
+  --agree-to-sap-license
+￼content_copy
+￼download
+Use code with caution.
+Bash
+--name hana-secondary: Names the container.
+-h hana-secondary: Sets its internal hostname.
+Monitor Startup
+Monitor the logs of both containers until they both report Startup finished!. This may take a while and will consume a lot of system resources.
+Generated bash
+docker logs -f hana-primary
+docker logs -f hana-secondary
+￼content_copy
+￼download
+Use code with caution.
+Bash
+Step 3: Configure System Replication
+Now we will manually run the commands to link the two running containers.
+1. Enable Replication on the Primary
+Get a shell inside the primary container and run hdbnsutil.
+Generated bash
+docker exec -it hana-primary bash
+
+# Inside the container as user hxeadm:
+hdbnsutil -sr_enable --name=SITE_A
+
+hxeadm@ef68bf5b1d15:/usr/sap/HXE/HDB90> hdbnsutil -sr_enable --name=SITE_A
+nameserver is active, proceeding ...
+system replication prerequisite check failed;exception 3000302: Backup has not yet been executed on primary system! Please backup primary system.
+; 
+failed. trace file nameserver_ef68bf5b1d15.00000.000.trc may contain more error details.
+hxeadm@ef68bf5b1d15:/usr/sap/HXE/HDB90> 
+
+
+
+
+
+
+
+
+
+
+
+2. Register the Secondary
+Get a shell inside the secondary container. You must stop HANA before you can register it.
+Generated bash
+docker exec -it hana-secondary bash
+
+# Inside the container as user hxeadm:
+# First, stop the HANA instance
+HDB stop
+
+# Now, register with the primary. We use the primary's container name as the host.
+# Docker's internal DNS will resolve `hana-primary` to the correct container IP.
+hdbnsutil -sr_register \
+  --name=SITE_B \
+  --remoteHost=hana-primary \
+  --remoteInstance=90 \
+  --replicationMode=sync
+
+# Start the secondary instance again. It will now start in recovery mode.
+HDB start
+￼content_copy
+￼download
+Use code with caution.
+Bash
+3. Verify the Replication Status
+You can now check the status from either container.
+Generated bash
+docker exec -it hana-primary bash
+
+# Inside the container:
+python /usr/sap/HXE/HDB90/exe/python_support/systemReplicationStatus.py
+￼content_copy
+￼download
+Use code with caution.
+Bash
+You should see both SITE_A and SITE_B listed, with their roles and a sync replication mode. Congratulations, your two-container "cluster" is now replicating data!
+
+
+
+
+
+
+Step 4: Simulate a Manual Failover
+This demonstrates what you would do in a disaster.
+Promote the Secondary:
+Get a shell inside the secondary container and run the takeover command.
+Generated bash
+docker exec -it hana-secondary bash
+
+# Inside the container:
+hdbnsutil -sr_takeover
+￼content_copy
+￼download
+Use code with caution.
+Bash
+After this command, hana-secondary is now the new Primary. It will start accepting read/write connections on its mapped ports (e.g., host port 49017).
+Check the Status of the Old Primary:
+The hana-primary container is now "fenced." If you check its status, it will be in an error state.
+Generated bash
+docker exec -it hana-primary bash
+HDB info 
+# --> This will likely show services are stopped or in an error state.
+￼content_copy
+￼download
+Use code with caution.
+Bash
+Re-registering the Old Primary (The final step):
+To bring the old primary back into the cluster as the new secondary, you would repeat the registration process, but in reverse.
+Generated bash
+￼content_copy
+￼download
+Use code with caution.
+Bash
+sh
+Stop the old primary instance
+docker exec -it hana-primary bash -c "HDB stop"
+Re-register it, now pointing to hana-secondary as the new primary
+docker exec -it hana-primary bash -c "hdbnsutil -sr_register --name=SITE_A --remoteHost=hana-secondary --remoteInstance=90 --replicationMode=sync"
+Start the old primary again. It will now be the secondary.
+docker exec -it hana-primary bash -c "HDB start"
+Generated code
+This manual process gives you a deep understanding of how HANA HA works under the hood, which is invaluable knowledge even when using an automated orchestrator like Kubernetes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
