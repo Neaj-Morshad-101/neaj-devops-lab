@@ -181,13 +181,9 @@ Part 3: Running the HANA Container
 
 Now you are ready to pull the image and run the container.
 Step 1: Pull the Docker Image
-Generated bash
 docker pull saplabs/hanaexpress
-￼content_copy
-￼download
-Use code with caution.
-Bash
 This will download the latest version of the HANA Express image.
+
 Step 2: Run the Docker Container
 This is the main command. It maps ports, mounts the data volume, sets resource limits, and passes the password file.
 Generated bash
@@ -626,10 +622,7 @@ Connect to the SYSTEM Database:
 Generated bash
 # The default instance number is 90
 hdbsql -i 90 -d systemdb -u SYSTEM -p 'YourStrongPassword1'
-￼content_copy
-￼download
-Use code with caution.
-Bash
+
 Connect to the Tenant Database (HXE):
 Generated bash
 hdbsql -i 90 -d HXE -u SYSTEM -p 'YourStrongPassword1'

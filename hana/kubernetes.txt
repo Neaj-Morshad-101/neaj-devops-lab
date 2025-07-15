@@ -1,0 +1,285 @@
+Manual HANA HA on Kubernetes with a Single StatefulSet
+
+Part 1: Kubernetes Resource Setup
+We will create a Secret, a headless Service, and a StatefulSet with replicas: 2.
+
+Secret: Contains the master password in the required password.json format. The data is base64 encoded.
+Service: A headless service that provides stable DNS names for our pods (hana-cluster-0 and hana-cluster-1).
+StatefulSet: Manages the two pods, ensuring they have stable identities and their own persistent storage.
+
+➤ kubectl apply -f hana-clsuter-sts.yaml
+secret/hana-cluster-auth created
+service/hana-pods created
+statefulset.apps/hana-cluster created
+
+
+
+
+
+. Monitor Pod Startup
+Wait for both pods, hana-cluster-0 and hana-cluster-1, to be in the Running state. This will take 5-15 minutes as each pod runs the internal HANA installation process using the password you provided.
+
+kubectl get pods -n hana-demo -w
+
+
+
+You can check the logs to see the progress. You are waiting for the Startup finished! message in the logs of both pods.
+Generated bash
+kubectl logs -f hana-cluster-0 -n hana-demo
+kubectl logs -f hana-cluster-1 -n hana-demo
+
+
+
+
+
+
+Step 2: Manually Configure System Replication
+At this point, you have two identical, independent HANA instances running. Now, we will configure them to replicate.
+
+
+1. Create a Backup and Enable Replication on the Primary (hana-cluster-0)
+
+HANA requires an initial backup before replication can be enabled.
+
+
+
+➤ kubectl exec -it -n demo hana-cluster-0 -- bash
+
+hxeadm@hana-cluster-0:/usr/sap/HXE/HDB90> HDB info
+USER          PID     PPID  %CPU        VSZ        RSS COMMAND
+hxeadm       2188        0   0.0       7212       4352 bash
+hxeadm       2253     2188   0.0       6432       3584  \_ /bin/sh /usr/sap/HXE/HDB90/HDB info
+hxeadm       2286     2253  66.6      23900       3840      \_ ps fx -U hxeadm -o user:8,pid:8
+hxeadm          1        0   0.0       2540       1536 sleep 5184000
+hxeadm          7        1   0.0       7344       4096 /bin/bash /run_hana --agree-to-sap-lice
+hxeadm        956        1   0.0     359568      52380 hdbdaemon
+hxeadm        962      956  36.8    5492180    2588436  \_ hdbnameserver
+hxeadm       1406      956   0.9     727748     191856  \_ hdbcompileserver
+hxeadm       1407      956   0.9     956320     208668  \_ hdbpreprocessor
+hxeadm       1443      956   1.1    1170984     353644  \_ hdbdiserver
+hxeadm       1444      956   1.4    1543804     447132  \_ hdbwebdispatcher
+hxeadm       1558      956  47.0    5117796    3472240  \_ hdbindexserver -port 39040
+hxeadm       1027        1   0.0     466828      38584 hdbrsutil  --start --port 39001 --volum
+hxeadm       1606        1   0.0     466900      38656 hdbrsutil  --start --port 39040 --volum
+
+hxeadm@hana-cluster-0:/usr/sap/HXE/HDB90> hdbsql -i 90 -d SYSTEMDB -u SYSTEM -p "HanaCluster123!"
+
+Welcome to the SAP HANA Database interactive terminal.
+                                           
+Type:  \h for help with commands          
+       \q to quit                         
+
+hdbsql SYSTEMDB=> 
+
+hdbsql SYSTEMDB=> BACKUP DATA USING FILE ('/hana/mounts/backup/data_backup')
+0 rows affected (overall time 2790.165 msec; server time 2789.981 msec)
+
+hdbsql SYSTEMDB=> q
+hxeadm@hana-cluster-0:/usr/sap/HXE/HDB90>
+hxeadm@hana-cluster-0:/usr/sap/HXE/HDB90> hdbnsutil -sr_enable --name=SITE_A
+nameserver is active, proceeding ...
+successfully enabled system as system replication source site
+done.
+hxeadm@hana-cluster-0:/usr/sap/HXE/HDB90> 
+
+
+hxeadm@hana-cluster-0:/usr/sap/HXE/HDB90> python /usr/sap/HXE/HDB90/exe/python_support/systemReplicationStatus.py
+there are no secondary sites attached
+
+Local System Replication State
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+mode: PRIMARY
+site id: 1
+site name: SITE_A
+hxeadm@hana-cluster-0:/usr/sap/HXE/HDB90> 
+
+
+
+
+
+
+
+
+2. Register the Secondary (hana-cluster-1)
+
+➤ kubectl exec -it -n demo hana-cluster-1 -- bash
+hxeadm@hana-cluster-1:/usr/sap/HXE/HDB90>
+
+
+
+
+# Now, register with the primary, using its stable DNS name
+# The name is <pod-name>.<service-name>.<namespace>.svc.cluster.local
+
+hxeadm@hana-cluster-1:/usr/sap/HXE/HDB90> hdbnsutil -sr_register   --name=SITE_B   --remoteHost=hana-cluster-0.hana-pods.demo.svc.cluster.local   --remoteInstance=90   --replicationMode=sync --online
+
+--operationMode not set; using default from global.ini/[system_replication]/operation_mode: logreplay
+adding site ...
+collecting information ...
+unable to contact primary site; to hana-cluster-0.hana-pods.demo.svc.cluster.local:49006; original error: ssl: bad certificate (Internal Error Details: exception  1: no.300015  (Crypto/Shared/SSL/CommonCrypto/Engine.cpp:487) TID: 2324
+    SSL certificate validation failed: SSL error [536872221]: Unknown error, General error: 0x2000051d | SAPCRYPTOLIB | SSL_connect
+SSL API error
+Failed to verify peer certificate. Peer not trusted.
+0xa0600203 | SSL_ | ssl3_connect
+Peer not trusted
+0xa0600203 | SSL_ | ssl3_get_server_certificate
+Peer not trusted
+0xa0600203 | SSL_ | ssl3_decode_server_certificate
+Peer not trusted
+0xa0600203 | SSL_ | ssl_verify_peer_certificates
+Peer not trusted
+0xa0600203 | SSL_ | ssl_cert_checker_verify_certificates
+Peer not trusted
+Certificate verification failed
+0xa0600203 | SSL_ | ssl_cert_checker_verify_certificates
+Peer not trusted
+----- BEGIN VERIFICATION RESULT -----
+ # --- Messages -----------
+ ERROR: Signature error. Issuer Cert: [00:51:2F:84] CN=DBaaS HXE, OU=HANA, O=SAP SE, L=Berlin, SP=Berlin, C=DE. Cert: [52:A2:1B:A0] CN=hana-cluster-0_HXE_90, O=SAP System PKI, C=DE.
+ # --- Summary ---,location=hana-cluster-0.hana-pods.demo.svc.cluster.local:49006. Are system PKI SSFS data and key files copied from the primary system to the secondary system? (Please refer to SAP Note 2369981); 
+failed. trace file nameserver_hana-cluster-1.00000.000.trc may contain more error details.
+
+
+
+
+
+neaj@neaj-pc:~/g/s/g/N/y/hana|main⚡*?
+➤ kubectl cp demo/hana-cluster-0:/usr/sap/HXE/SYS/global/security/rsecssfs/data/SSFS_HXE.DAT ./SSFS_HXE.DAT
+
+tar: Removing leading `/' from member names
+neaj@neaj-pc:~/g/s/g/N/y/hana|main⚡*?
+➤ kubectl cp demo/hana-cluster-0:/usr/sap/HXE/SYS/global/security/rsecssfs/key/SSFS_HXE.KEY ./SSFS_HXE.KEY
+
+tar: Removing leading `/' from member names
+neaj@neaj-pc:~/g/s/g/N/y/hana|main⚡*?
+➤ kubectl cp ./SSFS_HXE.DAT demo/hana-cluster-1:/usr/sap/HXE/SYS/global/security/rsecssfs/data/SSFS_HXE.DAT
+
+neaj@neaj-pc:~/g/s/g/N/y/hana|main⚡*?
+➤ kubectl cp ./SSFS_HXE.KEY demo/hana-cluster-1:/usr/sap/HXE/SYS/global/security/rsecssfs/key/SSFS_HXE.KEY
+
+neaj@neaj-pc:~/g/s/g/N/y/hana|main⚡*?
+➤ kubectl delete pod -n demo hana-cluster-1 
+pod "hana-cluster-1" deleted
+
+
+hxeadm@hana-cluster-1:/usr/sap/HXE/SYS/global/security/rsecssfs/key> hdbnsutil -sr_register \
+>   --name=SITE_B \
+>   --remoteHost=hana-cluster-0 \
+>   --remoteInstance=90 \
+>   --replicationMode=sync \
+>   --online
+--operationMode not set; using default from global.ini/[system_replication]/operation_mode: logreplay
+adding site ...
+collecting information ...
+unable to contact primary site host hana-cluster-0:49006. Internal Error Details: exception  1: no.2112401  (Basis/HanaNet/LSL/impl/GAIResolver.cpp:560) TID: 1449
+    Failed to resolve hostname [hana-cluster-0] with exception
+exception throw location:
+   0: 0x000073a2951c9b36 in TRexUtils::Deserializer::readBool()+0x2f77 (libhdbnetrpc.so)
+   1: 0x000073a294ff1ea2 in comm::resolve_name(char const*, char*, unsigned long)+0x131 (libhdbnetrpc.so)
+   2: 0x000073a29508c6bd in TrexNet::Configuration::getHostAddress(char const*, char*, unsigned long)+0x1ec (libhdbnetrpc.so)
+   3: 0x000073a2950ad501 in TrexNet::Requestor::getEndPoint(char const*, unsigned short, char)+0x70 (libhdbnetrpc.so)
+   4: 0x000073a2950af906 in TrexNet::Requestor::getChannel(char const*, unsigned short, TrexNet::RequestParameters const&)+0x85 (libhdbnetrpc.so)
+   5: 0x000073a2951204f9 in ltt::operator<<(ltt::basic_ostream<char, ltt::char_traits<char> >&, std::source_location const&)+0x9c78 (libhdbnetrpc.so)
+   6: 0x000073a29509a4f5 in TrexNet::Request::Request(ltt::basic_string_view<char, ltt::char_traits<char> >, Basis::HostAndPort const&, TrexNet::RequestParameters const&)+0x14 (libhdbnetrpc.so)
+   7: 0x000073a29881a3dd in NameServer::TNSClientCacheActiveServersRefresher::~TNSClientCacheActiveServersRefresher()+0x28ec (libhdbbasement.so)
+   8: 0x000073a2987e8cb3 in NameServer::TNSClientBase<NameServer::TNSClientErrorGuard<false> >::sendRequestTo(NameServer::Request const&, NameServer::Response&, ltt_adp::basic_string<char, ltt::char_traits<char>, ltt::integral_constant<bool, true> > const&, unsigned short, NameServer::TrexNetRequestHolder*, bool, char)+0x122 (libhdbbasement.so)
+   9: 0x000073a2986f3b3d in NameServer::DRClientBase<NameServer::TNSClientErrorGuard<false> >::drSendRequestTo(NameServer::Request&, NameServer::Response&, ltt_adp::basic_string<char, ltt::char_traits<char>, ltt::integral_constant<bool, true> > const&, unsigned short, unsigned short&, NameServer::TrexNetRequestHolder*, bool, bool)+0xcc (libhdbbasement.so)
+  10: 0x000073a29870739f in NameServer::DRClientBase<NameServer::TNSClientErrorGuard<false> >::drRegisterDatacenter(NameServer::RegistrationInputParameters&, ltt_adp::basic_string<char, ltt::char_traits<char>, ltt::integral_constant<bool, true> > const&, ltt_adp::basic_string<char, ltt::char_traits<char>, ltt::integral_constant<bool, true> > const&, bool const&, bool, bool, bool, bool, bool)+0x141e (libhdbbasement.so)
+  11: 0x000062ac014827d5 in ltt::exception_ptr::get_exception_ptr() const+0x46204 (hdbnsutil)
+  12: 0x000062ac0142b426 in __gmon_start__+0x38425 (hdbnsutil)
+  13: 0x000073a294126fae in mainInitialPhase+0xded (libhdbbasis.so)
+  14: 0x000073a292fdb1fd in __libc_start_main+0xee (libc.so.6)
+  15: 0x000062ac0142e959 in _start+0x28 (hdbnsutil)
+
+exception type information:
+ - 0: public HanaNet::RuntimeError@0x000073a294713f70 SI
+   - 0: public ltt::exception@0x000073a293618238
+exception  2: no.2050100  (Basis/System/SystemCall.hpp:377) TID: 1449
+    System call failed [addrinfo:-2]: Name or service not known
+exception throw location:
+   0: 0x000073a2941471ac in System::SystemCallException::SystemCallException(char const*, int, ltt::error_code const&)+0x3b (libhdbbasis.so)
+   1: 0x000073a2951d5ca2 in TRexUtils::Deserializer::readBool()+0xf0e3 (libhdbnetrpc.so)
+   2: 0x000073a2951d342f in TRexUtils::Deserializer::readBool()+0xc870 (libhdbnetrpc.so)
+   3: 0x000073a2950d7b3c in HanaNet::LSL::Socket::Socket(ltt::allocator&)+0x1db (libhdbnetrpc.so)
+   4: 0x000073a2950d7bb8 in HanaNet::LSL::Impl::GAIResolver::makeDNSEntry(HanaNet::LSL::HostNameView)+0x57 (libhdbnetrpc.so)
+   5: 0x000073a2950da868 in HanaNet::LSL::Impl::GAIResolver::resolveImpl(HanaNet::LSL::HostNameView)+0x327 (libhdbnetrpc.so)
+   6: 0x000073a294ff1ea2 in comm::resolve_name(char const*, char*, unsigned long)+0x131 (libhdbnetrpc.so)
+   7: 0x000073a29508c6bd in TrexNet::Configuration::getHostAddress(char const*, char*, unsigned long)+0x1ec (libhdbnetrpc.so)
+   8: 0x000073a2950ad501 in TrexNet::Requestor::getEndPoint(char const*, unsigned short, char)+0x70 (libhdbnetrpc.so)
+   9: 0x000073a2950af906 in TrexNet::Requestor::,location=hana-cluster-0:49006. Trying old-style port (port offset +100)...hana-cluster-0:49006
+unable to contact primary site; to hana-cluster-0:39106; original error: Internal Error Details: exception  1: no.2112401  (Basis/HanaNet/LSL/impl/GAIResolver.cpp:560) TID: 1449
+    Failed to resolve hostname [hana-cluster-0] with exception
+exception throw location:
+   0: 0x000073a2951c9b36 in TRexUtils::Deserializer::readBool()+0x2f77 (libhdbnetrpc.so)
+   1: 0x000073a294ff1ea2 in comm::resolve_name(char const*, char*, unsigned long)+0x131 (libhdbnetrpc.so)
+   2: 0x000073a29508c6bd in TrexNet::Configuration::getHostAddress(char const*, char*, unsigned long)+0x1ec (libhdbnetrpc.so)
+   3: 0x000073a2950ad501 in TrexNet::Requestor::getEndPoint(char const*, unsigned short, char)+0x70 (libhdbnetrpc.so)
+   4: 0x000073a2950af906 in TrexNet::Requestor::getChannel(char const*, unsigned short, TrexNet::RequestParameters const&)+0x85 (libhdbnetrpc.so)
+   5: 0x000073a2951204f9 in ltt::operator<<(ltt::basic_ostream<char, ltt::char_traits<char> >&, std::source_location const&)+0x9c78 (libhdbnetrpc.so)
+   6: 0x000073a29509a4f5 in TrexNet::Request::Request(ltt::basic_string_view<char, ltt::char_traits<char> >, Basis::HostAndPort const&, TrexNet::RequestParameters const&)+0x14 (libhdbnetrpc.so)
+   7: 0x000073a29881a3dd in NameServer::TNSClientCacheActiveServersRefresher::~TNSClientCacheActiveServersRefresher()+0x28ec (libhdbbasement.so)
+   8: 0x000073a2987e8cb3 in NameServer::TNSClientBase<NameServer::TNSClientErrorGuard<false> >::sendRequestTo(NameServer::Request const&, NameServer::Response&, ltt_adp::basic_string<char, ltt::char_traits<char>, ltt::integral_constant<bool, true> > const&, unsigned short, NameServer::TrexNetRequestHolder*, bool, char)+0x122 (libhdbbasement.so)
+   9: 0x000073a2986f3b3d in NameServer::DRClientBase<NameServer::TNSClientErrorGuard<false> >::drSendRequestTo(NameServer::Request&, NameServer::Response&, ltt_adp::basic_string<char, ltt::char_traits<char>, ltt::integral_constant<bool, true> > const&, unsigned short, unsigned short&, NameServer::TrexNetRequestHolder*, bool, bool)+0xcc (libhdbbasement.so)
+  10: 0x000073a2987087c0 in NameServer::DRClientBase<NameServer::TNSClientErrorGuard<false> >::drRegisterDatacenter(NameServer::RegistrationInputParameters&, ltt_adp::basic_string<char, ltt::char_traits<char>, ltt::integral_constant<bool, true> > const&, ltt_adp::basic_string<char, ltt::char_traits<char>, ltt::integral_constant<bool, true> > const&, bool const&, bool, bool, bool, bool, bool)+0x283f (libhdbbasement.so)
+  11: 0x000062ac014827d5 in ltt::exception_ptr::get_exception_ptr() const+0x46204 (hdbnsutil)
+  12: 0x000062ac0142b426 in __gmon_start__+0x38425 (hdbnsutil)
+  13: 0x000073a294126fae in mainInitialPhase+0xded (libhdbbasis.so)
+  14: 0x000073a292fdb1fd in __libc_start_main+0xee (libc.so.6)
+  15: 0x000062ac0142e959 in _start+0x28 (hdbnsutil)
+
+exception type information:
+ - 0: public HanaNet::RuntimeError@0x000073a294713f70 SI
+   - 0: public ltt::exception@0x000073a293618238
+exception  2: no.2050100  (Basis/System/SystemCall.hpp:377) TID: 1449
+    System call failed [addrinfo:-2]: Name or service not known
+exception throw location:
+   0: 0x000073a2941471ac in System::SystemCallException::SystemCallException(char const*, int, ltt::error_code const&)+0x3b (libhdbbasis.so)
+   1: 0x000073a2951d5ca2 in TRexUtils::Deserializer::readBool()+0xf0e3 (libhdbnetrpc.so)
+   2: 0x000073a2951d342f in TRexUtils::Deserializer::readBool()+0xc870 (libhdbnetrpc.so)
+   3: 0x000073a2950d7b3c in HanaNet::LSL::Socket::Socket(ltt::allocator&)+0x1db (libhdbnetrpc.so)
+   4: 0x000073a2950d7bb8 in HanaNet::LSL::Impl::GAIResolver::makeDNSEntry(HanaNet::LSL::HostNameView)+0x57 (libhdbnetrpc.so)
+   5: 0x000073a2950da868 in HanaNet::LSL::Impl::GAIResolver::resolveImpl(HanaNet::LSL::HostNameView)+0x327 (libhdbnetrpc.so)
+   6: 0x000073a294ff1ea2 in comm::resolve_name(char const*, char*, unsigned long)+0x131 (libhdbnetrpc.so)
+   7: 0x000073a29508c6bd in TrexNet::Configuration::getHostAddress(char const*, char*, unsigned long)+0x1ec (libhdbnetrpc.so)
+   8: 0x000073a2950ad501 in TrexNet::Requestor::getEndPoint(char const*, unsigned short, char)+0x70 (libhdbnetrpc.so)
+   9: 0x000073a2950af906 in TrexNet::Requestor::,location=hana-cluster-0:39106; 
+failed. trace file nameserver_hana-cluster-1.00000.000.trc may contain more error details.
+hxeadm@hana-cluster-1:/usr/sap/HXE/SYS/global/security/rsecssfs/key> 
+
+
+
+
+
+
+  kubectl exec -it -n demo hana-cluster-1 -- bash
+hxeadm@hana-cluster-1:/usr/sap/HXE/HDB90>  hdbnsutil -sr_register   --name=SITE_B   --remoteHost=hana-cluster-0   --remoteInstance=90   --replicationMode=sync --online
+
+--operationMode not set; using default from global.ini/[system_replication]/operation_mode: logreplay
+adding site ...
+collecting information ...
+INFO: no copy check for systemPKI SSFS files as primary does not support this (older version than secondary) or primary has deactivated it explicitly
+remoteHost does not match with any host of the source site. all hosts of source and target site must be able to resolve all hostnames of both sites correctly; 
+failed. trace file nameserver_hana-cluster-1.00000.000.trc may contain more error details.
+hxeadm@hana-cluster-1:/usr/sap/HXE/HDB90> 
+hxeadm@hana-cluster-1:/usr/sap/HXE/HDB90> 
+
+
+
+
+
+
+
+
+hxeadm@hana-cluster-1:/usr/sap/HXE/HDB90> hdbnsutil -sr_register \
+>   --name=SITE_B \
+>   --remoteHost=hana-cluster-0.hana-pods.demo.svc.cluster.local \
+>   --remoteInstance=90 \
+>   --replicationMode=sync \
+>   --online
+--operationMode not set; using default from global.ini/[system_replication]/operation_mode: logreplay
+adding site ...
+collecting information ...
+INFO: no copy check for systemPKI SSFS files as primary does not support this (older version than secondary) or primary has deactivated it explicitly
+remoteHost does not match with any host of the source site. all hosts of source and target site must be able to resolve all hostnames of both sites correctly; 
+failed. trace file nameserver_hana-cluster-1.00000.000.trc may contain more error details.

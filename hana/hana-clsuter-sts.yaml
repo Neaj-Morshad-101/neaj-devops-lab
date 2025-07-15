@@ -1,0 +1,125 @@
+# # hana-secret.yaml
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: hana-master-password
+#   namespace: hana-demo
+# stringData:
+#   # The key here can be anything, but we'll use it later
+#   MASTER_PASSWORD: "Pa$$w0rd!"
+
+
+# hana-cluster.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: hana-cluster-auth
+  namespace: demo
+data:
+  # The password.json key matches the file expected by the startup script
+  password.json: ewogICJtYXN0ZXJfcGFzc3dvcmQiOiAiSGFuYUNsdXN0ZXIxMjMhIgp9Cg== # {"master_password": "HanaCluster123!"}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hana-pods
+  namespace: demo
+spec:
+  clusterIP: None # Headless service for stable DNS
+  selector:
+    app: hana-cluster
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: hana-cluster
+  namespace: demo
+spec:
+  replicas: 2
+  serviceName: "hana-pods"
+  selector:
+    matchLabels:
+      app: hana-cluster
+  template:
+    metadata:
+      labels:
+        app: hana-cluster
+    spec:
+      subdomain: "hana-pods" # <-- Must match serviceName
+      containers:
+      - name: hana
+        image: saplabs/hanaexpress:latest
+        command:
+        - /bin/bash
+        - -c
+        - |
+          # This entire script runs as root
+          set -ex
+          
+          # --- Simplified /etc/hosts Configuration ---
+          # Determine peer's hostname based on my own hostname
+          if [[ "$(hostname)" == "hana-cluster-0" ]]; then
+            PEER_HOSTNAME="hana-cluster-1"
+          else
+            PEER_HOSTNAME="hana-cluster-0"
+          fi
+          
+          NAMESPACE=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+          PEER_FQDN="${PEER_HOSTNAME}.hana-pods.${NAMESPACE}.svc.cluster.local"
+          
+          echo "I am $(hostname). My peer is ${PEER_HOSTNAME}."
+          
+          # Wait until the peer's FQDN is resolvable via DNS
+          echo "Waiting for peer's DNS record..."
+          while ! getent hosts ${PEER_FQDN}; do
+            sleep 2
+          done
+          
+          # Get the peer's IP and add its short name to /etc/hosts to ensure
+          # HANA's strict name matching works correctly.
+          PEER_IP=$(getent hosts ${PEER_FQDN} | awk '{print $1}')
+          if ! grep -q "${PEER_IP} ${PEER_HOSTNAME}" /etc/hosts; then
+            echo "Adding peer to /etc/hosts: ${PEER_IP} ${PEER_HOSTNAME}"
+            echo "${PEER_IP} ${PEER_HOSTNAME}" >> /etc/hosts
+          fi
+          # ---------------------------------------------
+
+          # The original entrypoint
+          /run_hana --agree-to-sap-license --passwords-url file:///etc/hana-secrets/password.json &
+          # Wait for startup to finish, then sleep forever
+          sleep 5184000          # ~60 days
+        # Override the default entrypoint to run our script
+        # command: ["/bin/bash", "/scripts/startup.sh"]
+        securityContext:
+          privileged: true
+        ports:
+        - containerPort: 39013
+        - containerPort: 39017
+        - containerPort: 39041
+        volumeMounts:
+        # Mount the persistent volume
+        - name: hana-data
+          mountPath: /hana/mounts
+        # Mount the password secret
+        - name: password-secret
+          mountPath: /etc/hana-secrets
+        # Mount our startup script
+        # - name: startup-script
+        #   mountPath: /scripts
+      volumes:
+      - name: password-secret
+        secret:
+          secretName: hana-cluster-auth
+      # - name: startup-script
+      #   configMap:
+      #     name: hana-startup-script
+      #     defaultMode: 0755 # Make the script executable
+  volumeClaimTemplates:
+  - metadata:
+      name: hana-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: local-path # <-- IMPORTANT: Change this
+      resources:
+        requests:
+          storage: "100Gi"
