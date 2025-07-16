@@ -30,7 +30,7 @@ Install KubeDB:
 helm install kubedb oci://ghcr.io/appscode-charts/kubedb \
           --version v2025.6.30 \
           --namespace kubedb --create-namespace \
-          --set-file global.license=$HOME/Downloads/neaj-dag-remote-license.txt \
+          --set-file global.license=$HOME/Downloads/neaj-dag-license.txt \
           --set global.featureGates.MSSQLServer=true \
           --set global.featureGates.MySQL=true \
           --set global.featureGates.MariaDB=true \

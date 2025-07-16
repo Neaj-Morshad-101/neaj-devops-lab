@@ -1,0 +1,58 @@
+Demo Stuff: 
+
+neaj-dag -> 10.2.0.14    
+neaj-dag-remote -> 10.2.0.75
+
+
+You need to have a Kubernetes cluster
+
+Install KubeDB operator in your cluster. 
+Make sure install with helm command including --set global.featureGates.MSSQLServer=true to ensure MSSQLServer CRD installation.
+
+
+Install KubeDB:
+helm install kubedb oci://ghcr.io/appscode-charts/kubedb \
+          --version v2025.6.30 \
+          --namespace kubedb --create-namespace \
+          --set-file global.license=$HOME/Downloads/neaj-dag-remote-license.txt \
+          --set global.featureGates.MSSQLServer=true \
+          --set global.featureGates.MySQL=true \
+          --set global.featureGates.MariaDB=true \
+          --set global.featureGates.PerconaXtraDB=true \
+          --set global.featureGates.ProxySQL=true \
+          --set global.featureGates.Redis=true \
+          --set global.featureGates.Memcached=true \
+          --wait --timeout 15m0s --burst-limit=10000 --debug -f https://raw.githubusercontent.com/kubedb/installer/master/charts/kubedb/ci/ci-values.yaml
+
+
+We are going to deploy database in demo namespace.
+create namespace demo 
+
+
+Install cert-manger:
+To configure TLS/SSL in MSSQLServer, KubeDB uses cert-manager to issue certificates. So first you have to make sure that the cluster has cert-manager installed.
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.17.2/cert-manager.yaml
+
+Create Issuer: 
+This Issuer is used to create certificates. Then we are going to deploy a MSSQLServer AG cluster 
+create an example issuer: 
+
+Start off by generating our ca-certificates using openssl,
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ./ca.key -out ./ca.crt -subj "/CN=MSSQLServer/O=kubedb"
+
+create a secret using the certificate files we have just generated,
+kubectl create secret tls mssqlserver-ca --cert=ca.crt  --key=ca.key --namespace=demo 
+
+Now, we are going to create an Issuer using the mssqlserver-ca secret that contains the ca-certificate we have just created. The YAML of the Issuer cr that we are going to create is, mssqlserver-ca-issuer.yaml 
+
+Let’s create the Issuer cr we have shown, 
+kubectl apply -f mssqlserver-ca-issuer.yaml
+
+
+
+
+apply primary and secondary service, then primary and secondary ag.yaml 
+
+
+watch kubectl get ms,petset,pods,svc,secrets,issuer,pvc -n demo
+

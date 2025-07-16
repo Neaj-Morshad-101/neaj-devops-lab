@@ -283,3 +283,158 @@ collecting information ...
 INFO: no copy check for systemPKI SSFS files as primary does not support this (older version than secondary) or primary has deactivated it explicitly
 remoteHost does not match with any host of the source site. all hosts of source and target site must be able to resolve all hostnames of both sites correctly; 
 failed. trace file nameserver_hana-cluster-1.00000.000.trc may contain more error details.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+You have hit on the absolute core of the problem, and your thinking is exactly right.
+Yes, to solve the "Permission denied" error when writing to /etc/hosts, you must ensure that part of the script runs as the root user.
+However, you do not need to modify the HANA image itself. The beauty of Kubernetes is that you can control the execution context from your YAML manifest.
+Let's break down why this is happening and the correct way to fix it in your StatefulSet definition.
+The Problem: User Context in the saplabs/hanaexpress Image
+Default User: The saplabs/hanaexpress Docker image is designed for security and best practices. Its Dockerfile likely contains a USER hxeadm instruction. This means that when you run the container, the main process (/run_hana) starts as the non-privileged hxeadm user by default.
+Kubernetes Command: When you specify a command in your Kubernetes pod spec, that command is executed by the container's default user. In this case, your entire startup script is being executed as hxeadm.
+The Permission Error: The hxeadm user does not have permission to write to the /etc/hosts file, which is owned by root. This is standard Linux security.
+The Solution: Run the Startup Script as root
+We need to tell Kubernetes to run our specific startup logic as the root user before handing off control to the main HANA process. We can do this cleanly within the StatefulSet manifest without building a new image.
+The securityContext field in a container spec allows us to override the default user.
+A More Advanced (But Correct) Approach: The Init Container
+The most "Kubernetes-native" and robust way to handle privileged, one-time setup tasks is with an Init Container.
+What is an Init Container? It's a special container that runs to completion before the main application container starts. It's perfect for tasks like setting up permissions, populating configuration, or, in our case, modifying /etc/hosts.
+Here is how you would modify your StatefulSet to use this pattern.
+Final, Corrected hana-cluster.yaml using an Init Container
+Generated yaml
+# hana-cluster.yaml
+# ... (Secret and Service manifests are fine) ...
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: hana-cluster
+  namespace: hana-demo
+spec:
+  replicas: 2
+  serviceName: "hana-pods"
+  selector:
+    matchLabels:
+      app: hana-cluster
+  template:
+    metadata:
+      labels:
+        app: hana-cluster
+    spec:
+      subdomain: "hana-pods"
+      # --- Init Container for privileged setup ---
+      initContainers:
+      - name: configure-hosts
+        image: busybox:1.36 # Use a small, simple image for the task
+        # This container will run as root by default
+        command:
+        - /bin/sh
+        - -c
+        - |
+          set -ex
+          
+          # Determine peer's hostname based on my own hostname
+          if [[ "$(hostname)" == "hana-cluster-0" ]]; then
+            PEER_HOSTNAME="hana-cluster-1"
+          else
+            PEER_HOSTNAME="hana-cluster-0"
+          fi
+          
+          NAMESPACE=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+          PEER_FQDN="${PEER_HOSTNAME}.hana-pods.${NAMESPACE}.svc.cluster.local"
+          
+          # Wait until the peer's FQDN is resolvable
+          while ! getent hosts ${PEER_FQDN}; do
+            echo "InitContainer: Waiting for peer DNS..."
+            sleep 2
+          done
+          
+          # Get the peer's IP and add it to a temporary file
+          PEER_IP=$(getent hosts ${PEER_FQDN} | awk '{print $1}')
+          echo "${PEER_IP} ${PEER_HOSTNAME}" > /hosts-share/peer_entry
+          
+          echo "InitContainer: Host entry prepared."
+        volumeMounts:
+        # Mount a shared volume to pass the hosts entry to the main container
+        - name: hosts-share
+          mountPath: /hosts-share
+
+      # --- Main Application Container ---
+      containers:
+      - name: hana
+        image: saplabs/hanaexpress:latest
+        command:
+        - /bin/bash
+        - -c
+        - |
+          # This part of the script runs as root before run_hana drops privileges
+          set -ex
+          
+          # Append the peer entry prepared by the init container to /etc/hosts
+          cat /hosts-share/peer_entry >> /etc/hosts
+          echo "Appended peer to /etc/hosts:"
+          cat /etc/hosts
+
+          # Now, hand off to the main entrypoint
+          exec /run_hana --agree-to-sap-license --passwords-url file:///etc/hana-secrets/password.json
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: hana-data
+          mountPath: /hana/mounts
+        - name: password-secret
+          mountPath: /etc/hana-secrets
+          readOnly: true
+        # Mount the shared volume to read the hosts entry
+        - name: hosts-share
+          mountPath: /hosts-share
+      
+      volumes:
+      - name: password-secret
+        secret:
+          secretName: hana-cluster-auth
+      # Define the shared volume
+      - name: hosts-share
+        emptyDir: {} # A simple, temporary volume shared between init and main containers
+  
+  volumeClaimTemplates:
+  - metadata:
+      name: hana-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: your-fast-storageclass # <-- IMPORTANT: Change this
+      resources:
+        requests:
+          storage: "100Gi"
+￼content_copy
+￼download
+Use code with caution.
+Yaml
+Why the Init Container Approach is Better
+Separation of Concerns: The privileged task (network discovery and host file preparation) is done in a minimal, separate busybox container. The main hana container's startup logic is simpler.
+Clarity: It makes the startup sequence explicit. Kubernetes guarantees that the initContainers will run to completion before the main containers are started.
+Security: While the main hana container still needs privileged: true, you are isolating the host file modification logic. The main container's script is now much simpler.
+How it Works:
+An emptyDir volume named hosts-share is created for the pod.
+The configure-hosts init container runs as root, does the DNS lookup, and writes the single line (10.x.x.x hana-cluster-0) into a file on this shared volume.
+The init container exits.
+The main hana container starts. Its startup script (also running as root initially) simply appends the content from the shared file into /etc/hosts and then execs the run_hana process.
+This pattern correctly solves the permissions issue in a clean, declarative, and Kubernetes-native way.
+
+
+
