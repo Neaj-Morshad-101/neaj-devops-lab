@@ -145,18 +145,18 @@ failed. trace file nameserver_hana-cluster-1.00000.000.trc may contain more erro
 
 
 neaj@neaj-pc:~/g/s/g/N/y/hana|main⚡*?
-➤ kubectl cp demo/hana-cluster-0:/usr/sap/HXE/SYS/global/security/rsecssfs/data/SSFS_HXE.DAT ./SSFS_HXE.DAT
+kubectl cp demo/hana-cluster-0:/usr/sap/HXE/SYS/global/security/rsecssfs/data/SSFS_HXE.DAT ./SSFS_HXE.DAT
 
 tar: Removing leading `/' from member names
 neaj@neaj-pc:~/g/s/g/N/y/hana|main⚡*?
-➤ kubectl cp demo/hana-cluster-0:/usr/sap/HXE/SYS/global/security/rsecssfs/key/SSFS_HXE.KEY ./SSFS_HXE.KEY
+kubectl cp demo/hana-cluster-0:/usr/sap/HXE/SYS/global/security/rsecssfs/key/SSFS_HXE.KEY ./SSFS_HXE.KEY
 
 tar: Removing leading `/' from member names
 neaj@neaj-pc:~/g/s/g/N/y/hana|main⚡*?
-➤ kubectl cp ./SSFS_HXE.DAT demo/hana-cluster-1:/usr/sap/HXE/SYS/global/security/rsecssfs/data/SSFS_HXE.DAT
+kubectl cp ./SSFS_HXE.DAT demo/hana-cluster-1:/usr/sap/HXE/SYS/global/security/rsecssfs/data/SSFS_HXE.DAT
 
 neaj@neaj-pc:~/g/s/g/N/y/hana|main⚡*?
-➤ kubectl cp ./SSFS_HXE.KEY demo/hana-cluster-1:/usr/sap/HXE/SYS/global/security/rsecssfs/key/SSFS_HXE.KEY
+kubectl cp ./SSFS_HXE.KEY demo/hana-cluster-1:/usr/sap/HXE/SYS/global/security/rsecssfs/key/SSFS_HXE.KEY
 
 neaj@neaj-pc:~/g/s/g/N/y/hana|main⚡*?
 ➤ kubectl delete pod -n demo hana-cluster-1 
@@ -438,3 +438,442 @@ This pattern correctly solves the permissions issue in a clean, declarative, and
 
 
 
+
+
+
+
+
+
+
+hxeadm@hana-cluster-1:/usr/sap/HXE/HDB90> hdbnsutil -sr_register   --name=SITE_B   --remoteHost=hana-cluster-0   --remoteInstance=90   --replicationMode=sync --online
+--operationMode not set; using default from global.ini/[system_replication]/operation_mode: logreplay
+adding site ...
+collecting information ...
+updating local ini files ...
+done.
+hxeadm@hana-cluster-1:/usr/sap/HXE/HDB90> 
+
+
+
+hxeadm@hana-cluster-1:/usr/sap/HXE/HDB90> python /usr/sap/HXE/HDB90/exe/python_support/systemReplicationStatus.py
+this system is either not running or not primary system replication site
+
+Local System Replication State
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+mode: SYNC
+site id: 2
+site name: SITE_B
+active primary site: 1
+primary masters: hana-cluster-0
+hxeadm@hana-cluster-1:/usr/sap/HXE/HDB90> 
+
+
+
+
+
+
+
+
+Part 1: Verifying the System Replication Cluster
+
+Step 1: Check the Status on the Primary (hana-cluster-0)
+
+
+hxeadm@hana-cluster-0:/usr/sap/HXE/HDB90> python /usr/sap/HXE/HDB90/exe/python_support/systemReplicationStatus.py
+|Database |Host           |Port  |Service Name |Volume ID |Site ID |Site Name |Secondary      |Secondary |Secondary |Secondary |Secondary     |Replication |Replication |Replication                                                                   |Secondary    |
+|         |               |      |             |          |        |          |Host           |Port      |Site ID   |Site Name |Active Status |Mode        |Status      |Status Details                                                                |Fully Synced |
+|-------- |-------------- |----- |------------ |--------- |------- |--------- |-------------- |--------- |--------- |--------- |------------- |----------- |----------- |----------------------------------------------------------------------------- |------------ |
+|SYSTEMDB |hana-cluster-0 |39001 |nameserver   |        1 |      1 |SITE_A    |hana-cluster-1 |    39001 |        2 |SITE_B    |YES           |SYNC        |ACTIVE      |                                                                              |        True |
+|HXE      |hana-cluster-0 |39040 |indexserver  |        2 |      1 |SITE_A    |hana-cluster-1 |    39040 |        2 |SITE_B    |STARTING      |SYNC        |ERROR       |Connection refused: Primary needs initial data backup for system replication! |       False |
+
+status system replication site "2": ERROR
+overall system replication status: ERROR
+
+Local System Replication State
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+mode: PRIMARY
+site id: 1
+site name: SITE_A
+hxeadm@hana-cluster-0:/usr/sap/HXE/HDB90> hdbsql -i 90 -d HXE -u SYSTEM -p "HanaCluster123!"
+
+Welcome to the SAP HANA Database interactive terminal.
+                                           
+Type:  \h for help with commands          
+       \q to quit                         
+
+hdbsql HXE=> BACKUP DATA USING FILE ('/hana/mounts/backup/data_backup');
+0 rows affected (overall time 22.954223 sec; server time 22.954029 sec)
+
+hdbsql HXE=> python /usr/sap/HXE/HDB90/exe/python_support/systemReplicationStatus.py
+* 257: sql syntax error: incorrect syntax near "python": line 1 col 1 (at pos 1) SQLSTATE: HY000
+hdbsql HXE=> q
+hxeadm@hana-cluster-0:/usr/sap/HXE/HDB90> python /usr/sap/HXE/HDB90/exe/python_support/systemReplicationStatus.py
+|Database |Host           |Port  |Service Name |Volume ID |Site ID |Site Name |Secondary      |Secondary |Secondary |Secondary |Secondary     |Replication |Replication |Replication    |Secondary    |
+|         |               |      |             |          |        |          |Host           |Port      |Site ID   |Site Name |Active Status |Mode        |Status      |Status Details |Fully Synced |
+|-------- |-------------- |----- |------------ |--------- |------- |--------- |-------------- |--------- |--------- |--------- |------------- |----------- |----------- |-------------- |------------ |
+|SYSTEMDB |hana-cluster-0 |39001 |nameserver   |        1 |      1 |SITE_A    |hana-cluster-1 |    39001 |        2 |SITE_B    |YES           |SYNC        |ACTIVE      |               |        True |
+|HXE      |hana-cluster-0 |39040 |indexserver  |        2 |      1 |SITE_A    |hana-cluster-1 |    39040 |        2 |SITE_B    |YES           |SYNC        |ACTIVE      |               |        True |
+
+status system replication site "2": ACTIVE
+overall system replication status: ACTIVE
+
+Local System Replication State
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+mode: PRIMARY
+site id: 1
+site name: SITE_A
+hxeadm@hana-cluster-0:/usr/sap/HXE/HDB90> 
+
+
+
+
+Check with SQL (Optional but good to know):
+
+
+
+
+hxeadm@hana-cluster-0:/hana/mounts/backup> hdbsql -i 90 -d SYSTEMDB -u SYSTEM -p "HanaCluster123!" 
+
+Welcome to the SAP HANA Database interactive terminal.
+                                           
+Type:  \h for help with commands          
+       \q to quit                         
+
+hdbsql SYSTEMDB=> SELECT * FROM "SYS_DATABASES"."M_SERVICE_REPLICATION";SELECT * FROM "SYS_DATABASES"."M_SERVICE_REPLICATION";SELECT * FROM "SYS_DATABASES"."M_SERVICE_REPLICATION";
+* 257: sql syntax error: incorrect syntax near "SELECT": line 1 col 55 (at pos 55) SQLSTATE: HY000
+hdbsql SYSTEMDB=> SELECT * FROM "SYS_DATABASES"."M_SERVICE_REPLICATION";SELECT * FROM "SYS_DATABASES"."M_SERVICE_REPLICATION";SELECT * FROM "SYS_DATABASES"."M_SERVICE_REPLICATION";
+* 257: sql syntax error: incorrect syntax near "SELECT": line 1 col 55 (at pos 55) SQLSTATE: HY000
+hdbsql SYSTEMDB=> SELECT * FROM "SYS_DATABASES"."M_SERVICE_REPLICATION";
+DATABASE_NAME,HOST,PORT,VOLUME_ID,SITE_ID,SITE_NAME,SECONDARY_HOST,SECONDARY_PORT,SECONDARY_SITE_ID,SECONDARY_SITE_NAME,SECONDARY_ACTIVE_STATUS,SECONDARY_CON
+NECT_TIME,SECONDARY_RECONNECT_COUNT,SECONDARY_FAILOVER_COUNT,SECONDARY_FULLY_RECOVERABLE,REPLICATION_MODE,REPLICATION_STATUS,REPLICATION_STATUS_DETAILS,FULL_
+SYNC,LAST_LOG_POSITION,LAST_LOG_POSITION_TIME,LAST_SAVEPOINT_VERSION,LAST_SAVEPOINT_LOG_POSITION,LAST_SAVEPOINT_START_TIME,SHIPPED_LOG_POSITION,SHIPPED_LOG_P
+OSITION_TIME,SHIPPED_LOG_BUFFERS_COUNT,SHIPPED_LOG_BUFFERS_SIZE,SHIPPED_LOG_BUFFERS_DURATION,REPLAYED_LOG_POSITION,REPLAYED_LOG_POSITION_TIME,SHIPPED_SAVEPOI
+NT_VERSION,SHIPPED_SAVEPOINT_LOG_POSITION,SHIPPED_SAVEPOINT_START_TIME,SHIPPED_FULL_REPLICA_COUNT,SHIPPED_FULL_REPLICA_SIZE,SHIPPED_FULL_REPLICA_DURATION,SHI
+PPED_LAST_FULL_REPLICA_SIZE,SHIPPED_LAST_FULL_REPLICA_START_TIME,SHIPPED_LAST_FULL_REPLICA_END_TIME,SHIPPED_DELTA_REPLICA_COUNT,SHIPPED_DELTA_REPLICA_SIZE,SH
+IPPED_DELTA_REPLICA_DURATION,SHIPPED_LAST_DELTA_REPLICA_SIZE,SHIPPED_LAST_DELTA_REPLICA_START_TIME,SHIPPED_LAST_DELTA_REPLICA_END_TIME,ASYNC_BUFFER_TOTAL_SIZ
+E,ASYNC_BUFFER_USED_SIZE,ASYNC_BUFFER_MAX_USED_SIZE,ASYNC_BUFFER_FULL_COUNT,BACKLOG_SIZE,MAX_BACKLOG_SIZE,BACKLOG_TIME,MAX_BACKLOG_TIME,REPLAY_BACKLOG_SIZE,M
+AX_REPLAY_BACKLOG_SIZE,REPLAY_BACKLOG_TIME,MAX_REPLAY_BACKLOG_TIME
+"SYSTEMDB","hana-cluster-0",39001,1,1,"SITE_A","hana-cluster-1",39001,2,"SITE_B","YES","2025-07-29 11:52:35.517455000",0,0,"TRUE","SYNC","ACTIVE","","DISABLE
+D",4251648,"2025-07-29 12:09:30.985859000",45,4249730,"2025-07-29 12:07:50.987251000",4251648,"2025-07-29 12:09:30.985859000",301,1417216,13490121,4251648,"2
+025-07-29 12:09:30.985859000",36,4229634,"2025-07-29 11:52:36.110612000",1,151031808,2381847,151031808,"2025-07-29 11:52:36.110612000","2025-07-29 11:52:38.4
+92459000",0,0,0,0,?,?,0,0,0,0,0,0,0,0,0,36864,0,20962634
+"HXE","hana-cluster-0",39040,2,1,"SITE_A","hana-cluster-1",39040,2,"SITE_B","YES","2025-07-29 12:04:12.722607000",0,0,"TRUE","SYNC","ACTIVE","","DISABLED",36
+30784,"2025-07-29 12:09:21.119411000",34,3612226,"2025-07-29 12:04:36.488798000",3630784,"2025-07-29 12:09:21.119411000",277,1220608,1066179,3630784,"2025-07
+-29 12:09:21.119411000",30,3611778,"2025-07-29 12:04:13.223556000",1,167813120,2410915,167813120,"2025-07-29 12:04:13.223556000","2025-07-29 12:04:15.6344710
+00",0,0,0,0,?,?,0,0,0,0,0,0,0,0,0,139264,0,20002584
+2 rows selected (overall time 14.822 msec; server time 8043 usec)
+
+hdbsql SYSTEMDB=> 
+
+
+
+
+Step 2: Check the Status on the Secondary (hana-cluster-1)
+
+
+
+hxeadm@hana-cluster-1:/usr/sap/HXE/HDB90> HDB info
+USER          PID     PPID  %CPU        VSZ        RSS COMMAND
+hxeadm       2345        0   0.0       7212       4096 bash
+hxeadm       2824     2345   0.0       6432       3584  \_ /bin/sh /usr/sap/HXE/HDB90/HDB info
+hxeadm       2857     2824  66.6      23900       3840      \_ ps fx -U hxeadm -o user:8,pid:8
+hxeadm          1        0   0.0       2540       1280 sleep 5184000
+hxeadm         14        1   0.0       7344       4096 /bin/bash /run_hana --agree-to-sap-lice
+hxeadm        953        1   0.0     356500      53660 hdbdaemon
+hxeadm       2438      953   1.9    3176244    1520480  \_ hdbnameserver
+hxeadm       2506      953   0.7     827640     204848  \_ hdbcompileserver
+hxeadm       2507      953   0.8     954652     219180  \_ hdbpreprocessor
+hxeadm       2542      953   2.2    3707552    1613432  \_ hdbindexserver -port 39040
+hxeadm       2684      953   0.8    1171444     339712  \_ hdbdiserver
+hxeadm       2685      953   1.1    1478272     426564  \_ hdbwebdispatcher
+hxeadm       1026        1   0.0          0          0 [hdbrsutil] <defunct>
+hxeadm       1576        1   0.0          0          0 [hdbrsutil] <defunct>
+hxeadm       2656        1   0.0     466916      38764 hdbrsutil  --start --port 39001 --volum
+hxeadm       2809        1   0.0     466996      38828 hdbrsutil  --start --port 39040 --volum
+hxeadm@hana-cluster-1:/usr/sap/HXE/HDB90> python /usr/sap/HXE/HDB90/exe/python_support/systemReplicationStatus.py
+this system is either not running or not primary system replication site
+
+Local System Replication State
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+mode: SYNC
+site id: 2
+site name: SITE_B
+active primary site: 1
+primary masters: hana-cluster-0
+hxeadm@hana-cluster-1:/usr/sap/HXE/HDB90> 
+
+
+
+
+
+
+
+
+
+
+
+Step 3: Test Data Replication (The Ultimate Proof)
+
+
+
+Insert data on the Primary:
+
+pod 0:
+
+hdbsql SYSTEMDB=> CREATE TABLE TEST_REPLICATION (ID INT, MSG VARCHAR(50));
+0 rows affected (overall time 9013 usec; server time 8855 usec)
+
+hdbsql SYSTEMDB=> INSERT INTO TEST_REPLICATION VALUES (1, 'Replication is working!');
+1 row affected (overall time 3047 usec; server time 1878 usec)
+
+hdbsql SYSTEMDB=> SELECT * FROM TEST_REPLICATION;
+ID,MSG
+1,"Replication is working!"
+1 row selected (overall time 7988 usec; server time 262 usec)
+
+hdbsql SYSTEMDB=> q
+hxeadm@hana-cluster-0:/hana/mounts/backup> python /usr/sap/HXE/HDB90/exe/python_support/systemReplicationStatus.py
+|Database |Host           |Port  |Service Name |Volume ID |Site ID |Site Name |Secondary      |Secondary |Secondary |Secondary |Secondary     |Replication |Replication |Replication    |Secondary    |
+|         |               |      |             |          |        |          |Host           |Port      |Site ID   |Site Name |Active Status |Mode        |Status      |Status Details |Fully Synced |
+|-------- |-------------- |----- |------------ |--------- |------- |--------- |-------------- |--------- |--------- |--------- |------------- |----------- |----------- |-------------- |------------ |
+|SYSTEMDB |hana-cluster-0 |39001 |nameserver   |        1 |      1 |SITE_A    |hana-cluster-1 |    39001 |        2 |SITE_B    |YES           |SYNC        |ACTIVE      |               |        True |
+|HXE      |hana-cluster-0 |39040 |indexserver  |        2 |      1 |SITE_A    |hana-cluster-1 |    39040 |        2 |SITE_B    |YES           |SYNC        |ACTIVE      |               |        True |
+
+status system replication site "2": ACTIVE
+overall system replication status: ACTIVE
+
+Local System Replication State
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+mode: PRIMARY
+site id: 1
+site name: SITE_A
+hxeadm@hana-cluster-0:/hana/mounts/backup> 
+
+
+
+
+
+
+Verify data on the Secondary:
+IMPORTANT: A secondary replica in a standard system replication setup cannot be read from directly. Its databases are not active for queries. You would need to configure "Active/Active (Read Enabled)" mode to query it, which is a more advanced topic.
+The successful status from systemReplicationStatus.py is your confirmation that the data has been replicated.
+
+
+
+
+hxeadm@hana-cluster-1:/usr/sap/HXE/HDB90> python /usr/sap/HXE/HDB90/exe/python_support/systemReplicationStatus.py
+this system is either not running or not primary system replication site
+
+Local System Replication State
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+mode: SYNC
+site id: 2
+site name: SITE_B
+active primary site: 1
+primary masters: hana-cluster-0
+hxeadm@hana-cluster-1:/usr/sap/HXE/HDB90> 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Part 2: Testing a Manual Failover (The Takeover)
+
+
+
+
+
+
+
+Step 1: Promote the Secondary (hana-cluster-1)
+
+hxeadm@hana-cluster-1:/usr/sap/HXE/HDB90> hdbnsutil -sr_takeover
+
+done.
+hxeadm@hana-cluster-1:/usr/sap/HXE/HDB90> 
+hxeadm@hana-cluster-1:/usr/sap/HXE/HDB90> python /usr/sap/HXE/HDB90/exe/python_support/systemReplicationStatus.py
+there are no secondary sites attached
+
+Local System Replication State
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+mode: PRIMARY
+site id: 2
+site name: SITE_B
+
+
+hxeadm@hana-cluster-1:/usr/sap/HXE/HDB90> hdbsql -i 90 -d SYSTEMDB -u SYSTEM -p "HanaCluster123!"
+
+Welcome to the SAP HANA Database interactive terminal.
+                                           
+Type:  \h for help with commands          
+       \q to quit                         
+
+hdbsql SYSTEMDB=> SELECT * FROM "SYSTEM"."TEST_REPLICATION";
+ID,MSG
+1,"Replication is working!"
+1 row selected (overall time 9936 usec; server time 256 usec)
+
+hdbsql SYSTEMDB=> INSERT INTO TEST_REPLICATION VALUES (2, 'Failover successful!');
+1 row affected (overall time 18.155 msec; server time 624 usec)
+
+hdbsql SYSTEMDB=> SELECT * FROM "SYSTEM"."TEST_REPLICATION";
+ID,MSG
+1,"Replication is working!"
+2,"Failover successful!"
+2 rows selected (overall time 7323 usec; server time 283 usec)
+
+hdbsql SYSTEMDB=> 
+
+
+
+
+
+
+Step 3: What about the Old Primary? (Fencing)
+The old primary, hana-cluster-0, is now "fenced". HANA's internal mechanisms will prevent it from starting up as a primary to avoid a "split-brain" scenario where you have two active primaries. If you try to check its status, you'll likely see the services are stopped or in an error state.
+
+
+
+hxeadm@hana-cluster-0:/hana/mounts/backup> python /usr/sap/HXE/HDB90/exe/python_support/systemReplicationStatus.py
+there are no secondary sites attached
+
+Local System Replication State
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+mode: PRIMARY
+site id: 1
+site name: SITE_A
+
+
+
+hxeadm@hana-cluster-0:/hana/mounts/backup> HDB stop
+hdbdaemon will wait maximal 300 seconds for NewDB services finishing.
+Stopping instance using: /usr/sap/HXE/SYS/exe/hdb/sapcontrol -prot NI_HTTP -nr 90 -function Stop 400
+
+29.07.2025 12:44:29
+Stop
+FAIL: NIECONN_REFUSED (Connection refused), NiRawConnect failed in plugin_fopen()
+
+
+
+
+
+hxeadm@hana-cluster-0:/hana/mounts/backup> hdbnsutil -sr_register \
+>   --name=SITE_A \
+>   --remoteHost=hana-cluster-1 \
+>   --remoteInstance=90 \
+>   --replicationMode=sync \
+>   --online
+--operationMode not set; using default from global.ini/[system_replication]/operation_mode: logreplay
+adding site ...
+collecting information ...
+updating local ini files ...
+done.
+hxeadm@hana-cluster-0:/hana/mounts/backup> python /usr/sap/HXE/HDB90/exe/python_support/systemReplicationStatus.py
+this system is either not running or not primary system replication site
+
+Local System Replication State
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+mode: SYNC
+site id: 1
+site name: SITE_A
+active primary site: 2
+primary masters: hana-cluster-1
+
+
+
+
+
+Now, hana-cluster-0 will start up as a secondary, connect to the new primary (hana-cluster-1), and begin synchronizing any changes that happened while it was offline. You have successfully completed a full manual failover and failback cycle. This is the exact set of commands your Raft-based operator will need to automate.
+
+
+
+
+
+
+
+
+
+hxeadm@hana-cluster-0:/hana/mounts> hdbnsutil -sr_state
+
+System Replication State
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+online: true
+
+mode: sync
+operation mode: logreplay
+site id: 1
+site name: SITE_A
+
+is source system: false
+is secondary/consumer system: true
+has secondaries/consumers attached: false
+is a takeover active: false
+is primary suspended: false
+is timetravel enabled: false
+replay mode: auto
+active primary site: 2
+
+primary masters: hana-cluster-1
+
+Host Mappings:
+~~~~~~~~~~~~~~
+
+hana-cluster-0 -> [SITE_B] hana-cluster-1
+hana-cluster-0 -> [SITE_A] hana-cluster-0
+
+
+Site Mappings:
+~~~~~~~~~~~~~~
+SITE_B (primary/primary)
+    |---SITE_A (sync/logreplay)
+
+Tier of SITE_B: 1
+Tier of SITE_A: 2
+
+Replication mode of SITE_B: primary
+Replication mode of SITE_A: sync
+
+Operation mode of SITE_B: primary
+Operation mode of SITE_A: logreplay
+
+Mapping: SITE_B -> SITE_A
+
+Hint based routing site: 
+done.
+
+
+
+
+
+
+
+
+
+Readable Secondary?
+
+hdbnsutil -sr_changeOperationMode --mode=logreplay_readaccess
+
+
+
+hxeadm@hana-cluster-0:/hana/mounts/backup> hdbnsutil -sr_changeOperationMode --mode=logreplay_readaccess
+system must be shut down before changing operation mode; 
+failed. trace file nameserver_hana-cluster-0.00000.000.trc may contain more error details.

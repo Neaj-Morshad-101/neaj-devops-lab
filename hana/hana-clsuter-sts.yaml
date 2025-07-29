@@ -45,6 +45,14 @@ spec:
       labels:
         app: hana-cluster
     spec:
+      # Must use a dnsPolicy that allows custom dnsConfig
+      dnsPolicy: "ClusterFirst"
+      dnsConfig:
+        searches:
+          - hana-pods.demo.svc.cluster.local
+          - demo.svc.cluster.local
+          - svc.cluster.local
+          - cluster.local
       subdomain: "hana-pods" # <-- Must match serviceName
       containers:
       - name: hana
@@ -75,13 +83,13 @@ spec:
             sleep 2
           done
           
-          # Get the peer's IP and add its short name to /etc/hosts to ensure
-          # HANA's strict name matching works correctly.
-          PEER_IP=$(getent hosts ${PEER_FQDN} | awk '{print $1}')
-          if ! grep -q "${PEER_IP} ${PEER_HOSTNAME}" /etc/hosts; then
-            echo "Adding peer to /etc/hosts: ${PEER_IP} ${PEER_HOSTNAME}"
-            echo "${PEER_IP} ${PEER_HOSTNAME}" >> /etc/hosts
-          fi
+          # # Get the peer's IP and add its short name to /etc/hosts to ensure
+          # # HANA's strict name matching works correctly.
+          # PEER_IP=$(getent hosts ${PEER_FQDN} | awk '{print $1}')
+          # if ! grep -q "${PEER_IP} ${PEER_HOSTNAME}" /etc/hosts; then
+          #   echo "Adding peer to /etc/hosts: ${PEER_IP} ${PEER_HOSTNAME}"
+          #   echo "${PEER_IP} ${PEER_HOSTNAME}" >> /etc/hosts
+          # fi
           # ---------------------------------------------
 
           # The original entrypoint
