@@ -35,7 +35,7 @@ metadata:
   name: hana-cluster
   namespace: demo
 spec:
-  replicas: 2
+  replicas: 3
   serviceName: "hana-pods"
   selector:
     matchLabels:

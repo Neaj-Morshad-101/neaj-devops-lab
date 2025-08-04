@@ -1,7 +1,7 @@
 apiVersion: catalog.kubedb.com/v1alpha1
 kind: MSSQLServerVersion
 metadata:
-  name: 2022-cu16
+  name: 2022-cu19
 spec:
   archiver:
     addon:
@@ -16,16 +16,15 @@ spec:
         manifestRestore:
           name: manifest-restore
     walg:
-      image: ghcr.io/kubedb/mssqlserver-archiver:v0.9.0
+      image: ghcr.io/kubedb/mssqlserver-archiver:v0.11.0-rc.0
   coordinator:
-    image: neajmorshad/mssql-coordinator:dag_linux_amd64
+    image: ghcr.io/kubedb/mssql-coordinator:v0.12.0-rc.0
   db:
-    image: mcr.microsoft.com/mssql/server:2022-CU16-ubuntu-22.04
+    image: mcr.microsoft.com/mssql/server:2022-CU19-ubuntu-22.04
   exporter:
     image: ghcr.io/kubedb/mssql-exporter:1.1.0
   initContainer:
-    image: ghcr.io/kubedb/mssql-init:2022-ubuntu-22-v3
+    image: neajmorshad/mssql-init:_linux_amd64
   securityContext:
     runAsUser: 10001
   version: "2022"
-

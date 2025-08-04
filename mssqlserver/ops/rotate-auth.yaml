@@ -1,15 +1,15 @@
 apiVersion: ops.kubedb.com/v1alpha1
 kind: MSSQLServerOpsRequest
 metadata:
-  name: msops-auth-rotate
+  name: msops-auth-rotate-self
   namespace: demo
 spec:
   type: RotateAuth
   databaseRef:
-    name: mssql-standalone-tls
+    name: ag
   # authentication:
   #   secretRef:
-  #     name: mssqlserver-auth
+  #     name: mssql-auth
   timeout: 5m
   apply: IfReady
  

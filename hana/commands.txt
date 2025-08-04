@@ -17,3 +17,367 @@ kubectl -n hana rollout status sts/hana --timeout=15m
 # 4. Connect once ready
 kubectl -n hana exec -it sts/hana-0 -- \
   hdbsql -i 00 -u SYSTEM -p $HDBADM_PASS "SELECT CURRENT_TIMESTAMP FROM DUMMY;"
+
+
+
+
+
+Part 1: Kubernetes Deployment & System Replication Setup
+
+1. Apply Kubernetes Resources
+kubectl apply -f hana-cluster-sts.yaml       # StatefulSet with replicas: 2  
+
+2. Wait for Pods to Become Ready
+kubectl get pods -n demo -w
+kubectl logs -f hana-cluster-0 -n demo
+kubectl logs -f hana-cluster-1 -n demo
+# Wait for “Startup finished!” in each pod’s logs
+
+3. On Primary (hana-cluster-0)
+kubectl exec -it -n demo hana-cluster-0 -- bash
+
+# 3.1 Take a data backup (required before enabling SR)
+hdbsql -i 90 -d SYSTEMDB -u SYSTEM -p "HanaCluster123!" \
+  "BACKUP DATA USING FILE ('/hana/mounts/backup/data_backup');"
+
+# 3.2 Enable System Replication
+hdbnsutil -sr_enable --name=SITE_A
+
+# 3.3 Verify no secondaries yet
+python /usr/sap/HXE/HDB90/exe/python_support/systemReplicationStatus.py
+4. Copy SSFS Certificates from Primary → Secondary
+kubectl cp demo/hana-cluster-0:/usr/sap/HXE/SYS/global/security/rsecssfs/data/SSFS_HXE.DAT ./  
+kubectl cp demo/hana-cluster-0:/usr/sap/HXE/SYS/global/security/rsecssfs/key/SSFS_HXE.KEY ./  
+kubectl cp SSFS_HXE.DAT demo/hana-cluster-1:/usr/sap/HXE/SYS/global/security/rsecssfs/data/SSFS_HXE.DAT  
+kubectl cp SSFS_HXE.KEY demo/hana-cluster-1:/usr/sap/HXE/SYS/global/security/rsecssfs/key/SSFS_HXE.KEY  
+kubectl delete pod -n demo hana-cluster-1  # restart secondary with certs in place
+
+5. On Secondary (hana-cluster-1)
+kubectl exec -it -n demo hana-cluster-1 -- bash
+
+# 5.1 Register as secondary
+hdbnsutil -sr_register \
+  --name=SITE_B \
+  --remoteHost=hana-cluster-0.hana-pods.demo.svc.cluster.local \
+  --remoteInstance=90 \
+  --replicationMode=sync \
+  --online
+
+
+# 5.2 Verify replication status
+python /usr/sap/HXE/HDB90/exe/python_support/systemReplicationStatus.py
+Part 2: Manual Failover (Takeover) & Failback
+1. On Secondary (hana-cluster-1) → Promote to Primary
+kubectl exec -it -n demo hana-cluster-1 -- bash
+hdbnsutil -sr_takeover
+python /usr/sap/HXE/HDB90/exe/python_support/systemReplicationStatus.py
+hdbsql -i 90 -d SYSTEMDB -u SYSTEM -p "HanaCluster123!" \
+  "SELECT * FROM TEST_REPLICATION;"
+hdbsql -i 90 -d SYSTEMDB -u SYSTEM -p "HanaCluster123!" \
+  "INSERT INTO TEST_REPLICATION VALUES (2,'Failover successful!');"
+
+
+2. On Old Primary (hana-cluster-0) → Re-register as Secondary
+kubectl exec -it -n demo hana-cluster-0 -- bash
+HDB stop
+hdbnsutil -sr_register \
+  --name=SITE_A \
+  --remoteHost=hana-cluster-1.hana-pods.demo.svc.cluster.local \
+  --remoteInstance=90 \
+  --replicationMode=sync \
+  --online
+python /usr/sap/HXE/HDB90/exe/python_support/systemReplicationStatus.py
+
+3. (Optional) Enable Read-Access on Secondary
+# On whichever secondary you want to allow read-only queries:
+HDB stop
+hdbnsutil -sr_changeOperationMode --mode=logreplay_readaccess
+HDB start
+
+Quick Verification with SQL
+kubectl exec -it -n demo hana-cluster-0 -- bash
+hdbsql -i 90 -d SYSTEMDB -u SYSTEM -p "HanaCluster123!" \
+  "SELECT * FROM SYS_DATABASES.M_SERVICE_REPLICATION;"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+**Guide: Running SAP HANA Full Edition on Kubernetes**
+
+This guide walks through creating a Docker image for the SAP HANA Full Edition, pushing it to a registry, and deploying it on Kubernetes as a StatefulSet with persistent storage and HA-ready configuration. **Not supported for production**—only for POC/testing.
+
+---
+
+## 1. Prerequisites
+
+1. **SAP HANA Full Edition media** downloaded (SAR files).
+2. **License key** for the full edition.
+3. **Linux host** with Docker/Podman and kubectl + a Kubernetes cluster.
+4. **StorageClass** for PVCs (e.g., `local-path` or cloud SSD).
+5. **Registry access** (Docker Hub, private registry, or GCR/ACR/ECR).
+6. **SAPCAR** utility for extraction.
+
+---
+
+## 2. Extract HANA Installation Media
+
+```bash
+mkdir -p ~/sap/hana_media && cd ~/sap/hana_media
+sapcar -xvf IMDB_SERVER100_20-*.SAR
+```
+
+This yields directories like `IMDB_SERVER`, `IMDB_CLIENT`, etc.
+
+---
+
+## 3. Create a Custom Dockerfile
+
+Place the `IMDB_SERVER` directory alongside your `Dockerfile`:
+
+```
+hana_media/
+├── IMDB_SERVER100_20-80002723.SAR
+├── IMDB_SERVER
+└── Dockerfile
+```
+
+**Dockerfile**:
+
+```dockerfile
+# Use SUSE or RHEL base image
+FROM sles12sp5:latest
+
+# Install prerequisites
+RUN zypper install -y libaio net-tools iproute2 tar gzip
+
+# Copy media and installer scripts
+COPY IMDB_SERVER /hana_media/IMDB_SERVER
+COPY hdblcm.cfg /hana_media/hdblcm.cfg
+
+# Install SAPCAR
+COPY SAPCAR_*.SAR /hana_media/
+RUN cd /hana_media && sapcar -xvf SAPCAR_*.SAR && rm SAPCAR_*.SAR
+
+# Install HANA via hdblcm
+RUN mkdir -p /hana/shared /hana/data /hana/log
+RUN /hana_media/IMDB_SERVER/hdblcm --batch --configfile /hana_media/hdblcm.cfg
+
+# Expose ports
+EXPOSE 39013 39017 39041 443
+
+# Entry point: start HANA
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+```
+
+**hdblcm.cfg** (answer file):
+
+```ini
+[Server]
+instancedir = /hana/shared/HDB
+paths/data = /hana/data/HDB
+paths/log = /hana/log/HDB
+sid = HDB
+number = 00
+passwd = YourSystemPwd1
+sapadm_passwd = YourSapAdmPwd1
+
+auto_install = true
+license = /hana/config/HXE_license.lic
+```
+
+**entrypoint.sh**:
+
+```bash
+#!/bin/bash
+# Start HANA in the foreground
+ohfile=/hana/shared/HDB/HDB00/exe/hdbdaemon
+# Start via sapcontrol
+sapcontrol -nr 00 -function Start
+# tail logs to keep container alive
+tail -F /hana/log/HDB/*.log
+```
+
+---
+
+## 4. Build & Push the Image
+
+```bash
+cd ~/sap/hana_media
+docker build -t myregistry/hana-full:2.0 .
+docker push myregistry/hana-full:2.0
+```
+
+---
+
+## 5. Kubernetes Deployment
+
+### 5.1 Create Secrets
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: hana-licenses
+  namespace: hana-test
+stringData:
+  system.license.key: |
+    (insert your Base64-encoded .lic file or raw license)
+```
+
+```bash
+kubectl apply -f hana-license-secret.yaml
+```
+
+### 5.2 StatefulSet Manifest
+
+```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: hana-full
+  namespace: hana-test
+spec:
+  serviceName: hana-full
+  replicas: 1  # Single instance for POC
+  selector:
+    matchLabels:
+      app: hana-full
+  template:
+    metadata:
+      labels:
+        app: hana-full
+    spec:
+      containers:
+      - name: hana
+        image: myregistry/hana-full:2.0
+        ports:
+        - containerPort: 39013
+        - containerPort: 39017
+        - containerPort: 39041
+        volumeMounts:
+        - name: data
+          mountPath: /hana/data
+        - name: log
+          mountPath: /hana/log
+        - name: shared
+          mountPath: /hana/shared
+        - name: license
+          mountPath: /hana/config/HXE_license.lic
+          subPath: system.license.key
+      volumes:
+      - name: license
+        secret:
+          secretName: hana-licenses
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: fast-ssd
+      resources:
+        requests:
+          storage: "200Gi"
+  - metadata:
+      name: log
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: fast-ssd
+      resources:
+        requests:
+          storage: "100Gi"
+  - metadata:
+      name: shared
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: fast-ssd
+      resources:
+        requests:
+          storage: "50Gi"
+```
+
+```bash
+kubectl apply -f hana-full-sts.yaml
+```
+
+### 5.3 Headless Service
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: hana-full
+  namespace: hana-test
+spec:
+  clusterIP: None
+  selector:
+    app: hana-full
+  ports:
+  - name: nameserver
+    port: 39013
+  - name: indexserver
+    port: 39041
+```
+
+```bash
+kubectl apply -f hana-full-service.yaml
+```
+
+---
+
+## 6. Verify & Connect
+
+1. **Wait for pod readiness**:
+
+   ```bash
+   kubectl get pods -n hana-test -w
+   ```
+2. **Check logs**:
+
+   ```bash
+   kubectl logs hana-full-0 -n hana-test
+   ```
+3. **Connect via HDBSQL**:
+
+   ```bash
+   kubectl exec -it hana-full-0 -n hana-test -- bash
+   hdbsql -i 00 -u SYSTEM -p "YourSystemPwd1" "SELECT * FROM DUMMY;"
+   ```
+
+---
+
+## 7. Cleanup
+
+```bash
+kubectl delete statefulset,h svc,secret -n hana-test
+```
