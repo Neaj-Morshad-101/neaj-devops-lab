@@ -11,7 +11,7 @@ spec:
       name: mssqlserver-ca-issuer
       kind: Issuer
       apiGroup: "cert-manager.io"
-    clientTLS: true
+    clientTLS: false
   podTemplate:
     spec:
       containers:

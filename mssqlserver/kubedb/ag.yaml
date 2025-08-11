@@ -16,6 +16,7 @@ spec:
     availabilityGroup: 
       databases:
         - agdb
+        - mssql
       secondaryAccessMode: "All"
   tls:
     issuerRef:
@@ -75,6 +76,10 @@ spec:
   #     ports:
   #       - name: endpoint
   #         port: 5022
+  init:
+    script:
+      configMap:
+        name: mssql-init-scripts
   storageType: Durable
   storage:
     # storageClassName: "longhorn"

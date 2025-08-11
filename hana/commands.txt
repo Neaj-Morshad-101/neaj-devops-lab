@@ -1,3 +1,18 @@
+Useful commands: 
+
+
+HDB info
+
+hdbsql -i 90 -d SYSTEMDB -u SYSTEM -p "HanaCluster123!"
+
+
+
+SELECT * FROM "SYS_DATABASES"."M_SERVICE_REPLICATION";
+
+
+
+
+
 # 1. Build & push your image
 docker build -t myregistry/sap-hana:full-2.0 -f Dockerfile.sap-hana .
 docker push myregistry/sap-hana:full-2.0

@@ -1,4 +1,3 @@
-# ag1.yaml
 apiVersion: kubedb.com/v1alpha2
 kind: MSSQLServer
 metadata:

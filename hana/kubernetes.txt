@@ -542,10 +542,6 @@ Welcome to the SAP HANA Database interactive terminal.
 Type:  \h for help with commands          
        \q to quit                         
 
-hdbsql SYSTEMDB=> SELECT * FROM "SYS_DATABASES"."M_SERVICE_REPLICATION";SELECT * FROM "SYS_DATABASES"."M_SERVICE_REPLICATION";SELECT * FROM "SYS_DATABASES"."M_SERVICE_REPLICATION";
-* 257: sql syntax error: incorrect syntax near "SELECT": line 1 col 55 (at pos 55) SQLSTATE: HY000
-hdbsql SYSTEMDB=> SELECT * FROM "SYS_DATABASES"."M_SERVICE_REPLICATION";SELECT * FROM "SYS_DATABASES"."M_SERVICE_REPLICATION";SELECT * FROM "SYS_DATABASES"."M_SERVICE_REPLICATION";
-* 257: sql syntax error: incorrect syntax near "SELECT": line 1 col 55 (at pos 55) SQLSTATE: HY000
 hdbsql SYSTEMDB=> SELECT * FROM "SYS_DATABASES"."M_SERVICE_REPLICATION";
 DATABASE_NAME,HOST,PORT,VOLUME_ID,SITE_ID,SITE_NAME,SECONDARY_HOST,SECONDARY_PORT,SECONDARY_SITE_ID,SECONDARY_SITE_NAME,SECONDARY_ACTIVE_STATUS,SECONDARY_CON
 NECT_TIME,SECONDARY_RECONNECT_COUNT,SECONDARY_FAILOVER_COUNT,SECONDARY_FULLY_RECOVERABLE,REPLICATION_MODE,REPLICATION_STATUS,REPLICATION_STATUS_DETAILS,FULL_
@@ -859,35 +855,3 @@ Mapping: SITE_B -> SITE_A
 
 Hint based routing site: 
 done.
-
-
-
-
-
-
-
-
-
-Readable Secondary?
-
-hdbnsutil -sr_changeOperationMode --mode=logreplay_readaccess
-
-
-
-hxeadm@hana-cluster-0:/hana/mounts/backup> hdbnsutil -sr_changeOperationMode --mode=logreplay_readaccess
-system must be shut down before changing operation mode; 
-failed. trace file nameserver_hana-cluster-0.00000.000.trc may contain more error details.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
