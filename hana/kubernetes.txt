@@ -684,6 +684,11 @@ hxeadm@hana-cluster-1:/usr/sap/HXE/HDB90>
 
 
 
+CLUSTER SETUP DONE 
+
+
+
+
 
 
 

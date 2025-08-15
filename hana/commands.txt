@@ -11,6 +11,21 @@ SELECT * FROM "SYS_DATABASES"."M_SERVICE_REPLICATION";
 
 
 
+Stop the secondary system:
+￼
+￼
+sapcontrol -nr <instance_number> –function StopSystem HDB
+￼
+If you are running SAP HANA 2.0, you will need to copy the system PKI SSFS key and data file from the primary system to the secondary before registering the secondary system. The corresponding files can be found on the primary system in the following locations:
+
+/usr/sap/<SID>/SYS/global/security/rsecssfs/data/SSFS_<SID>.DAT
+/usr/sap/<SID>/SYS/global/security/rsecssfs/key/SSFS_<SID>.KEY
+If you are running XS advanced, you will also need to copy both the SSFS key and data files for XS advanced from the primary system to the secondary system. The corresponding files can be found on the primary system in the following locations:
+
+/usr/sap/<SID>/SYS/global/xsa/security/ssfs/data/SSFS_<SID>.DAT
+/usr/sap/<SID>/SYS/global/xsa/security/ssfs/key/SSFS_<SID>.KEY
+
+
 
 
 # 1. Build & push your image
