@@ -1,29 +1,177 @@
 Useful commands: 
 
+kubectl apply -f hana-clsuter-sts.yaml
+
 
 HDB info
 
+python /usr/sap/HXE/HDB90/exe/python_support/systemReplicationStatus.py
+
+
 hdbsql -i 90 -d SYSTEMDB -u SYSTEM -p "HanaCluster123!"
+
+hdbsql -i 90 -d HXE -u SYSTEM -p "HanaCluster123!"
+
+sample table create: 
+hdbsql HXE=> CREATE COLUMN TABLE TEST_TABLE ( ID INT PRIMARY KEY,  NAME NVARCHAR(50) );
+0 rows affected (overall time 5733 usec; server time 5555 usec)
+
+hdbsql HXE=> INSERT INTO TEST_TABLE VALUES (1, 'Alice');
+1 row affected (overall time 2752 usec; server time 1551 usec)
+
+hdbsql HXE=> INSERT INTO TEST_TABLE VALUES (2, 'Bob');
+1 row affected (overall time 1238 usec; server time 389 usec)
+
+hdbsql HXE=> INSERT INTO TEST_TABLE VALUES (3, 'Charlie');
+1 row affected (overall time 1085 usec; server time 364 usec)
+
+hdbsql HXE=> SELECT * FROM TEST_TABLE;
+ID,NAME
+1,"Alice"
+2,"Bob"
+3,"Charlie"
+3 rows selected (overall time 5539 usec; server time 425 usec)
+
+
+10000 rows insert? 
+hdbsql HXE=> 
+TRUNCATE TABLE TEST_TABLE;
+DO BEGIN DECLARE i INT = 1; WHILE :i <= 1000000 DO INSERT INTO TEST_TABLE VALUES (:i, 'Name_' || :i); i := :i + 1; END WHILE; END;
+
 
 
 
 SELECT * FROM "SYS_DATABASES"."M_SERVICE_REPLICATION";
 
 
+hdbsql SYSTEMDB=> 
+SELECT * FROM SYS.M_DATABASES;
+
+hdbsql SYSTEMDB=> 
+SELECT DATABASE_NAME, HOST, VERSION from SYS.M_DATABASE;
+
+SELECT SCHEMA_NAME, OWNER_NAME FROM SYS.SCHEMAS ORDER BY SCHEMA_NAME;
+
+
+
+
+Configuratoin: 
+hxeadm@hana-cluster-1:/hana/mounts/system/config> ls
+DB_HXE  diserver.ini  global.ini  lexicon  nameserver.ini  xsengine.ini
+hxeadm@hana-cluster-1:/hana/mounts/system/config> cat global.ini 
+# global.ini last modified 2025-08-18 14:10:44.094567 by hdbnameserver 
+# Last changes made: 
+# 2025-08-18 14:10:44.089047 setting [system_replication]/hint_based_routing_site_name_internal="SITE_B" (was "")
+[public_hostname_resolution]
+use_default_route = ip
+
+[system_replication]
+timetravel_logreplay_mode = auto
+site_id = 2
+mode = sync
+actual_mode = sync
+site_name = SITE_B
+operation_mode = logreplay_readaccess
+hint_based_routing_site_name_internal = SITE_B
+
+[system_replication_site_masters]
+1 = hana-cluster-0:39001
+
+
+
+Configure the Primary: 
+Backups: 
+hdbsql SYSTEMDB=> BACKUP DATA USING FILE ('/hana/mounts/backup/data/COMPLETE_DATA_SYSTEMDB')
+0 rows affected (overall time 3359.139 msec; server time 3358.969 msec)
+
+hdbsql HXE=> BACKUP DATA USING FILE ('/hana/mounts/backup/data/COMPLETE_DATA_HXE')
+0 rows affected (overall time 7285.269 msec; server time 7285.064 msec)
+
+
+hdbnsutil -sr_enable --name=SITE_A
+nameserver is active, proceeding ...
+successfully enabled system as system replication source site
+done.
+
+
+
+hxeadm@hana-cluster-0:/hana/mounts/backup/data> python /usr/sap/HXE/HDB90/exe/python_support/systemReplicationStatus.py
+there are no secondary sites attached
+
+Local System Replication State
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+mode: PRIMARY
+site id: 1
+site name: SITE_A
+
+
+
+
+Configure the Secondary: 
+hxeadm@hana-cluster-1:/usr/sap/HXE/HDB90> 
+
+kubectl cp demo/hana-cluster-0:/usr/sap/HXE/SYS/global/security/rsecssfs/data/SSFS_HXE.DAT ./SSFS_HXE.DAT
+kubectl cp demo/hana-cluster-0:/usr/sap/HXE/SYS/global/security/rsecssfs/key/SSFS_HXE.KEY ./SSFS_HXE.KEY
+
+kubectl cp ./SSFS_HXE.DAT demo/hana-cluster-1:/usr/sap/HXE/SYS/global/security/rsecssfs/data/SSFS_HXE.DAT
+kubectl cp ./SSFS_HXE.KEY demo/hana-cluster-1:/usr/sap/HXE/SYS/global/security/rsecssfs/key/SSFS_HXE.KEY
+
+
+kubectl cp ./SSFS_HXE.DAT demo/hana-cluster-2:/usr/sap/HXE/SYS/global/security/rsecssfs/data/SSFS_HXE.DAT
+kubectl cp ./SSFS_HXE.KEY demo/hana-cluster-2:/usr/sap/HXE/SYS/global/security/rsecssfs/key/SSFS_HXE.KEY
+
+hdbnsutil -sr_register   --name=SITE_B   --remoteHost=hana-cluster-0   --remoteInstance=90   --replicationMode=sync  --operationMode=logreplay_readaccess  --online
+adding site ...
+collecting information ...
+updating local ini files ...
+done.
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 Stop the secondary system:
-￼
-￼
 sapcontrol -nr <instance_number> –function StopSystem HDB
 ￼
-If you are running SAP HANA 2.0, you will need to copy the system PKI SSFS key and data file from the primary system to the secondary before registering the secondary system. The corresponding files can be found on the primary system in the following locations:
 
+If you are running SAP HANA 2.0, you will need to copy the system PKI SSFS key and data file from the primary system to the secondary before registering the secondary system. The corresponding files can be found on the primary system in the following locations:
 /usr/sap/<SID>/SYS/global/security/rsecssfs/data/SSFS_<SID>.DAT
 /usr/sap/<SID>/SYS/global/security/rsecssfs/key/SSFS_<SID>.KEY
 If you are running XS advanced, you will also need to copy both the SSFS key and data files for XS advanced from the primary system to the secondary system. The corresponding files can be found on the primary system in the following locations:
-
 /usr/sap/<SID>/SYS/global/xsa/security/ssfs/data/SSFS_<SID>.DAT
 /usr/sap/<SID>/SYS/global/xsa/security/ssfs/key/SSFS_<SID>.KEY
+
+
+Ensure that the SAP HANA database is stopped on the backup server by executing the following command:
+su – <sid>adm -c “sapcontrol -nr <HDB Inst# > -function StopSystem HDB”
+where <HDB Inst#> is the instance number for the SAP HANA database instance (e.g., for an instance named HDB00, the instance number is 00).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -403,11 +551,3 @@ kubectl apply -f hana-full-service.yaml
    kubectl exec -it hana-full-0 -n hana-test -- bash
    hdbsql -i 00 -u SYSTEM -p "YourSystemPwd1" "SELECT * FROM DUMMY;"
    ```
-
----
-
-## 7. Cleanup
-
-```bash
-kubectl delete statefulset,h svc,secret -n hana-test
-```

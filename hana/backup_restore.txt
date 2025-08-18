@@ -1,0 +1,206 @@
+System Replication (SR) and Backups:
+Backups can only be performed on the primary node. You cannot initiate a data backup on the secondary/standby node.
+A backup taken from the primary can be used to restore the database on either the primary site or to build a new secondary site.
+Log backups are generated on the primary and shipped to the secondary (Only the primary can create the official log backup files.The primary then copies these files over to the secondary's backup location. This ensures that if the secondary has to take over, it possesses a complete and unbroken backup history, allowing it to handle future restores correctly).
+
+
+
+Backup Types:
+Complete Data Backup: A full backup of all data files (the data volumes). This is your baseline.
+Incremental Backup: Backs up only the data that has changed since the last full or incremental backup. Smaller and faster than a full backup.
+Differential Backup: Backs up only the data that has changed since the last full backup.
+Log Backup: HANA automatically backs up closed log segments from the log volume to the log backup destination. This is crucial for point-in-time recovery.
+
+1. What is the default log backup destination? Parameter: basepath_logbackup in the global.ini file. efault Value: The default path is usually $DIR_INSTANCE/backup/log
+2. Is the log backup always enabled?
+Yes, for any production database, it is effectively always enabled. This behavior is controlled by the log_mode parameter.
+log_mode = normal (Default for Production): In this mode, HANA must back up its log segments. If the database cannot write log backups for any reason (e.g., the backup destination is full), the database will eventually freeze all data-modifying transactions to prevent data loss. This is the "enabled" state.
+log_mode = overwrite: In this mode, log segments are simply overwritten once they are no longer needed for crash recovery. No log backups are created. This mode is only for development or test systems where point-in-time recovery is not required. This is "disabled" state.
+commands:
+ALTER SYSTEM ALTER CONFIGURATION ('global.ini', 'SYSTEM') SET ('persistence', 'log_mode') = 'overwrite' WITH RECONFIGURE;
+ALTER SYSTEM ALTER CONFIGURATION ('global.ini', 'SYSTEM') SET ('persistence', 'log_mode') = 'normal' WITH RECONFIGURE;
+
+The process is automatic and managed by HANA to ensure the integrity of your recovery chain. You do not (and cannot) manually select a specific log segment and say "back this up now."
+
+
+The "Manual Trigger" (The Exception)
+While you can't perform a manual backup in the traditional sense, you can manually trigger a log segment switch.
+When you do this, you are forcing the currently active log segment to be closed, even if it's not full. As soon as it's closed, HANA's automatic backup mechanism will immediately kick in and back it up.
+This is useful in specific, rare scenarios, like right before you perform a storage snapshot, to ensure all recent transactions are safely in a log backup file. 
+ALTER SYSTEM LOGGING ON;
+
+
+
+
+
+
+
+Performing a Backup: 
+Backups are performed using SQL commands via the hdbsql client from within the primary pod.
+
+Connect with hdbsql
+
+To Perform a Complete Data Backup:
+-- The path '/hana/backup/data' is the mount point of your backup PVC.
+-- 'COMPLETE_DATA' is a prefix for the backup files.
+BACKUP DATA USING FILE ('/hana/backup/data/COMPLETE_DATA');
+
+To Perform an Incremental Backup:
+BACKUP DATA INCREMENTAL USING FILE ('/hana/backup/data/INCREMENTAL_DATA');
+
+To Perform a Differential Backup:
+BACKUP DATA DIFFERENTIAL USING FILE ('/hana/backup/data/DIFFERENTIAL_DATA');
+
+
+Example:
+
+hxeadm@hana-cluster-0:/hana/mounts/backup/data> hdbsql -i 90 -d HXE -u SYSTEM -p "HanaCluster123!"
+
+Welcome to the SAP HANA Database interactive terminal.
+                                           
+Type:  \h for help with commands          
+       \q to quit                         
+
+hdbsql HXE=> BACKUP DATA USING FILE ('/hana/mounts/backup/data/COMPLETE_DATA_HXE')
+0 rows affected (overall time 7285.269 msec; server time 7285.064 msec)
+
+hdbsql HXE=> exit
+hxeadm@hana-cluster-0:/hana/mounts/backup/data> ls
+COMPLETE_DATA_HXE_databackup_0_1  COMPLETE_DATA_HXE_databackup_2_1
+hxeadm@hana-cluster-0:/hana/mounts/backup/data> 
+hxeadm@hana-cluster-0:/hana/mounts/backup/data> ls -lh
+total 337M
+    -rw-r----- 1 hxeadm sapsys 152K Aug 18 12:25 COMPLETE_DATA_HXE_databackup_0_1
+    -rw-r----- 1 hxeadm sapsys 337M Aug 18 12:25 COMPLETE_DATA_HXE_databackup_2_1
+hxeadm@hana-cluster-0:/hana/mounts/backup/data> du -h COMPLETE_DATA_HXE_databackup_*
+152K	COMPLETE_DATA_HXE_databackup_0_1
+337M	COMPLETE_DATA_HXE_databackup_2_1
+hxeadm@hana-cluster-0:/hana/mounts/backup/data> 
+
+
+Automatic log backup performed: 
+hxeadm@hana-cluster-0:/hana/mounts/backup> cd log
+hxeadm@hana-cluster-0:/hana/mounts/backup/log> ls
+DB_HXE
+hxeadm@hana-cluster-0:/hana/mounts/backup/log> cd DB_HXE/
+hxeadm@hana-cluster-0:/hana/mounts/backup/log/DB_HXE> ls
+log_backup_2_0_113012992_116115904.1755520199338
+
+
+
+hdbsql HXE=> 
+
+
+VERIFY:
+SELECT BACKUP_ID, ENTRY_TYPE_NAME AS "TYPE", STATE_NAME AS "STATUS", TO_VARCHAR(SYS_START_TIME, 'YYYY-MM-DD HH24:MI') AS "START" FROM M_BACKUP_CATALOG ORDER BY BACKUP_ID DESC;
+BACKUP_ID,TYPE,STATUS,START
+1755524699783,"log backup","successful","2025-08-18 13:44"
+1755524699685,"log backup","successful","2025-08-18 13:44"
+1755523799789,"log backup","successful","2025-08-18 13:29"
+1755523799672,"log backup","successful","2025-08-18 13:29"
+1755522899672,"log backup","successful","2025-08-18 13:14"
+1755522899573,"log backup","successful","2025-08-18 13:14"
+1755521999573,"log backup","successful","2025-08-18 12:59"
+1755521999479,"log backup","successful","2025-08-18 12:59"
+1755521099479,"log backup","successful","2025-08-18 12:44"
+1755521099385,"log backup","successful","2025-08-18 12:44"
+1755520203466,"log backup","successful","2025-08-18 12:30"
+1755520199338,"log backup","successful","2025-08-18 12:29"
+1755519949192,"log backup","successful","2025-08-18 12:25"
+1755519941920,"complete data backup","successful","2025-08-18 12:25"
+14 rows selected (overall time 23.785 msec; server time 14.906 msec)
+
+
+
+
+
+
+
+
+
+
+
+
+ Performing a Restore
+A restore is a more intrusive operation. It involves shutting down the database. This will break your System Replication setup, which you will have to re-establish after the restore is complete.
+
+Important Pre-Restore Steps
+STOP ALL APPLICATIONS connected to the database.
+Identify the Backup: Use the M_BACKUP_CATALOG query to find the BACKUP_ID or the exact file path/prefix of the backup you want to restore.
+Ensure Backup Files are Accessible: The backup files must be present in the backup volume (/hana/backup/data) of the pod where you are performing the restore.
+
+
+Step 1: Shut Down the Target Database
+kubectl exec -it <your-primary-hana-pod> -n your-hana-namespace -- /bin/bash
+su - <sid>adm
+
+# Stop the HANA instance
+HDB stop
+
+
+Step 2: Initiate the Recovery
+The recovery is done via an SQL command, but the database must be offline. You connect to the nameserver on the SQL port to perform the recovery.
+1. Start the nameserver process only:
+hdbnameserver
+Wait a moment for it to start up.
+
+2. Connect to the database instance for recovery:
+# If your instance number is 00, the port is 30013
+hdbsql -i 00 -U SYSTEM -p YourSystemPassword -d SYSTEMDB 30013
+
+3. Execute the RECOVER DATABASE Command:
+
+You have a few options here.
+Option A: Recover using the file path/prefix (most common). This will recover the database to the state of that full backup.
+-- This command tells HANA to use the specified backup and not to look for log backups.
+-- It's a direct restore to a specific full backup.
+RECOVER DATABASE FOR SYSTEMDB UNTIL TIMESTAMP '2100-01-01 00:00:00' CLEAR LOG USING FILE ('/hana/backup/data/COMPLETE_DATA');
+
+UNTIL TIMESTAMP '...': A timestamp in the future ensures you recover everything in the data backup.
+CLEAR LOG: This is crucial. It tells HANA to discard the old, likely corrupt log area and start fresh.
+
+
+Option B: Point-in-Time Recovery (more advanced). This uses the full backup and then applies log backups to get to a specific time.
+-- First, ensure HANA knows where the log backups are configured.
+-- Then, run the recover command to a specific point in time.
+RECOVER DATABASE FOR SYSTEMDB UNTIL TIMESTAMP '2023-10-27 10:30:00' USING DATA PATH ('/hana/backup/data/') USING LOG PATH ('/hana/backup/log/');
+
+
+Step 3: Finalize and Verify
+Once the recovery command finishes successfully:
+
+Stop the nameserver: ctrl+c in the terminal where hdbnameserver is running.
+Start the full HANA instance:
+HDB start
+
+Verify:
+
+Check that all services are running: sapcontrol -nr 00 -function GetProcessList.
+Connect with hdbsql and run a few queries on your tables to ensure the data is in the expected state.
+
+
+
+Step 4: Re-establish System Replication
+
+Your old secondary is now out of sync and its SR configuration is broken. You must re-register it against the newly restored primary.
+On the secondary pod, shut down HANA (HDB stop).
+Run the SR registration command, pointing it to the primary.
+# From within the secondary pod, as <sid>adm
+hdbnsutil -sr_register --name=<site_name_secondary> --remoteHost=<primary_pod_hostname> --remoteInstance=00 --replicationMode=sync --operationMode=logreplay
+Start the secondary HANA instance (HDB start).
+Verify the SR status on both nodes to confirm they are in sync.
+
+
+
+
+
+We can The Enterprise "Backint" API for direct streaming which adds complexity (SAP Certified: This is the officially supported integration method for enterprise backup solutions.Complexity: Requires installing and configuring a third-party agent. maybe licensed)
+
+Auto Log Backup? You set a specific parameter in HANA's configuration to tell it to use Backint for log backups. The parameter is log_backup_using_backint = true.
+
+
+-- Tell HANA to use Backint for DATA backups
+ALTER SYSTEM ALTER CONFIGURATION ('global.ini', 'SYSTEM') SET ('backup', 'data_backup_using_backint') = 'true' WITH RECONFIGURE;
+
+-- Tell HANA to use Backint for LOG backups
+ALTER SYSTEM ALTER CONFIGURATION ('global.ini', 'SYSTEM') SET ('backup', 'log_backup_using_backint') = 'true' WITH RECONFIGURE;
