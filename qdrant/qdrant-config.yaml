@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: qdrant-cluster-config
+data:
+  # This key 'config.yaml' will become a file inside the pod.
+  config.yaml: |
+    # Log level can be info, debug, trace, etc.
+    log_level: INFO
+
+    # Standard service ports
+    service:
+      http_port: 6333
+      grpc_port: 6334
+
+    # Peer-to-peer (P2P) port for internode communication
+    p2p:
+      port: 6335
+
+    # Cluster configuration section
+    cluster:
+      # This enables the cluster mode
+      enabled: true
+      # This is the crucial part for peer discovery.
+      # It tells a new node where to find the first node (the bootstrap peer)
+      # to join the cluster. It uses the stable DNS name provided by our
+      # Headless Service and StatefulSet.
+      bootstrap_uri: "http://qdrant-cluster-0.qdrant-cluster-pods:6335"
