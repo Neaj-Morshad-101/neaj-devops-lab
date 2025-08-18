@@ -194,7 +194,11 @@ Verify the SR status on both nodes to confirm they are in sync.
 
 
 
-We can The Enterprise "Backint" API for direct streaming which adds complexity (SAP Certified: This is the officially supported integration method for enterprise backup solutions.Complexity: Requires installing and configuring a third-party agent. maybe licensed)
+We can The Enterprise "Backint" API for direct streaming 
+https://community.sap.com/t5/technology-blog-posts-by-members/sap-hana-backup-via-backint-interface-step-by-step-guide-for-veritas/ba-p/13430620
+
+(SAP Certified: This is the officially supported integration method for enterprise backup solutions.
+Complexity: Requires installing and configuring a third-party agent. maybe licensed)
 
 Auto Log Backup? You set a specific parameter in HANA's configuration to tell it to use Backint for log backups. The parameter is log_backup_using_backint = true.
 
@@ -204,3 +208,113 @@ ALTER SYSTEM ALTER CONFIGURATION ('global.ini', 'SYSTEM') SET ('backup', 'data_b
 
 -- Tell HANA to use Backint for LOG backups
 ALTER SYSTEM ALTER CONFIGURATION ('global.ini', 'SYSTEM') SET ('backup', 'log_backup_using_backint') = 'true' WITH RECONFIGURE;
+
+    
+
+
+Q: What is AWS Backint Agent for SAP HANA?
+
+AWS Backint Agent for SAP HANA is an SAP certified standalone agent for backing up and restoring SAP HANA databases to and from Amazon Simple Storage Service (Amazon S3) using the SAP HANA Backint API. With this solution, you can back up your SAP HANA Database to Amazon S3 and restore it using SAP HANA cockpit, SAP HANA Studio, or SQL commands. AWS Backint Agent for SAP HANA supports full, incremental, differential, and log backups of SAP HANA databases and catalogs to Amazon S3.
+
+ SAP-supported, direct streaming from the HANA database engine, the Backint API is the only official and certified method.
+
+
+
+. The destination (the S3 bucket, Azure container, region, etc.) is defined entirely within the agent's own configuration file. 
+
+
+
+
+Build a Custom Container Image with the Agent
+# Start from your existing HANA Express image
+FROM saplabs/hanaexpress:latest
+
+# --- Add Backint Agent ---
+# Set user to root to install software
+USER root
+
+# Create a directory for the agent
+RUN mkdir -p /usr/sap/hxe_backint_agent
+
+# Copy the agent's binary and configuration files into the image
+# (You must download these from your cloud/backup vendor first)
+COPY ./hdbbackint /usr/sap/hxe_backint_agent/
+COPY ./hdbbackint.cfg.template /usr/sap/hxe_backint_agent/
+
+# Set the correct ownership so the <sid>adm user can execute it
+# 'hxe' is the default SID for HANA Express
+RUN chown -R hxeadm:sapsys /usr/sap/hxe_backint_agent
+RUN chmod +x /usr/sap/hxe_backint_agent/hdbbackint
+
+# Optional: Symlink the agent to the standard location HANA expects
+RUN ln -s /usr/sap/hxe_backint_agent/hdbbackint /usr/sap/HXE/SYS/global/hdb/opt/hdbbackint
+
+# Switch back to the default user if needed
+USER hxeadm
+
+
+
+
+You would then build and push this image to your container registry:
+docker build -t your-registry/hana-with-backint:latest -f Dockerfile.hana-with-backint .
+docker push your-registry/hana-with-backint:latest
+
+
+
+BACKUP DATA USING BACKINT ('my_first_backint_backup');
+
+
+
+
+
+
+
+2. The Unsupported Alternative: Streaming with Named Pipes (FIFO)
+This method achieves a similar result by tricking HANA into thinking it's writing to a file, when it's actually writing into a memory pipe that another process is reading from.
+What is a Named Pipe?
+
+A named pipe (or FIFO) is a special type of file in Linux that acts as a buffer. Data written to this "file" by one process can be read by another process in a first-in, first-out sequence. The key is that the data does not get written to the disk; it flows through the kernel's memory buffers from the writer to the reader.
+
+The Step-by-Step Process
+This requires two separate terminals or a carefully crafted script. Let's assume you want to stream a backup directly to an S3 bucket using the rclone tool.
+
+Step 1: Create the Named Pipe
+On your HANA pod, create the FIFO file in your backup directory.
+
+# Connect to your primary HANA pod
+mkfifo /hana/backup/data/hanastream.pipe
+If you do an ls -l, you will see a new file hanastream.pipe with a p at the beginning of its permissions, indicating it's a pipe.
+Step 2: Start the "Reader" Process (The Uploader)
+In one terminal, start the process that will read from the pipe and upload the data. This command will block and wait for data to appear in the pipe.
+
+
+# This command reads from the pipe and streams the data to S3
+# 's3-remote' is your configured rclone remote.
+# 'my-backup-bucket/backup.gz' is the destination object name.
+# The '<' redirects the pipe into rclone's standard input.
+
+rclone rcat s3-remote:my-backup-bucket/backup.gz < /hana/backup/data/hanastream.pipe
+This terminal is now waiting.
+Step 3: Start the "Writer" Process (HANA)
+In a second terminal, connect to HANA with hdbsql and start the backup, pointing it to the named pipe as if it were a regular file.
+
+
+-- Tell HANA to write its backup to the pipe
+BACKUP DATA USING FILE ('/hana/backup/data/hanastream.pipe');
+
+
+What Happens Next
+HANA opens /hana/backup/data/hanastream.pipe to write its backup.
+The rclone process, which was waiting to read from that same pipe, "wakes up."
+As HANA writes backup blocks into the pipe, the data flows directly through memory to the rclone process.
+rclone immediately takes that data and streams it over HTTPS to your S3 bucket.
+Once the backup is complete, HANA closes the pipe. The rclone process sees the end of the stream and finishes its upload. The pipe is now empty.
+You have successfully streamed a backup to the cloud without writing a multi-gigabyte file to your backup PVC first.
+
+
+Why This is "Unsupported" and Risky
+While technically brilliant, this method has significant drawbacks for production systems:
+Complex Error Handling: If your rclone upload fails halfway through due to a network error, HANA will just see a generic "broken pipe" or "I/O error." The HANA backup log won't tell you the real reason. This makes troubleshooting a nightmare.
+No Integrated Catalog: HANA's backup catalog will have a record of a backup to /hana/backup/data/hanastream.pipe, not to S3. Restoring would require you to reverse the process (stream from S3 into a pipe that the HANA recovery process reads from), which is even more complex and fragile.
+No SAP Support: If you have a backup or restore failure using this method and lose data, SAP support will not be able to help you.
+Race Conditions: You must ensure the reader process is running and waiting before the HANA backup starts. Automating this reliably can be tricky.

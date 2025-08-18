@@ -1,0 +1,105 @@
+Full Sync Option for SAP HANA System Replication
+https://help.sap.com/docs/SAP_HANA_PLATFORM/4e9b18c116aa42fc84c7dbfd02111aba/52913ed4a8db41aebef3ce4563c6f089.html
+
+
+
+If you are using synchronous replication, the HANA primary itself provides a guarantee: it cannot commit a transaction until all connected sync secondaries have confirmed they have received the transaction log.
+
+
+if a secondary replica is not available even in sync mode, primary takes read write. (without full sync enabled, takes only read if enabled)
+
+New Leader? 
+replicationMode = sync or syncmem (The Simple Case)
+Check which secondaries are reachable and have a REPLICATION_STATUS of ACTIVE.
+Any of them is a valid candidate for promotion.
+
+
+replicationMode = async (The Complex Case)
+
+
+
+SELECT SITE_NAME, LAST_LOG_POSITION, SHIPPED_LOG_POSITION, REPLAYED_LOG_POSITION from M_SERVICE_REPLICATION;
+
+
+LAST_LOG_POSITION, SHIPPED_LOG_POSITION, and REPLAYED_LOG_POSITION are at the same numeric position in your output → indicates no lag (replayed = shipped = last).
+
+
+
+hdbsql SYSTEMDB=> SELECT SITE_NAME, LAST_LOG_POSITION, SHIPPED_LOG_POSITION, REPLAYED_LOG_POSITION from M_SERVICE_REPLICATION;
+SITE_NAME,LAST_LOG_POSITION,SHIPPED_LOG_POSITION,REPLAYED_LOG_POSITION
+"SITE_A",32907392,32907392,32907392
+"SITE_A",32907392,32907392,32907392
+2 rows selected (overall time 11.339 msec; server time 4593 usec)
+
+
+
+
+
+hdbsql SYSTEMDB=> SELECT * FROM "SYS"."VIEWS" WHERE VIEW_NAME LIKE '%REPLICATION%';
+
+
+
+
+
+Required Synchronous Secondaries to Commit?     
+
+HANA’s closest mechanism is the full sync option, which is configured per secondary site (you require that specific site to ack/harden before commits), not “require N of M” synchronous secondaries by count. 
+What HANA provides (how it differs from SQL Server)
+enable_full_sync (global.ini / hdbnsutil -sr_fullsync) — a boolean flag you can set per secondary site (in multitarget setups you can set enable_full_sync[<site_name>] = true). When ACTIVE, the primary will block commits if that named secondary is disconnected — guaranteeing RPO = 0 for that site. 
+There is no built-in numeric requirement like “wait for any 1 of 2 synchronous secondaries” (SQL Server’s REQUIRED_SYNCHRONOUS_SECONDARIES_TO_COMMIT behavior). In HANA, if you enable full sync for multiple sites, all those sites that are ACTIVE must be connected — a disconnect of any active full-sync site will block commits. 
+
+
+
+
+
+
+
+Why the Primary Doesn't Block in SYNC Mode? 
+
+A naive SYNC implementation would freeze the primary if any secondary went down, making the system fragile. HANA is smarter than that.
+Here is the precise sequence of events:
+Healthy State: The primary commits a transaction. It sends the log to all connected SYNC secondaries. It waits for an acknowledgment (ACK) from all of them before it confirms the commit to the application. At this point, all sites are perfectly in sync.
+Disconnection Event: A secondary (hana-cluster-2) becomes unavailable (pod crashes, network partition, etc.).
+Timeout: The primary tries to send a new log to hana-cluster-2 but gets no response. It will retry for a configurable period (the logshipping_timeout, default is 30 seconds).
+Disabling the Link: After the timeout, the primary makes a critical decision: It stops waiting for the failed secondary. It logically disconnects it and changes its status in the monitoring views from ACTIVE to SYNCING or ERROR.
+Primary Continues: The primary now continues to accept read/write queries. For any new transaction, it only waits for ACKs from the remaining healthy SYNC secondaries (in your case, just hana-cluster-1). If all secondaries fail, it waits for none and continues in a "standalone" state.
+
+
+
+If the HANA full sync option is set for a system in a synchronous replication mode, transaction commits on the primary will block if the secondary becomes disconnected.
+
+What FULL_SYNC means
+Full sync = true RPO=0 behavior for SYNC mode. When enabled, HANA guarantees that the log buffer (or the necessary log) has been shipped to the secondary before the commit on the primary is considered successful — so you avoid data loss on failover. 
+
+
+
+hdbsql SYSTEMDB=> SELECT full_sync from M_SERVICE_REPLICATION;
+FULL_SYNC
+"DISABLED"
+"DISABLED"
+2 rows selected (overall time 14.680 msec; server time 5435 usec)
+
+hdbsql SYSTEMDB=> 
+
+
+
+
+if case of a full sync disabled secondary is not available, primary takes, write 
+
+
+
+hxeadm@hana-cluster-0:/hana/mounts/backup/log> hdbnsutil -sr_fullsync --enable
+
+
+
+hdbsql SYSTEMDB=> SELECT full_sync from M_SERVICE_REPLICATION;
+FULL_SYNC
+"ACTIVE"
+"ACTIVE"
+2 rows selected (overall time 13.072 msec; server time 3653 usec)
+
+
+
+Now, transaction commits on the primary will block if the secondary becomes disconnected. read is ok. 
+
+

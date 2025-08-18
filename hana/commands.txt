@@ -12,6 +12,11 @@ hdbsql -i 90 -d SYSTEMDB -u SYSTEM -p "HanaCluster123!"
 
 hdbsql -i 90 -d HXE -u SYSTEM -p "HanaCluster123!"
 
+# 2. Switch to the HANA admin user
+su - hxeadm
+
+
+
 sample table create: 
 hdbsql HXE=> CREATE COLUMN TABLE TEST_TABLE ( ID INT PRIMARY KEY,  NAME NVARCHAR(50) );
 0 rows affected (overall time 5733 usec; server time 5555 usec)
@@ -38,7 +43,9 @@ hdbsql HXE=>
 TRUNCATE TABLE TEST_TABLE;
 DO BEGIN DECLARE i INT = 1; WHILE :i <= 1000000 DO INSERT INTO TEST_TABLE VALUES (:i, 'Name_' || :i); i := :i + 1; END WHILE; END;
 
+INSERT INTO TEST_TABLE VALUES (51000000, 'Charlie');
 
+SELECT * FROM TEST_TABLE ORDER BY ID ASC LIMIT 10 OFFSET 100;
 
 
 SELECT * FROM "SYS_DATABASES"."M_SERVICE_REPLICATION";
@@ -127,7 +134,130 @@ collecting information ...
 updating local ini files ...
 done.
 
+python /usr/sap/HXE/HDB90/exe/python_support/systemReplicationStatus.py
 
+
+
+hdbnsutil -sr_register   --name=SITE_C   --remoteHost=hana-cluster-0   --remoteInstance=90   --replicationMode=sync  --operationMode=logreplay_readaccess  --online
+python /usr/sap/HXE/HDB90/exe/python_support/systemReplicationStatus.py
+
+
+
+
+
+
+
+
+Status: 
+
+
+hxeadm@hana-cluster-0:/hana/mounts/backup/log> hdbnsutil -sr_state
+
+System Replication State
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+online: true
+
+mode: primary
+operation mode: primary
+site id: 1
+site name: SITE_A
+
+is source system: true
+is secondary/consumer system: false
+has secondaries/consumers attached: true
+is a takeover active: false
+is primary suspended: false
+
+Host Mappings:
+~~~~~~~~~~~~~~
+
+hana-cluster-0 -> [SITE_C] hana-cluster-2
+hana-cluster-0 -> [SITE_B] hana-cluster-1
+hana-cluster-0 -> [SITE_A] hana-cluster-0
+
+
+Site Mappings:
+~~~~~~~~~~~~~~
+SITE_A (primary/primary)
+    |---SITE_C (sync/logreplay_readaccess)
+    |---SITE_B (sync/logreplay_readaccess)
+
+Tier of SITE_A: 1
+Tier of SITE_C: 2
+Tier of SITE_B: 2
+
+Replication mode of SITE_A: primary
+Replication mode of SITE_C: sync
+Replication mode of SITE_B: sync
+
+Operation mode of SITE_A: primary
+Operation mode of SITE_C: logreplay_readaccess
+Operation mode of SITE_B: logreplay_readaccess
+
+Mapping: SITE_A -> SITE_C
+Mapping: SITE_A -> SITE_B
+
+Hint based routing site: SITE_B
+done.
+
+
+
+
+hxeadm@hana-cluster-1:/hana/mounts/system/config> hdbnsutil -sr_state
+
+System Replication State
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+online: true
+
+mode: sync
+operation mode: logreplay_readaccess
+site id: 2
+site name: SITE_B
+
+is source system: false
+is secondary/consumer system: true
+has secondaries/consumers attached: false
+is a takeover active: false
+is primary suspended: false
+is timetravel enabled: false
+replay mode: auto
+active primary site: 1
+
+primary masters: hana-cluster-0
+
+Host Mappings:
+~~~~~~~~~~~~~~
+
+hana-cluster-1 -> [SITE_C] hana-cluster-2
+hana-cluster-1 -> [SITE_B] hana-cluster-1
+hana-cluster-1 -> [SITE_A] hana-cluster-0
+
+
+Site Mappings:
+~~~~~~~~~~~~~~
+SITE_A (primary/primary)
+    |---SITE_C (sync/logreplay_readaccess)
+    |---SITE_B (sync/logreplay_readaccess)
+
+Tier of SITE_A: 1
+Tier of SITE_C: 2
+Tier of SITE_B: 2
+
+Replication mode of SITE_A: primary
+Replication mode of SITE_C: sync
+Replication mode of SITE_B: sync
+
+Operation mode of SITE_A: primary
+Operation mode of SITE_C: logreplay_readaccess
+Operation mode of SITE_B: logreplay_readaccess
+
+Mapping: SITE_A -> SITE_C
+Mapping: SITE_A -> SITE_B
+
+Hint based routing site: 
+done.
 
 
 
