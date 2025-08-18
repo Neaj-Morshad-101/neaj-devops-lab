@@ -1,0 +1,15 @@
+# This enables the cluster mode
+cluster:
+  enabled: true
+
+# This tells Kubernetes to create 3 Qdrant pods (nodes)
+replicaCount: 3
+
+# It's CRITICAL to enable persistence for a production cluster
+# This will create a PersistentVolumeClaim for each pod to store data
+persistence:
+  enabled: true
+  size: 10Gi # Adjust the size based on your needs
+
+# You can specify a storage class if you have one, e.g., "gp2" on AWS
+storageClassName: "standard" 

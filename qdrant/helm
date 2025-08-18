@@ -1,0 +1,14 @@
+helm repo add qdrant https://qdrant.github.io/qdrant-helm
+helm repo update
+
+
+standalone:
+helm install my-qdrant qdrant/qdrant
+
+cluster: 
+helm install my-qdrant-cluster qdrant/qdrant -f qdrant-cluster-values.yaml
+
+
+ helm show values qdrant/qdrant
+
+

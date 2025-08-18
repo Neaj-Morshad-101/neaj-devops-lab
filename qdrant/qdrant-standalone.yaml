@@ -1,0 +1,79 @@
+# ------------------- Headless Service ------------------- #
+# Purpose: Required by the StatefulSet for stable pod identity.
+# Not used for client connections.
+apiVersion: v1
+kind: Service
+metadata:
+  name: qdrant-standalone-pods # The name for the headless service
+spec:
+  clusterIP: None # This makes it a "headless" service
+  selector:
+    app: qdrant-standalone # Must match the pod labels
+  ports:
+    - name: http
+      port: 6333
+      targetPort: 6333
+    - name: grpc
+      port: 6334
+      targetPort: 6334
+
+---
+# ------------------- ClusterIP Service ------------------- #
+# Purpose: Provides a stable endpoint for other applications inside the cluster.
+apiVersion: v1
+kind: Service
+metadata:
+  name: qdrant-standalone # The name for the client-facing service
+spec:
+  type: ClusterIP # Default service type
+  selector:
+    app: qdrant-standalone # Must match the pod labels
+  ports:
+    - name: http
+      port: 6333
+      targetPort: 6333
+    - name: grpc
+      port: 6334
+      targetPort: 6334
+
+---
+# ------------------- StatefulSet ------------------- #
+# Purpose: Manages the Qdrant pod and its persistent storage.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: qdrant-standalone
+spec:
+  # This MUST match the name of the Headless Service above
+  serviceName: "qdrant-standalone-pods"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qdrant-standalone
+  template:
+    metadata:
+      labels:
+        app: qdrant-standalone # The label used by the services' selectors
+    spec:
+      containers:
+        - name: qdrant
+          image: qdrant/qdrant:latest
+          ports:
+            - containerPort: 6333
+              name: http
+            - containerPort: 6334
+              name: grpc
+          volumeMounts:
+            - name: qdrant-storage # Must match the name in volumeClaimTemplates
+              mountPath: /qdrant/storage
+  # This template defines the persistent storage for each pod
+  volumeClaimTemplates:
+    - metadata:
+        name: qdrant-storage
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        # IMPORTANT: Your cluster must have a default StorageClass
+        # or you must specify one here with 'storageClassName: "your-sc-name"'
+        resources:
+          requests:
+            storage: 5Gi # Request 5 GB of storage

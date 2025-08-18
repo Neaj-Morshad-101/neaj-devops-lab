@@ -1,0 +1,24 @@
+neaj@laptop ~/g/s/g/N/y/qdrant (main) [1]> kubectl port-forward pod/qdrant-standalone-0 6333:6333
+
+Forwarding from 127.0.0.1:6333 -> 6333
+Forwarding from [::1]:6333 -> 6333
+Handling connection for 6333
+Handling connection for 6333
+
+
+
+http://localhost:6333/
+{
+"title": "qdrant - vector search engine",
+"version": "1.15.3",
+"commit": "a7d21f168097494acc2cbfb2489cfd2da40581ac"
+}
+
+
+
+
+neaj@laptop ~/g/s/g/N/y/qdrant (main)> curl http://localhost:6333
+
+{"title":"qdrant - vector search engine","version":"1.15.3","commit":"a7d21f168097494acc2cbfb2489cfd2da40581ac"}⏎   
+
+
