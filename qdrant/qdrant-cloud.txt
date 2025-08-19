@@ -1,0 +1,77 @@
+export QDRANT_URL="https://818345768765432sfsgsgf661.eu-central-1-0.aws.cloud.qdrant.io:6334"
+
+export QDRANT_API_KEY="sghjhgfsdsssdfhfgf"
+
+
+
+neaj@neaj-pc:~/g/s/g/N/yamls|main✓
+➤ curl -X GET "$QDRANT_URL/" \
+           -H "api-key: $QDRANT_API_KEY"
+{"title":"qdrant - vector search engine","version":"1.15.3","commit":"a7d21f168097494acc2cbfb2489cfd2da40581ac"}⏎                                                                           
+
+
+
+neaj@neaj-pc:~/g/s/g/N/yamls|main✓
+➤ curl -X PUT "$QDRANT_URL/collections/my_first_collection" \
+           -H "Content-Type: application/json" \
+           -H "api-key: $QDRANT_API_KEY" \
+           -d '{
+             "vectors": {
+               "size": 4,
+               "distance": "Cosine"
+             }
+           }'
+{"result":true,"status":"ok","time":0.192711844}⏎                                             
+
+
+
+
+neaj@neaj-pc:~/g/s/g/N/yamls|main⚡?
+➤ curl -X PUT "$QDRANT_URL/collections/my_first_collection/points?wait=true" \
+           -H "Content-Type: application/json" \
+           -H "api-key: $QDRANT_API_KEY" \
+           -d '{
+             "points": [
+               {
+                 "id": 1,
+                 "vector": [0.9, 0.1, 0.1, 0.2],
+                 "payload": { "color": "red" }
+               },
+               {
+                 "id": 2,
+                 "vector": [0.1, 0.9, 0.1, 0.1],
+                 "payload": { "color": "green" }
+               },
+               {
+                 "id": 3,
+                 "vector": [0.1, 0.1, 0.9, 0.8],
+                 "payload": { "color": "blue" }
+               }
+             ]
+           }'
+{"result":{"operation_id":0,"status":"completed"},"status":"ok","time":0.001624815}⏎          
+
+
+
+
+neaj@neaj-pc:~/g/s/g/N/yamls|main⚡?
+➤ curl -X POST "$QDRANT_URL/collections/my_first_collection/points/search" \
+           -H "Content-Type: application/json" \
+           -H "api-key: $QDRANT_API_KEY" \
+           -d '{
+             "vector": [0.8, 0.2, 0.1, 0.1],
+             "limit": 1,
+             "with_payload": true
+           }'
+{"result":[{"id":1,"version":0,"score":0.9866931,"payload":{"color":"red"}}],"status":"ok","time":0.000458432}⏎                 
+
+
+
+
+
+
+➤ curl -X GET "$QDRANT_URL/cluster" \
+           -H "api-key: $QDRANT_API_KEY"
+{"result":{"status":"enabled","peer_id":5517602071372125,"peers":{"5517602071372125":{"uri":"http://qdrant-818be867-9afa-4032-929b-1bd2164f5661-0.qdrant-headless-818be867-9afa-4032-929b-1bd2164f5661:6335/"}},"raft_info":{"term":1,"commit":5,"pending_operations":0,"leader":5517602071372125,"role":"Leader","is_voter":true},"consensus_thread_status":{"consensus_thread_status":"working","last_update":"2025-08-19T14:00:22.767087286Z"},"message_send_failures":{}},"status":"ok","time":7.081e-6}⏎    
+
+
