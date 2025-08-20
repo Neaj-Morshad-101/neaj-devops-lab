@@ -1,5 +1,3 @@
-Of course! This is an excellent way to learn Kubernetes by doing. We will build on your provided manifest to include the two services you requested and create a complete, step-by-step guide from deployment to data insertion and verification.
-
 ### Goal
 
 Our goal is to deploy a **standalone Qdrant instance** on Kubernetes using raw YAML manifests. This setup will include:
