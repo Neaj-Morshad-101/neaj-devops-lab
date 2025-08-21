@@ -1,3 +1,6 @@
+# See all configurations here: 
+# https://github.com/qdrant/qdrant/blob/master/config/config.yaml
+
 # This enables the cluster mode
 cluster:
   enabled: true
