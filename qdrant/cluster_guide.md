@@ -43,19 +43,21 @@ data:
       http_port: 6333
       grpc_port: 6334
 
-    # Peer-to-peer (P2P) port for internode communication
-    p2p:
-      port: 6335
-
     # Cluster configuration section
     cluster:
       # This enables the cluster mode
       enabled: true
-      # This is the crucial part for peer discovery.
-      # It tells a new node where to find the first node (the bootstrap peer)
-      # to join the cluster. It uses the stable DNS name provided by our
-      # Headless Service and StatefulSet.
-      bootstrap_uri: "http://qdrant-cluster-0.qdrant-cluster-pods:6335"
+      # Peer-to-peer (P2P) port for internode communication
+      p2p:
+        port: 6335
+      # Configuration related to distributed consensus algorithm
+      consensus:
+        # How frequently peers should ping each other.
+        # Setting this parameter to lower value will allow consensus
+        # to detect disconnected nodes earlier, but too frequent
+        # tick period may create significant network and CPU overhead.
+        # We encourage you NOT to change this parameter unless you know what you are doing.
+        tick_period_ms: 100
 ```
 
 ### Step 2: Create the Cluster Manifest (Services & StatefulSet)
@@ -154,7 +156,7 @@ spec:
         accessModes: ["ReadWriteOnce"]
         resources:
           requests:
-            storage: 5Gi
+            storage: 10Gi
 ```
 
 ### Step 3: Apply the Manifests
