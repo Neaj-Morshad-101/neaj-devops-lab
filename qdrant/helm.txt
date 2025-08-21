@@ -9,6 +9,6 @@ cluster:
 helm install my-qdrant-cluster qdrant/qdrant -f qdrant-cluster-values.yaml
 
 
- helm show values qdrant/qdrant
+helm show values qdrant/qdrant
 
 

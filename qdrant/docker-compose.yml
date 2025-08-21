@@ -1,0 +1,82 @@
+# This tells Docker Compose which version of the syntax to use.
+version: '3.8'
+
+services:
+  # This is the name of our service. You can call it whatever you like.
+  qdrant:
+    # Use the latest official Qdrant image from Docker Hub.
+    image: qdrant/qdrant:latest
+    
+    # Always restart the container if it stops.
+    restart: always
+    
+    # Give the container a friendly name.
+    container_name: qdrant
+    
+    # Map ports from your local machine (host) to the container.
+    # Format is <HOST_PORT>:<CONTAINER_PORT>
+    ports:
+      - "6333:6333" # gRPC API port
+      - "6334:6334" # REST API port
+    
+    # This section is for storing Qdrant's data.
+    volumes:
+      # This maps a folder named 'qdrant_data' in your current directory
+      # to the '/qdrant/storage' directory inside the container.
+      # This makes your data persistent even if you stop or remove the container.
+      - ./qdrant_data:/qdrant/storage
+
+# The configuration for Qdrant itself.
+configs:
+  qdrant_config:
+    # This is an inline configuration. For more complex setups,
+    # you can link to an external file.
+    content: |
+      # This sets the logging level. Options: ERROR, WARN, INFO, DEBUG, TRACE
+      log_level: INFO
+
+# This part tells the 'qdrant' service to use the configuration we defined above.
+# (This is a newer Docker Compose feature and is slightly different from the docs)
+
+
+
+
+
+
+# commands to run 
+
+# ➤ docker --version
+
+# Docker version 28.3.2, build 578ccf6
+
+# neaj@neaj-pc:~/g/s/g/N/y/qdrant|main⚡?
+# ➤ docker compose version
+
+# Docker Compose version v2.38.2
+
+# neaj@neaj-pc:~/g/s/g/N/y/qdrant|main⚡?
+# ➤ docker compose up -d
+# WARN[0000] /home/neaj/go/src/github.com/Neaj-Morshad-101/yamls/qdrant/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+# [+] Running 2/2
+#  ✔ Network qdrant_default  Created                                                       0.0s 
+#  ✔ Container qdrant        Started                                                       0.4s 
+
+
+# neaj@neaj-pc:~/g/s/g/N/y/qdrant|main⚡?
+# ➤ docker compose ps
+
+# WARN[0000] /home/neaj/go/src/github.com/Neaj-Morshad-101/yamls/qdrant/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+# NAME      IMAGE                  COMMAND             SERVICE   CREATED          STATUS          PORTS
+# qdrant    qdrant/qdrant:latest   "./entrypoint.sh"   qdrant    38 seconds ago   Up 37 seconds   0.0.0.0:6333-6334->6333-6334/tcp, [::]:6333-6334->6333-6334/tcp
+
+
+# neaj@neaj-pc:~/g/s/g/N/y/qdrant|main⚡?
+# ➤ curl http://localhost:6333/
+
+# {"title":"qdrant - vector search engine","version":"1.15.3","commit":"a7d21f168097494acc2cbfb2489cfd2da40581ac"}⏎                     neaj@neaj-pc:~/g/s/g/N/y/qdrant|main⚡?
+# ➤ docker compose down
+
+# WARN[0000] /home/neaj/go/src/github.com/Neaj-Morshad-101/yamls/qdrant/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+# [+] Running 2/2
+#  ✔ Container qdrant        Removed                                                                                               0.3s 
+#  ✔ Network qdrant_default  Removed                                                                                               0.2s 
