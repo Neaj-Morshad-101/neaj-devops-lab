@@ -30,6 +30,7 @@ spec:
       port: 6334
       targetPort: 6334
 ---
+
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -48,16 +49,40 @@ spec:
       containers:
         - name: qdrant
           image: qdrant/qdrant:latest
-          
-          command: ["/bin/sh", "-c"]
-          args:
+          # This command tells Qdrant to use our custom config file.
+          command:
+            - /bin/sh
+            - -c
             - |
-              export QDRANT__P2P__URI="http://${POD_NAME}.qdrant-cluster-pods:6335"
-              # ---------------------------------------------------------------- #
-              # --- THIS IS THE FINAL FIX: USE THE ABSOLUTE PATH TO THE BINARY --- #
-              # ---------------------------------------------------------------- #
-              exec /qdrant/qdrant
-
+              set -e
+              # Full DNS for this pod (use your actual namespace if not 'default')
+              MY_URI="http://${POD_NAME}.qdrant-cluster-pods.${POD_NAMESPACE}.svc.cluster.local:6335"
+              
+              if [ "${POD_NAME}" = "qdrant-cluster-0" ]; then
+                # First node: bootstrap from self
+                echo "Bootstrapping as first node with URI: $MY_URI"
+                exec ./qdrant --config-path /qdrant/config/config.yaml --uri "$MY_URI" --bootstrap "$MY_URI"
+              else
+                # Other nodes: bootstrap from first node
+                BOOTSTRAP_URI="http://qdrant-cluster-0.qdrant-cluster-pods.${POD_NAMESPACE}.svc.cluster.local:6335"
+                echo "Joining cluster with URI: $MY_URI, bootstrap: $BOOTSTRAP_URI"
+                exec ./qdrant --config-path /qdrant/config/config.yaml --uri "$MY_URI" --bootstrap "$BOOTSTRAP_URI"
+              fi
+            # - "./qdrant"
+            # - "--config-path"
+            # - "/qdrant/config/config.yaml"
+            # - "--uri"
+            # - "qdrant-cluster-0.qdrant-cluster-pods:6335"
+          # Environment variables for dynamic pod identity
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
           ports:
             - containerPort: 6333
               name: http
@@ -65,22 +90,17 @@ spec:
               name: grpc
             - containerPort: 6335
               name: p2p
-          
-          env:
-            - name: POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-            
-            - name: QDRANT__CLUSTER__ENABLED
-              value: "true"
-            - name: QDRANT__CLUSTER__BOOTSTRAP_URI
-              value: "http://qdrant-cluster-0.qdrant-cluster-pods:6335"
-          
           volumeMounts:
             - name: qdrant-storage
               mountPath: /qdrant/storage
-
+            # Mount the ConfigMap as a volume.
+            - name: qdrant-config-volume
+              mountPath: /qdrant/config
+      volumes:
+        # Define the volume based on our ConfigMap.
+        - name: qdrant-config-volume
+          configMap:
+            name: qdrant-cluster-config
   volumeClaimTemplates:
     - metadata:
         name: qdrant-storage
@@ -88,4 +108,4 @@ spec:
         accessModes: ["ReadWriteOnce"]
         resources:
           requests:
-            storage: 5Gi
+            storage: 10Gi

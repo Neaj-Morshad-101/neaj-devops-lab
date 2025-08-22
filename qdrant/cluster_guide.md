@@ -131,6 +131,8 @@ spec:
             - "./qdrant"
             - "--config-path"
             - "/qdrant/config/config.yaml"
+            - "--uri"
+            - "qdrant-cluster-0.qdrant-cluster-pods:6335"
           ports:
             - containerPort: 6333
               name: http
@@ -213,6 +215,42 @@ This is where things get interesting. You can interact with **any** node in the 
     # In another new terminal
     curl -X GET http://localhost:6333/cluster | jq
     ```
+    
+
+    **Getting:** 
+    ```json
+       % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                     Dload  Upload   Total   Spent    Left  Speed
+    100   425  100   425    0     0   171k      0 --:--:-- --:--:-- --:--:--  207k
+    {
+      "result": {
+        "status": "enabled",
+        "peer_id": 2425610698162425,
+        "peers": {
+          "2425610698162425": {
+            "uri": "qdrant-cluster-0.qdrant-cluster-pods:6335"
+          }
+        },
+        "raft_info": {
+          "term": 1,
+          "commit": 3,
+          "pending_operations": 0,
+          "leader": 2425610698162425,
+          "role": "Leader",
+          "is_voter": true
+        },
+        "consensus_thread_status": {
+          "consensus_thread_status": "working",
+          "last_update": "2025-08-22T13:07:16.096460015Z"
+        },
+        "message_send_failures": {}
+      },
+      "status": "ok",
+      "time": 0.000011722
+    }
+    ```
+
+
     **Expected Output:** This is the most important command. It shows you the health of your cluster.
     ```json
     {
