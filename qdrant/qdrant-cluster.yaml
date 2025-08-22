@@ -57,15 +57,20 @@ spec:
               set -e
               # Full DNS for this pod (use your actual namespace if not 'default')
               MY_URI="http://${POD_NAME}.qdrant-cluster-pods.${POD_NAMESPACE}.svc.cluster.local:6335"
+              # Bootstrap from first node
+              BOOTSTRAP_URI="http://qdrant-cluster-0.qdrant-cluster-pods.${POD_NAMESPACE}.svc.cluster.local:6335"
+
+              echo "MY_URI: $MY_URI"
+              echo "BOOTSTRAP_URI: $BOOTSTRAP_URI"
               
               if [ "${POD_NAME}" = "qdrant-cluster-0" ]; then
-                # First node: bootstrap from self
-                echo "Bootstrapping as first node with URI: $MY_URI"
+                echo "Bootstrapping as first node with BOOTSTRAP_URI: $BOOTSTRAP_URI"
+                echo "Executing command: ./qdrant --config-path /qdrant/config/config.yaml --uri \"$MY_URI\" --bootstrap \"$MY_URI\""
                 exec ./qdrant --config-path /qdrant/config/config.yaml --uri "$MY_URI" --bootstrap "$MY_URI"
               else
                 # Other nodes: bootstrap from first node
-                BOOTSTRAP_URI="http://qdrant-cluster-0.qdrant-cluster-pods.${POD_NAMESPACE}.svc.cluster.local:6335"
                 echo "Joining cluster with URI: $MY_URI, bootstrap: $BOOTSTRAP_URI"
+                echo "Executing command: ./qdrant --config-path /qdrant/config/config.yaml --uri \"$MY_URI\" --bootstrap \"$BOOTSTRAP_URI\""
                 exec ./qdrant --config-path /qdrant/config/config.yaml --uri "$MY_URI" --bootstrap "$BOOTSTRAP_URI"
               fi
             # - "./qdrant"
@@ -109,3 +114,6 @@ spec:
         resources:
           requests:
             storage: 10Gi
+
+
+
