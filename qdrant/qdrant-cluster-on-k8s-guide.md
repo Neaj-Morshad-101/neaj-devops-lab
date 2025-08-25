@@ -1,8 +1,4 @@
-### Issues
-2025-08-22T13:24:56.290506Z  WARN qdrant::settings: Config file not found: config/production    
-
-
-2025-08-22T13:24:56.290558Z  WARN qdrant: Bootstrap URI is the same as this peer URI. Consider this peer as a first in a new deployment.   
+### [Documentation](https://qdrant.tech/documentation/guides/distributed_deployment/)
 
 
 ### Goal
