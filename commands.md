@@ -2,3 +2,9 @@ This command removes all local branches that no longer have a corresponding remo
 git branch -vv | awk '/: gone]/{print $1}' | xargs git branch -d
 
 `kubectl logs <db-pod-0> -n <db-namespace> --all-containers=true`
+
+
+
+
+Docker: 
+docker system prune --all
