@@ -1,0 +1,10 @@
+helm repo add milvus https://milvus-io.github.io/milvus-helm/
+helm repo update
+
+helm install my-milvus milvus/milvus --set cluster.enabled=false --set etcd.replicaCount=1 --set minio.mode=standalone --set pulsar.enabled=false
+
+
+
+
+
+kubectl port-forward service/my-milvus 19530
