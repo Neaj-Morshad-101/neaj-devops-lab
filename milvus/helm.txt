@@ -13,7 +13,226 @@ kubectl port-forward service/my-milvus 19530
 
 
 Cluster:
+helm show values milvus/milvus > values.yaml
+
+
+# In your values.yaml
+
+# For MinIO (object storage for data files)
+minio:
+  persistence:
+    enabled: true
+    size: 50Gi # Adjust size as needed
+    # storageClass: "your-storage-class-name" # Optional: specify if not using default
+
+# For Etcd (metadata storage)
+etcd:
+  persistence:
+    enabled: true
+    size: 20Gi # Adjust size as needed
+    # storageClass: "your-storage-class-name" # Optional: specify if not using default
+
+# Example for query nodes
+queryNode:
+  replicas: 2 # Scale up for more search traffic
+  resources:
+    limits:
+      cpu: "2"
+      memory: 4Gi
+    requests:
+      cpu: "1"
+      memory: 2Gi
+
+# In your values.yaml
+service:
+  type: LoadBalancer # Exposes Milvus externally
+  port: 19530
+
+
+
+
 helm install my-milvus-cluster milvus/milvus -f values.yaml
+
+
+
+
+
+Every 2.0s: kubectl get all,pvc,secrets,cm                                                                                                                                                                                                                                                neaj-pc: Wed Aug 27 15:41:46 2025
+
+NAME                                                READY   STATUS      RESTARTS        AGE
+pod/my-milvus-cluster-datacoord-f55888d4c-bn7nf     1/1     Running     0               12m
+pod/my-milvus-cluster-datanode-79dd569f9-sqcrp      1/1     Running     1 (8m27s ago)   12m
+pod/my-milvus-cluster-etcd-0                        1/1     Running     0               12m
+pod/my-milvus-cluster-etcd-1                        1/1     Running     0               12m
+pod/my-milvus-cluster-etcd-2                        1/1     Running     0               12m
+pod/my-milvus-cluster-indexcoord-68846c5d79-ql9jx   1/1     Running     1 (8m27s ago)   12m
+pod/my-milvus-cluster-indexnode-7c7b6ff94-bctlf     1/1     Running     0               12m
+pod/my-milvus-cluster-minio-0                       1/1     Running     0               12m
+pod/my-milvus-cluster-minio-1                       1/1     Running     0               12m
+pod/my-milvus-cluster-minio-2                       1/1     Running     0               12m
+pod/my-milvus-cluster-minio-3                       1/1     Running     0               12m
+pod/my-milvus-cluster-proxy-5d5bd5f7f-t9bzh         1/1     Running     1 (8m27s ago)   12m
+pod/my-milvus-cluster-pulsar-bookie-0               1/1     Running     0               12m
+pod/my-milvus-cluster-pulsar-bookie-1               1/1     Running     0               12m
+pod/my-milvus-cluster-pulsar-bookie-2               1/1     Running     0               12m
+pod/my-milvus-cluster-pulsar-bookie-init-jj65f      0/1     Completed   0               12m
+pod/my-milvus-cluster-pulsar-broker-0               1/1     Running     0               12m
+pod/my-milvus-cluster-pulsar-proxy-0                1/1     Running     0               12m
+pod/my-milvus-cluster-pulsar-pulsar-init-h6sxn      0/1     Completed   0               12m
+pod/my-milvus-cluster-pulsar-recovery-0             1/1     Running     0               12m
+pod/my-milvus-cluster-pulsar-zookeeper-0            1/1     Running     0               12m
+pod/my-milvus-cluster-pulsar-zookeeper-1            1/1     Running     0               10m
+pod/my-milvus-cluster-pulsar-zookeeper-2            1/1     Running     0               10m
+pod/my-milvus-cluster-querycoord-b7fb4774d-48hff    1/1     Running     1 (8m27s ago)   12m
+pod/my-milvus-cluster-querynode-59b78b79c7-7sq5l    1/1     Running     0               12m
+pod/my-milvus-cluster-querynode-59b78b79c7-ctxjf    1/1     Running     0               12m
+pod/my-milvus-cluster-rootcoord-7d89bc88c6-9jwt6    1/1     Running     1 (8m27s ago)   12m
+
+NAME                                         TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                               AGE
+service/kubernetes                           ClusterIP   10.96.0.1       <none>        443/TCP                               169m
+service/my-milvus-cluster                    ClusterIP   10.96.28.136    <none>        19530/TCP,9091/TCP                    12m
+service/my-milvus-cluster-datacoord          ClusterIP   10.96.73.55     <none>        13333/TCP,9091/TCP                    12m
+service/my-milvus-cluster-datanode           ClusterIP   None            <none>        9091/TCP                              12m
+service/my-milvus-cluster-etcd               ClusterIP   10.96.215.169   <none>        2379/TCP,2380/TCP                     12m
+service/my-milvus-cluster-etcd-headless      ClusterIP   None            <none>        2379/TCP,2380/TCP                     12m
+service/my-milvus-cluster-indexcoord         ClusterIP   10.96.218.88    <none>        31000/TCP,9091/TCP                    12m
+service/my-milvus-cluster-indexnode          ClusterIP   None            <none>        9091/TCP                              12m
+service/my-milvus-cluster-minio              ClusterIP   10.96.19.76     <none>        9000/TCP                              12m
+service/my-milvus-cluster-minio-svc          ClusterIP   None            <none>        9000/TCP                              12m
+service/my-milvus-cluster-pulsar-bookie      ClusterIP   None            <none>        3181/TCP,8000/TCP                     12m
+service/my-milvus-cluster-pulsar-broker      ClusterIP   None            <none>        8080/TCP,6650/TCP                     12m
+service/my-milvus-cluster-pulsar-proxy       ClusterIP   10.96.92.27     <none>        80/TCP,6650/TCP                       12m
+service/my-milvus-cluster-pulsar-recovery    ClusterIP   None            <none>        8000/TCP                              12m
+service/my-milvus-cluster-pulsar-zookeeper   ClusterIP   None            <none>        8000/TCP,2888/TCP,3888/TCP,2181/TCP   12m
+service/my-milvus-cluster-querycoord         ClusterIP   10.96.27.70     <none>        19531/TCP,9091/TCP                    12m
+service/my-milvus-cluster-querynode          ClusterIP   None            <none>        9091/TCP                              12m
+service/my-milvus-cluster-rootcoord          ClusterIP   10.96.96.117    <none>        53100/TCP,9091/TCP                    12m
+
+NAME                                           READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/my-milvus-cluster-datacoord    1/1     1            1           12m
+deployment.apps/my-milvus-cluster-datanode     1/1     1            1           12m
+deployment.apps/my-milvus-cluster-indexcoord   1/1     1            1           12m
+deployment.apps/my-milvus-cluster-indexnode    1/1     1            1           12m
+deployment.apps/my-milvus-cluster-proxy        1/1     1            1           12m
+deployment.apps/my-milvus-cluster-querycoord   1/1     1            1           12m
+deployment.apps/my-milvus-cluster-querynode    2/2     2            2           12m
+deployment.apps/my-milvus-cluster-rootcoord    1/1     1            1           12m
+
+NAME                                                      DESIRED   CURRENT   READY   AGE
+replicaset.apps/my-milvus-cluster-datacoord-f55888d4c     1         1         1       12m
+replicaset.apps/my-milvus-cluster-datanode-79dd569f9      1         1         1       12m
+replicaset.apps/my-milvus-cluster-indexcoord-68846c5d79   1         1         1       12m
+replicaset.apps/my-milvus-cluster-indexnode-7c7b6ff94     1         1         1       12m
+replicaset.apps/my-milvus-cluster-proxy-5d5bd5f7f         1         1         1       12m
+replicaset.apps/my-milvus-cluster-querycoord-b7fb4774d    1         1         1       12m
+replicaset.apps/my-milvus-cluster-querynode-59b78b79c7    2         2         2       12m
+replicaset.apps/my-milvus-cluster-rootcoord-7d89bc88c6    1         1         1       12m
+
+NAME                                                  READY   AGE
+statefulset.apps/my-milvus-cluster-etcd               3/3     12m
+statefulset.apps/my-milvus-cluster-minio              4/4     12m
+statefulset.apps/my-milvus-cluster-pulsar-bookie      3/3     12m
+statefulset.apps/my-milvus-cluster-pulsar-broker      1/1     12m
+statefulset.apps/my-milvus-cluster-pulsar-proxy       1/1     12m
+statefulset.apps/my-milvus-cluster-pulsar-recovery    1/1     12m
+statefulset.apps/my-milvus-cluster-pulsar-zookeeper   3/3     12m
+
+NAME                                             STATUS     COMPLETIONS   DURATION   AGE
+job.batch/my-milvus-cluster-pulsar-bookie-init   Complete   1/1           3m12s      12m
+job.batch/my-milvus-cluster-pulsar-pulsar-init   Complete   1/1           3m19s      12m
+
+NAME                                                                                                 STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+persistentvolumeclaim/data-my-milvus-cluster-etcd-0                                                  Bound    pvc-83b2687d-40e4-4ccb-97db-196ce3a7f286   20Gi       RWO            standard       <unset>                 12m
+persistentvolumeclaim/data-my-milvus-cluster-etcd-1                                                  Bound    pvc-df7da4ee-2c8f-427a-a3af-26c1adf2e440   20Gi       RWO            standard       <unset>                 12m
+persistentvolumeclaim/data-my-milvus-cluster-etcd-2                                                  Bound    pvc-9aa6a4b1-b0e5-43c9-b71e-3351fc7481f6   20Gi       RWO            standard       <unset>                 12m
+persistentvolumeclaim/export-my-milvus-cluster-minio-0                                               Bound    pvc-17de769d-1055-4e0d-b850-fa5716898b0b   50Gi       RWO            standard       <unset>                 12m
+persistentvolumeclaim/export-my-milvus-cluster-minio-1                                               Bound    pvc-928074f1-62bf-457c-b82a-05e5ec17b9e6   50Gi       RWO            standard       <unset>                 12m
+persistentvolumeclaim/export-my-milvus-cluster-minio-2                                               Bound    pvc-fee32e1b-2523-4bfb-9cf0-f5e7a9a94c25   50Gi       RWO            standard       <unset>                 12m
+persistentvolumeclaim/export-my-milvus-cluster-minio-3                                               Bound    pvc-971aecc0-45b1-4a0d-a023-c56e2ee85198   50Gi       RWO            standard       <unset>                 12m
+persistentvolumeclaim/my-milvus-cluster-pulsar-bookie-journal-my-milvus-cluster-pulsar-bookie-0      Bound    pvc-bc31f323-bec3-4f61-b460-633cb9c087c9   100Gi      RWO            standard       <unset>                 12m
+persistentvolumeclaim/my-milvus-cluster-pulsar-bookie-journal-my-milvus-cluster-pulsar-bookie-1      Bound    pvc-71cd8f44-eb25-4b02-944a-bbf1d85db73e   100Gi      RWO            standard       <unset>                 12m
+persistentvolumeclaim/my-milvus-cluster-pulsar-bookie-journal-my-milvus-cluster-pulsar-bookie-2      Bound    pvc-535b25a8-3757-4f16-91ce-aaa09b7bc35d   100Gi      RWO            standard       <unset>                 12m
+persistentvolumeclaim/my-milvus-cluster-pulsar-bookie-ledgers-my-milvus-cluster-pulsar-bookie-0      Bound    pvc-e2af143e-aa47-4e19-b659-77b36495eef1   200Gi      RWO            standard       <unset>                 12m
+persistentvolumeclaim/my-milvus-cluster-pulsar-bookie-ledgers-my-milvus-cluster-pulsar-bookie-1      Bound    pvc-7a909947-2ab1-47c0-a294-d1c49f1cf65c   200Gi      RWO            standard       <unset>                 12m
+persistentvolumeclaim/my-milvus-cluster-pulsar-bookie-ledgers-my-milvus-cluster-pulsar-bookie-2      Bound    pvc-b7bccbba-d5bc-4e54-9e14-d2fd901d72b0   200Gi      RWO            standard       <unset>                 12m
+persistentvolumeclaim/my-milvus-cluster-pulsar-zookeeper-data-my-milvus-cluster-pulsar-zookeeper-0   Bound    pvc-3583371b-7ec6-43e6-b996-532142573ef1   20Gi       RWO            standard       <unset>                 12m
+persistentvolumeclaim/my-milvus-cluster-pulsar-zookeeper-data-my-milvus-cluster-pulsar-zookeeper-1   Bound    pvc-a015c4fe-c25e-4fc3-b8f4-45f111d206b8   20Gi       RWO            standard       <unset>                 10m
+persistentvolumeclaim/my-milvus-cluster-pulsar-zookeeper-data-my-milvus-cluster-pulsar-zookeeper-2   Bound    pvc-42a09cf2-2b15-4a3e-877f-c1a032552bfd   20Gi       RWO            standard       <unset>                 10m
+
+NAME                                             TYPE                 DATA   AGE
+secret/my-milvus-cluster-minio                   Opaque               2      12m
+secret/sh.helm.release.v1.my-milvus-cluster.v1   helm.sh/release.v1   1      12m
+
+NAME                                           DATA   AGE
+configmap/kube-root-ca.crt                     1      169m
+configmap/my-milvus-cluster                    2      12m
+configmap/my-milvus-cluster-minio              1      12m
+configmap/my-milvus-cluster-pulsar-bookie      18     12m
+configmap/my-milvus-cluster-pulsar-broker      22     12m
+configmap/my-milvus-cluster-pulsar-proxy       9      12m
+configmap/my-milvus-cluster-pulsar-recovery    7      12m
+configmap/my-milvus-cluster-pulsar-zookeeper   5      12m
+
+
+
+
+
+Connect to the Cluster from Your Local Machine: 
+
+
+kubectl port-forward service/my-milvus-cluster 19530:19530
+
+
+
+We will build a tiny "book recommendation" engine.
+
+
+
+
+Create a Collection: Like a table in a SQL database.
+Insert Data: We'll insert vectors (representing book summaries) and their metadata (book title, year).
+Create an Index: To make searching incredibly fast.
+Load and Search: Find the most similar books to a given query.
+
+
+
+Create a new Python file (e.g., milvus-cluster-python-client.py) in the same directory where you set up your virtual environment.
+
+
+
+
+(venv) neaj@neaj-pc:~/go/src/github.com/Neaj-Morshad-101/yamls/milvus$ python milvus-cluster-python-client.py 
+✅ Successfully connected to Milvus at localhost:19530
+Creating collection: book_recommendations...
+✅ Collection created successfully.
+
+Preparing and inserting data...
+✅ Inserted 1000 books into the collection.
+
+Creating index for the vector field...
+✅ Index created successfully.
+
+Loading collection into memory for searching...
+Performing a vector similarity search...
+
+🔍 Top 5 most similar books found:
+  - Book ID: 322, Distance: 0.1477, Title: 'Book Title 322', Year: 2021
+  - Book ID: 741, Distance: 0.1508, Title: 'Book Title 741', Year: 1987
+  - Book ID: 553, Distance: 0.1894, Title: 'Book Title 553', Year: 1988
+  - Book ID: 781, Distance: 0.2376, Title: 'Book Title 781', Year: 2020
+  - Book ID: 301, Distance: 0.2605, Title: 'Book Title 301', Year: 1991
+
+Releasing collection from memory...
+🔌 Disconnected from Milvus.
+
+
+
+
+
+
+
+
+
 
 To upgrade your deployment after changing values.yaml:
 helm upgrade my-milvus-cluster milvus/milvus -f values.yaml
@@ -25,6 +244,12 @@ Uninstall:
 helm uninstall my-milvus # Or my-milvus-cluster
 kubectl get pvc
 kubectl delete pvc <pvc-name-for-etcd> <pvc-name-for-minio>
+
+
+
+
+
+
 
 
 

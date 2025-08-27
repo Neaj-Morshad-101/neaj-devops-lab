@@ -276,8 +276,14 @@ queryCoordinator:
 
 queryNode:
   enabled: true
-  replicas: 1
-  resources: {}
+  replicas: 2
+  resources:
+    limits:
+      cpu: "2"
+      memory: 4Gi
+    requests:
+      cpu: "1"
+      memory: 2Gi
   # Set local storage size in resources
   # limits:
   #    ephemeral-storage: 100Gi
@@ -459,9 +465,9 @@ minio:
   persistence:
     enabled: true
     existingClaim: ""
-    storageClass:
+    storageClass: standard
     accessMode: ReadWriteOnce
-    size: 500Gi
+    size: 50Gi
 
   livenessProbe:
     enabled: true
@@ -513,9 +519,9 @@ etcd:
 
   persistence:
     enabled: true
-    storageClass:
+    storageClass: standard
     accessMode: ReadWriteOnce
-    size: 10Gi
+    size: 20Gi
 
   ## Enable auto compaction
   ## compaction by every 1000 revision
