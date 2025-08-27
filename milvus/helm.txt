@@ -1,10 +1,32 @@
 helm repo add milvus https://milvus-io.github.io/milvus-helm/
 helm repo update
 
+
+Standalone:
 helm install my-milvus milvus/milvus --set cluster.enabled=false --set etcd.replicaCount=1 --set minio.mode=standalone --set pulsar.enabled=false
 
-
-
-
-
 kubectl port-forward service/my-milvus 19530
+
+
+
+
+
+
+Cluster:
+helm install my-milvus-cluster milvus/milvus -f values.yaml
+
+To upgrade your deployment after changing values.yaml:
+helm upgrade my-milvus-cluster milvus/milvus -f values.yaml
+
+
+
+
+Uninstall:
+helm uninstall my-milvus # Or my-milvus-cluster
+kubectl get pvc
+kubectl delete pvc <pvc-name-for-etcd> <pvc-name-for-minio>
+
+
+
+
+
