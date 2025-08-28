@@ -1,0 +1,13 @@
+Topics:
+ignite concepts, clustering setup, automatic failover management, HA and write consistency 
+
+Questions?
+old primary rejoin: how it will get updated data (updated while it was not available) from backup node? 
+write consistency? does write fails when majority node unavailable?
+How it finds the replicas endpoints info?  where the kubeconfig is provided?
+if a pod goes down, why ignite forgetting it? Data loss? Write consistency?
+which cache is needed for sql client ping? 
+
+Todos:
+operator temp config volume -> default config volume 
+init-docker remove sleep 10 from init-script/run.sh and sleep 20 from scrits/run.sh -> ping check?
