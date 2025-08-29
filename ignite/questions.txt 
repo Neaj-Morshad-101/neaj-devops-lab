@@ -3,6 +3,10 @@ ignite concepts, clustering setup, automatic failover management, HA and write c
 
 Questions?
 old primary rejoin: how it will get updated data (updated while it was not available) from backup node? 
+Without native persistence (pure in-memory): when the cluster topology changes (node join/leave), Ignite performs data rebalancing: partitions are redistributed and the rejoining node will receive partition data from nodes that currently host the primary/backup copies. That transfer is the mechanism that brings the rejoined node up to date. Rebalance is triggered on topology/base-line changes. 
+
+With native persistence enabled: a node that rejoins and still has its page store on disk can restore most data locally and then finish by applying any missing WAL segments (WAL replay) so it becomes consistent with the cluster; persistence reduces the amount of network rebalancing. If the node’s local store is missing or corrupted, rebalancing/WAL replay from other nodes will be required.
+
 write consistency? does write fails when majority node unavailable?
 How it finds the replicas endpoints info?  where the kubeconfig is provided?
 if a pod goes down, why ignite forgetting it? Data loss? Write consistency?

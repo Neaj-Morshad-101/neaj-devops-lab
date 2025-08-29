@@ -8,6 +8,51 @@ helm install my-milvus milvus/milvus --set cluster.enabled=false --set etcd.repl
 kubectl port-forward service/my-milvus 19530
 
 
+NAME                                                READY   STATUS      RESTARTS        AGE
+pod/my-milvus-etcd-0                                1/1     Running     0               111s
+pod/my-milvus-minio-54745546cd-hvx9n                1/1     Running     0               111s
+pod/my-milvus-standalone-59fc6bbbf9-t2sw6           1/1     Running     0               111s
+
+NAME                                         TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                               AGE
+service/my-milvus                            ClusterIP   10.96.193.65    <none>        19530/TCP,9091/TCP                    113s
+service/my-milvus-etcd                       ClusterIP   10.96.145.85    <none>        2379/TCP,2380/TCP                     113s
+service/my-milvus-etcd-headless              ClusterIP   None            <none>        2379/TCP,2380/TCP                     113s
+service/my-milvus-minio                      ClusterIP   10.96.53.20     <none>        9000/TCP                              113s
+
+NAME                                           READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/my-milvus-minio                1/1     1            1           112s
+deployment.apps/my-milvus-standalone           1/1     1            1           112s
+
+NAME                                                      DESIRED   CURRENT   READY   AGE
+replicaset.apps/my-milvus-minio-54745546cd                1         1         1       112s
+replicaset.apps/my-milvus-standalone-59fc6bbbf9           1         1         1       112s
+
+NAME                                                  READY   AGE
+statefulset.apps/my-milvus-etcd                       1/1     112s
+
+NAME                                                                                                 STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+persistentvolumeclaim/data-my-milvus-etcd-0                                                          Bound    pvc-9e97b429-d631-4d22-9744-71c7aa05015b   10Gi       RWO            standard       <unset>                 112s
+persistentvolumeclaim/my-milvus                                                                      Bound    pvc-f90892db-75ae-4fab-8bf2-35ebb93bde1b   50Gi       RWO            standard       <unset>                 114s
+persistentvolumeclaim/my-milvus-minio                                                                Bound    pvc-93d2e3e9-434f-4ab6-8e22-0dc51bd3d5fb   500Gi      RWO            standard       <unset>                 114s
+
+NAME                                             TYPE                 DATA   AGE
+secret/my-milvus-minio                           Opaque               2      114s
+secret/sh.helm.release.v1.my-milvus.v1           helm.sh/release.v1   1      114s
+
+NAME                                           DATA   AGE
+configmap/my-milvus                            2      114s
+configmap/my-milvus-minio                      1      114s
+
+
+
+
+
+
+
+
+
+
+
 
 
 
