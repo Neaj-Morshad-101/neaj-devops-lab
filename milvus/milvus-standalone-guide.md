@@ -253,6 +253,47 @@ milvus-minio-xxxx-xxxx               1/1     Running   0          90s
 milvus-standalone-xxxx-xxxx          1/1     Running   0          90s
 ```
 
+```
+Every 2.0s: kubectl get all,pvc,secrets,cm -n milvus-standalone      
+
+NAME                                     READY   STATUS             RESTARTS          AGE
+pod/milvus-etcd-0                        1/1     Running            1 (8h ago)        27h
+pod/milvus-minio-8fcf5bbd5-8hblp         1/1     Running            1 (8h ago)        27h
+pod/milvus-standalone-6986b8b78b-h66x7   0/1     CrashLoopBackOff   156 (2m10s ago)   27h
+
+NAME                                TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)             AGE
+service/milvus-etcd                 ClusterIP   10.96.111.222   <none>        2379/TCP            27h
+service/milvus-minio                ClusterIP   10.96.48.83     <none>        9000/TCP,9001/TCP   27h
+service/milvus-standalone-service   ClusterIP   10.96.159.137   <none>        19530/TCP           27h
+
+NAME                                READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/milvus-minio        1/1     1            1           27h
+deployment.apps/milvus-standalone   0/1     1            0           27h
+
+NAME                                           DESIRED   CURRENT   READY   AGE
+replicaset.apps/milvus-minio-8fcf5bbd5         1         1         1       27h
+replicaset.apps/milvus-standalone-6986b8b78b   1         1         0       27h
+replicaset.apps/milvus-standalone-845fc46f6f   0         0         0       27h
+
+NAME                           READY   AGE
+statefulset.apps/milvus-etcd   1/1     27h
+
+NAME                                            STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECL
+ASS   VOLUMEATTRIBUTESCLASS   AGE
+persistentvolumeclaim/etcd-data-milvus-etcd-0   Bound    pvc-bab99921-cde4-4e11-a9f5-091b1ba67040   10Gi       RWO            standard
+      <unset>                 27h
+persistentvolumeclaim/minio-pvc                 Bound    pvc-49a5b844-8380-4940-9e74-47e5a052d282   50Gi       RWO            standard
+      <unset>                 27h
+
+NAME                         DATA   AGE
+configmap/kube-root-ca.crt   1      27h
+configmap/milvus-config      1      27h
+```
+
+
+
+
+
 #### **Step 4: Connect and Test**
 
 Just like with the Helm deployment, the service is only accessible inside the cluster. Use `port-forward` to connect from your local machine.
