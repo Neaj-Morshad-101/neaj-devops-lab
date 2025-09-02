@@ -6,31 +6,31 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: milvus-standalone
----
-# 1. CONFIGURATION FOR MILVUS
-# A ConfigMap holds the milvus.yaml configuration file.
-# Milvus will read this to know where to find etcd and minio.
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: milvus-config
-  namespace: milvus-standalone
-data:
-  milvus.yaml: |
-    # Add this new section for common configurations
-    common:
-      localStorage:
-        path: /var/lib/milvus
+# ---
+# # 1. CONFIGURATION FOR MILVUS
+# # A ConfigMap holds the milvus.yaml configuration file.
+# # Milvus will read this to know where to find etcd and minio.
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: milvus-config
+#   namespace: milvus-standalone
+# data:
+#   milvus.yaml: |
+#     # Add this new section for common configurations
+#     common:
+#       localStorage:
+#         path: /var/lib/milvus
 
-    etcd:
-      endpoints:
-        - milvus-etcd:2379  # The name of the etcd service we will create
-    minio:
-      address: milvus-minio # The name of the minio service we will create
-      port: 9000
-      accessKeyID: minioadmin
-      secretAccessKey: minioadmin
-      useSSL: false
+#     etcd:
+#       endpoints:
+#         - milvus-etcd:2379  # The name of the etcd service we will create
+#     minio:
+#       address: milvus-minio # The name of the minio service we will create
+#       port: 9000
+#       accessKeyID: minioadmin
+#       secretAccessKey: minioadmin
+#       useSSL: false
 ---
 # 2. DEPENDENCY: ETCD (METADATA STORAGE)
 # We use a StatefulSet because etcd needs stable network identity and storage.
@@ -190,6 +190,8 @@ spec:
           value: milvus-etcd:2379
         - name: MINIO_ADDRESS
           value: milvus-minio:9000
+        - name: COMMON_STORAGETYPE
+          value: "local"
         ports:
         - containerPort: 19530 # gRPC port
         - containerPort: 9091  # Metrics port
