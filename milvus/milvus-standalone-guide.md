@@ -7,38 +7,6 @@ Create a new file named `milvus-standalone.yaml` and paste the entire block of c
 ```yaml
 # milvus-standalone.yaml
 
-# This is a best practice for real-world scenarios.
-# It creates an isolated space for all our Milvus components.
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: milvus-standalone
----
-# 1. CONFIGURATION FOR MILVUS
-# A ConfigMap holds the milvus.yaml configuration file.
-# Milvus will read this to know where to find etcd and minio.
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: milvus-config
-  namespace: milvus-standalone
-data:
-  milvus.yaml: |
-    # Add this new section for common configurations
-    common:
-      localStorage:
-        path: /var/lib/milvus
-
-    etcd:
-      endpoints:
-        - milvus-etcd:2379  # The name of the etcd service we will create
-    minio:
-      address: milvus-minio # The name of the minio service we will create
-      port: 9000
-      accessKeyID: minioadmin
-      secretAccessKey: minioadmin
-      useSSL: false
----
 # 2. DEPENDENCY: ETCD (METADATA STORAGE)
 # We use a StatefulSet because etcd needs stable network identity and storage.
 apiVersion: apps/v1
@@ -231,7 +199,20 @@ spec:
 Now that you have the complete "blueprint" in `milvus-standalone.yaml`, tell Kubernetes to build it:
 
 ```bash
+kubectl create ns milvus-standalone
+namespace/milvus-standalone created
+
+kubectl apply -f milvus-config.yaml
+configmap/milvus-config created
+
 kubectl apply -f milvus-standalone.yaml
+statefulset.apps/milvus-etcd created
+service/milvus-etcd created
+deployment.apps/milvus-minio created
+persistentvolumeclaim/minio-pvc created
+service/milvus-minio created
+deployment.apps/milvus-standalone created
+service/milvus-standalone-service created
 ```
 
 This will create all the defined resources in the `milvus-standalone` namespace.
@@ -255,39 +236,34 @@ milvus-standalone-xxxx-xxxx          1/1     Running   0          90s
 
 ```
 Every 2.0s: kubectl get all,pvc,secrets,cm -n milvus-standalone      
-
-NAME                                     READY   STATUS             RESTARTS          AGE
-pod/milvus-etcd-0                        1/1     Running            1 (8h ago)        27h
-pod/milvus-minio-8fcf5bbd5-8hblp         1/1     Running            1 (8h ago)        27h
-pod/milvus-standalone-6986b8b78b-h66x7   0/1     CrashLoopBackOff   156 (2m10s ago)   27h
+NAME                                     READY   STATUS    RESTARTS   AGE
+pod/milvus-etcd-0                        1/1     Running   0          8m41s
+pod/milvus-minio-8fcf5bbd5-k8d7c         1/1     Running   0          8m41s
+pod/milvus-standalone-565fcb777d-bdlgl   1/1     Running   0          8m41s
 
 NAME                                TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)             AGE
-service/milvus-etcd                 ClusterIP   10.96.111.222   <none>        2379/TCP            27h
-service/milvus-minio                ClusterIP   10.96.48.83     <none>        9000/TCP,9001/TCP   27h
-service/milvus-standalone-service   ClusterIP   10.96.159.137   <none>        19530/TCP           27h
+service/milvus-etcd                 ClusterIP   10.96.53.146    <none>        2379/TCP            8m41s
+service/milvus-minio                ClusterIP   10.96.56.54     <none>        9000/TCP,9001/TCP   8m41s
+service/milvus-standalone-service   ClusterIP   10.96.106.139   <none>        19530/TCP           8m41s
 
 NAME                                READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/milvus-minio        1/1     1            1           27h
-deployment.apps/milvus-standalone   0/1     1            0           27h
+deployment.apps/milvus-minio        1/1     1            1           8m41s
+deployment.apps/milvus-standalone   1/1     1            1           8m41s
 
 NAME                                           DESIRED   CURRENT   READY   AGE
-replicaset.apps/milvus-minio-8fcf5bbd5         1         1         1       27h
-replicaset.apps/milvus-standalone-6986b8b78b   1         1         0       27h
-replicaset.apps/milvus-standalone-845fc46f6f   0         0         0       27h
+replicaset.apps/milvus-minio-8fcf5bbd5         1         1         1       8m41s
+replicaset.apps/milvus-standalone-565fcb777d   1         1         1       8m41s
 
 NAME                           READY   AGE
-statefulset.apps/milvus-etcd   1/1     27h
+statefulset.apps/milvus-etcd   1/1     8m41s
 
-NAME                                            STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECL
-ASS   VOLUMEATTRIBUTESCLASS   AGE
-persistentvolumeclaim/etcd-data-milvus-etcd-0   Bound    pvc-bab99921-cde4-4e11-a9f5-091b1ba67040   10Gi       RWO            standard
-      <unset>                 27h
-persistentvolumeclaim/minio-pvc                 Bound    pvc-49a5b844-8380-4940-9e74-47e5a052d282   50Gi       RWO            standard
-      <unset>                 27h
+NAME                                            STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+persistentvolumeclaim/etcd-data-milvus-etcd-0   Bound    pvc-c2f23199-7f55-450d-bf45-b3571f12ae86   10Gi       RWO            standard       <unset>                 8m41s
+persistentvolumeclaim/minio-pvc                 Bound    pvc-5b8881d2-efa7-4f20-a0e5-c29a76eb7c0a   50Gi       RWO            standard       <unset>                 8m41s
 
 NAME                         DATA   AGE
-configmap/kube-root-ca.crt   1      27h
-configmap/milvus-config      1      27h
+configmap/kube-root-ca.crt   1      8m58s
+configmap/milvus-config      1      8m54s
 ```
 
 
@@ -305,6 +281,39 @@ kubectl port-forward service/milvus-standalone-service 19530:19530 -n milvus-sta
 ```
 
 Now, in another terminal, you can run your same Python client script. It will connect to `localhost:19530` and work exactly as it did with the Helm-based deployment.
+
+neaj@neaj-pc:~/go/src/github.com/Neaj-Morshad-101/yamls/milvus$ source venv/bin/activate
+(venv) neaj@neaj-pc:~/go/src/github.com/Neaj-Morshad-101/yamls/milvus$ python python-client.py 
+✅ Successfully connected to Milvus!
+✅ Milvus server version: 2.6.1
+🔌 Disconnected from Milvus.
+(venv) neaj@neaj-pc:~/go/src/github.com/Neaj-Morshad-101/yamls/milvus$ python milvus-python-client.py 
+✅ Successfully connected to Milvus at localhost:19530
+🧹 Dropped existing collection: book_recommendations
+Creating collection: book_recommendations...
+✅ Collection created successfully.
+
+Preparing and inserting data...
+✅ Inserted 1000 books into the collection.
+
+Creating index for the vector field...
+✅ Index created successfully.
+
+Loading collection into memory for searching...
+Performing a vector similarity search...
+
+🔍 Top 5 most similar books found:
+  - Book ID: 575, Distance: 0.1796, Title: 'Book Title 575', Year: 1980
+  - Book ID: 919, Distance: 0.1981, Title: 'Book Title 919', Year: 2021
+  - Book ID: 528, Distance: 0.2294, Title: 'Book Title 528', Year: 2003
+  - Book ID: 856, Distance: 0.2659, Title: 'Book Title 856', Year: 1990
+  - Book ID: 764, Distance: 0.3029, Title: 'Book Title 764', Year: 1988
+
+Releasing collection from memory...
+🔌 Disconnected from Milvus.
+(venv) neaj@neaj-pc:~/go/src/github.com/Neaj-Morshad-101/yamls/milvus$ 
+
+
 
 ---
 

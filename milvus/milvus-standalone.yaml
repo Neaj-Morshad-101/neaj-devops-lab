@@ -1,37 +1,5 @@
 # milvus-standalone.yaml
 
-# This is a best practice for real-world scenarios.
-# It creates an isolated space for all our Milvus components.
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: milvus-standalone
-# ---
-# # 1. CONFIGURATION FOR MILVUS
-# # A ConfigMap holds the milvus.yaml configuration file.
-# # Milvus will read this to know where to find etcd and minio.
-# apiVersion: v1
-# kind: ConfigMap
-# metadata:
-#   name: milvus-config
-#   namespace: milvus-standalone
-# data:
-#   milvus.yaml: |
-#     # Add this new section for common configurations
-#     common:
-#       localStorage:
-#         path: /var/lib/milvus
-
-#     etcd:
-#       endpoints:
-#         - milvus-etcd:2379  # The name of the etcd service we will create
-#     minio:
-#       address: milvus-minio # The name of the minio service we will create
-#       port: 9000
-#       accessKeyID: minioadmin
-#       secretAccessKey: minioadmin
-#       useSSL: false
----
 # 2. DEPENDENCY: ETCD (METADATA STORAGE)
 # We use a StatefulSet because etcd needs stable network identity and storage.
 apiVersion: apps/v1
