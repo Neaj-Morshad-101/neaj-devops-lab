@@ -1,3 +1,42 @@
+milvus standalone pod:
+panic: failed to create etcd client: context deadline exceeded
+
+goroutine 1 gp=0xc000002380 m=9 mp=0xc000980008 [running]:
+panic({0x68e3ea0?, 0xc002193780?})
+	/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.24.4.linux-amd64/src/runtime/panic.go:811 +0x168 fp=0xc0019877b0 sp=0xc001987700 pc=0x25548c8
+github.com/milvus-io/milvus/internal/util/dependency/kv.getEtcdAndPath()
+	/workspace/source/internal/util/dependency/kv/kv_client_handler.go:54 +0x1bf fp=0xc001987838 sp=0xc0019877b0 pc=0x54affbf
+github.com/milvus-io/milvus/internal/util/dependency/kv.GetEtcdAndPath(...)
+	/workspace/source/internal/util/dependency/kv/kv_client_handler.go:26
+github.com/milvus-io/milvus/internal/distributed/streaming.Init()
+	/workspace/source/internal/distributed/streaming/streaming.go:18 +0x1b fp=0xc001987850 sp=0xc001987838 pc=0x5ae64fb
+github.com/milvus-io/milvus/cmd/roles.(*MilvusRoles).Run(0xc001153540)
+	/workspace/source/cmd/roles/roles.go:361 +0x67f fp=0xc001987ba8 sp=0xc001987850 pc=0x61860df
+github.com/milvus-io/milvus/cmd/milvus.(*run).execute(0xac78b60, {0xc000072990, 0x3, 0x3}, 0xc0011124d0)
+	/workspace/source/cmd/milvus/run.go:48 +0x2ae fp=0xc001987c68 sp=0xc001987ba8 pc=0x619336e
+github.com/milvus-io/milvus/cmd/milvus.RunMilvus({0xc000072990, 0x3, 0x3})
+	/workspace/source/cmd/milvus/milvus.go:60 +0x1e2 fp=0xc001987cd8 sp=0xc001987c68 pc=0x6193022
+main.main()
+	/workspace/source/cmd/main.go:102 +0x285 fp=0xc001987f50 sp=0xc001987cd8 pc=0x6197705
+runtime.main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 [2025/09/02 14:00:50.420 +00:00] [FATAL] [paramtable/component_param.go:3820] ["failed to mkdir"] [localStoragePath=] [error="mkdir : no such file or directory"] [stack="github.com/milvus-io/milvus/pkg/v2/util/paramtable.(*queryNodeConfig).init.func24\n\t/workspace/source/pkg/util/paramtable/component_param.go:3820\ngithub.com/milvus-io/milvus/pkg/v2/util/paramtable.(*ParamItem).getWithRaw\n\t/workspace/source/pkg/util/paramtable/param_item.go:153\ngithub.com/milvus-io/milvus/pkg/v2/util/paramtable.(*ParamItem).get\n\t/workspace/source/pkg/util/paramtable/param_item.go:119\ngithub.com/milvus-io/milvus/pkg/v2/util/paramtable.(*ParamItem).GetValue\n\t/workspace/source/pkg/util/paramtable/param_item.go:178\ngithub.com/milvus-io/milvus/pkg/v2/util/paramtable.(*ParamItem).Init\n\t/workspace/source/pkg/util/paramtable/param_item.go:64\ngithub.com/milvus-io/milvus/pkg/v2/util/paramtable.(*queryNodeConfig).init\n\t/workspace/source/pkg/util/paramtable/component_param.go:3833\ngithub.com/milvus-io/milvus/pkg/v2/util/paramtable.(*ComponentParam).init\n\t/workspace/source/pkg/util/paramtable/component_param.go:135\ngithub.com/milvus-io/milvus/pkg/v2/util/paramtable.(*ComponentParam).Init.func1\n\t/workspace/source/pkg/util/paramtable/component_param.go:115\nsync.(*Once).doSlow\n\t/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.24.4.linux-amd64/src/sync/once.go:78\nsync.(*Once).Do\n\t/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.24.4.linux-amd64/src/sync/once.go:69\ngithub.com/milvus-io/milvus/pkg/v2/util/paramtable.(*ComponentParam).Init\n\t/workspace/source/pkg/util/paramtable/component_param.go:114\ngithub.com/milvus-io/milvus/pkg/v2/util/paramtable.Init.func1\n\t/workspace/source/pkg/util/paramtable/runtime.go:55\nsync.(*Once).doSlow\n\t/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.24.4.linux-amd64/src/sync/once.go:78\nsync.(*Once).Do\n\t/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.24.4.linux-amd64/src/sync/once.go:69\ngithub.com/milvus-io/milvus/pkg/v2/util/paramtable.Init\n\t/workspace/source/pkg/util/paramtable/runtime.go:46\ngithub.com/milvus-io/milvus/pkg/v2/util/paramtable.Get\n\t/workspace/source/pkg/util/paramtable/runtime.go:75\ngithub.com/milvus-io/milvus/internal/querycoordv2/params.init\n\t/workspace/source/internal/querycoordv2/params/params.go:31\nruntime.doInit1\n\t/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.24.4.linux-amd64/src/runtime/proc.go:7353\nruntime.doInit\n\t/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.24.4.linux-amd64/src/runtime/proc.go:7320\nruntime.main\n\t/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.24.4.linux-amd64/src/runtime/proc.go:254"]
 panic: failed to mkdir
 
