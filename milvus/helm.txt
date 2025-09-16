@@ -224,7 +224,6 @@ configmap/my-milvus-cluster-pulsar-zookeeper   5      12m
 
 Connect to the Cluster from Your Local Machine: 
 
-
 kubectl port-forward service/my-milvus-cluster 19530:19530
 
 
