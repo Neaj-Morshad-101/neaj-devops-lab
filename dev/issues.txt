@@ -1,0 +1,74 @@
+Local Setup Issues:
+
+
+
+{
+realworld-backend   |   "host": "127.0.0.1",
+realworld-backend   |   "dialect": "postgres"
+realworld-backend   | }
+realworld-backend   | Server running on http://localhost:3001
+realworld-backend   | ConnectionRefusedError [SequelizeConnectionRefusedError]: connect ECONNREFUSED 127.0.0.1:5432
+realworld-backend   |     at Client._connectionCallback (/app/node_modules/sequelize/lib/dialects/postgres/connection-manager.js:133:24)
+realworld-backend   |     at Client._handleErrorWhileConnecting (/app/node_modules/pg/lib/client.js:336:19)
+realworld-backend   |     at Client._handleErrorEvent (/app/node_modules/pg/lib/client.js:346:19)
+realworld-backend   |     at Connection.emit (node:events:517:28)
+realworld-backend   |     at Socket.reportStreamError (/app/node_modules/pg/lib/connection.js:57:12)
+realworld-backend   |     at Socket.emit (node:events:517:28)
+realworld-backend   |     at emitErrorNT (node:internal/streams/destroy:151:8)
+realworld-backend   |     at emitErrorCloseNT (node:internal/streams/destroy:116:3)
+realworld-backend   |     at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+realworld-backend   |   parent: Error: connect ECONNREFUSED 127.0.0.1:5432
+realworld-backend   |       at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1555:16) {
+realworld-backend   |     errno: -111,
+realworld-backend   |     code: 'ECONNREFUSED',
+realworld-backend   |     syscall: 'connect',
+realworld-backend   |     address: '127.0.0.1',
+realworld-backend   |     port: 5432
+realworld-backend   |   },
+realworld-backend   |   original: Error: connect ECONNREFUSED 127.0.0.1:5432
+realworld-backend   |       at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1555:16) {
+realworld-backend   |     errno: -111,
+realworld-backend   |     code: 'ECONNREFUSED',
+realworld-backend   |     syscall: 'connect',
+realworld-backend   |     address: '127.0.0.1',
+realworld-backend   |     port: 5432
+realworld-backend   |   }
+realworld-backend   | }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+realworld-frontend  | 2025/09/13 06:57:44 [error] 29#29: *2 rewrite or internal redirection cycle while internally redirecting to "/index.html", client: 172.19.0.1, server: localhost, request: "GET / HTTP/1.1", host: "localhost:3000"
+realworld-frontend  | 172.19.0.1 - - [13/Sep/2025:06:57:44 +0000] "GET / HTTP/1.1" 500 579 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36" "-"
+realworld-frontend  | 2025/09/13 06:57:45 [error] 29#29: *1 rewrite or internal redirection cycle while internally redirecting to "/index.html", client: 172.19.0.1, server: localhost, request: "GET /favicon.ico HTTP/1.1", host: "localhost:3000", referrer: "http://localhost:3000/"
+realworld-frontend  | 172.19.0.1 - - [13/Sep/2025:06:57:45 +0000] "GET /favicon.ico HTTP/1.1" 500 579 "http://localhost:3000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36" "-"
+realworld-frontend  | 172.19.0.1 - - [13/Sep/2025:06:57:46 +0000] "GET / HTTP/1.1" 500 579 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36" "-"
+realworld-frontend  | 2025/09/13 06:57:46 [error] 30#30: *3 rewrite or internal redirection cycle while internally redirecting to "/index.html", client: 172.19.0.1, server: localhost, request: "GET / HTTP/1.1", host: "localhost:3000"
+realworld-frontend  | 2025/09/13 06:57:46 [error] 31#31: *4 rewrite or internal redirection cycle while internally redirecting to "/index.html", client: 172.19.0.1, server: localhost, request: "GET /favicon.ico HTTP/1.1", host: "localhost:3000", referrer: "http://localhost:3000/"
+realworld-frontend  | 172.19.0.1 - - [13/Sep/2025:06:57:46 +0000] "GET /favicon.ico HTTP/1.1" 500 579 "http://localhost:3000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36" "-"
+realworld-frontend  | 172.19.0.1 - - [13/Sep/2025:06:57:47 +0000] "GET / HTTP/1.1" 500 579 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36" "-"
+realworld-frontend  | 2025/09/13 06:57:47 [error] 32#32: *5 rewrite or internal redirection cycle while internally redirecting to "/index.html", client: 172.19.0.1, server: localhost, request: "GET / HTTP/1.1", host: "localhost:3000"
+realworld-frontend  | 2025/09/13 06:57:47 [error] 33#33: *6 rewrite or internal redirection cycle while internally redirecting to "/index.html", client: 172.19.0.1, server: localhost, request: "GET /favicon.ico HTTP/1.1", host: "localhost:3000", referrer: "http://localhost:3000/"
+realworld-frontend  | 172.19.0.1 - - [13/Sep/2025:06:57:47 +0000] "GET /favicon.ico HTTP/1.1" 500 579 "http://localhost:3000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36" "-"
+realworld-frontend  | 2025/09/13 06:57:47 [error] 34#34: *7 rewrite or internal redirection cycle while internally redirecting to "/index.html", client: 172.19.0.1, server: localhost, request: "GET / HTTP/1.1", host: "localhost:3000"
+realworld-frontend  | 172.19.0.1 - - [13/Sep/2025:06:57:47 +0000] "GET / HTTP/1.1" 500 579 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36" "-"
+realworld-frontend  | 2025/09/13 06:57:48 [error] 35#35: *8 rewrite or internal redirection cycle while internally redirecting to "/index.html", client: 172.19.0.1, server: localhost, request: "GET /favicon.ico HTTP/1.1", host: "localhost:3000", referrer: "http://localhost:3000/"
+realworld-frontend  | 172.19.0.1 - - [13/Sep/2025:06:57:48 +0000] "GET /favicon.ico HTTP/1.1" 500 579 "http://localhost:3000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36" "-"
+realworld-frontend  | 2025/09/13 06:57:48 [error] 36#36: *9 rewrite or internal redirection cycle while internally redirecting to "/index.html", client: 172.19.0.1, server: localhost, request: "GET / HTTP/1.1", host: "localhost:3000"
+realworld-frontend  | 172.19.0.1 - - [13/Sep/2025:06:57:48 +0000] "GET / HTTP/1.1" 500 579 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36" "-"
+realworld-frontend  | 2025/09/13 06:57:48 [error] 36#36: *10 rewrite or internal redirection cycle while internally redirecting to "/index.html", client: 172.19.0.1, server: localhost, request: "GET /favicon.ico HTTP/1.1", host: "localhost:3000", referrer: "http://localhost:3000/"
+realworld-frontend  | 172.19.0.1 - - [13/Sep/2025:06:57:48 +0000] "GET /favicon.ico HTTP/1.1" 500 579 "http://localhost:3000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36" "-"
+realworld-frontend  | 172.19.0.1 - - [13/Sep/2025:06:57:48 +0000] "GET / HTTP/1.1" 500 579 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36" "-"
+realworld-frontend  | 2025/09/13 06:57:48 [error] 37#37: *11 rewrite or internal redirection cycle while internally redirecting to "/index.html", client: 172.19.0.1, server: localhost, request: "GET / HTTP/1.1", host: "localhost:3000"
+realworld-frontend  | 2025/09/13 06:57:49 [error] 38#38: *12 rewrite or internal redirection cycle while internally redirecting to "/index.html", client: 172.19.0.1, server: localhost, request: "GET /favicon.ico HTTP/1.1", host: "localhost:3000", referrer: "http://localhost:3000/"
+realworld-frontend  | 172.19.0.1 - - [13/Sep/2025:06:57:49 +0000] "GET /favicon.ico HTTP/1.1" 500 579 "http://localhost:3000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36" "-"
