@@ -1,4 +1,7 @@
 todo: follow helm chart way
+Standalone:
+- use pvc for milvus standalone pod
+- update etcd image to helm chart image: docker.io/milvusdb/etcd:3.5.5-r2
 
 cluster:
 ➤ kubectl get sts my-milvus-cluster-pulsar-bookie -oyaml | grep image
@@ -148,7 +151,7 @@ metadata:
 
 
 
-All milvus components: 
+All milvus components of Distributed Milvus
 
 Every 2.0s: kubectl get all,pvc,secrets,cm
 

@@ -1,0 +1,16 @@
+tenant-base.yaml file is for generating 2 pods 
+￼
+
+
+kubectl apply -f tenant-base.yaml
+
+watch kubectl get all -n minio-tenant
+
+kubectl port-forward svc/myminio-hl 9000 -n minio-tenant
+
+
+mc alias set myminio https://localhost:9000 minio minio123 --insecure
+
+mc mb myminio/mybucket --insecure
+
+kubectl port-forward svc/myminio-console 9443 -n minio-tenant
