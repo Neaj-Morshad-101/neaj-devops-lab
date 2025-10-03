@@ -102,8 +102,8 @@ helm install my-milvus-cluster milvus/milvus -f values.yaml
 
 
 
-Every 2.0s: kubectl get all,pvc,secrets,cm                                                                                                                                                                                                                                                neaj-pc: Wed Aug 27 15:41:46 2025
-
+Every 2.0s: kubectl get all,pvc,secrets,cm 
+27 pods 
 NAME                                                READY   STATUS      RESTARTS        AGE
 pod/my-milvus-cluster-datacoord-f55888d4c-bn7nf     1/1     Running     0               12m
 pod/my-milvus-cluster-datanode-79dd569f9-sqcrp      1/1     Running     1 (8m27s ago)   12m

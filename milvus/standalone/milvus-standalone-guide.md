@@ -1,36 +1,30 @@
 ### **Full Guide: Milvus Standalone with Raw Kubernetes Manifests**
 
-#### **Step 1: Create the Manifest Files**
-
-milvus-standalone-config.yaml 
-milvus-standalone-dependencies.yaml 
-milvus-standalone.yaml
-
-
-#### **Step 2: Apply the Manifest**
-
-Now that you have the complete "blueprint" in `milvus-standalone.yaml`, tell Kubernetes to build it:
+#### **Step 1: Create and Apply the Manifest Files**
 
 ```bash
 ➤ kubectl apply -f milvus-standalone-config.yaml 
 configmap/milvus-config created
-neaj@neaj-pc:~/g/s/g/N/y/milvus|main⚡*?
-➤ kubectl apply -f milvus-standalone-dependencies.yaml 
+
+➤ kubectl apply -f milvus-standalone-etcd.yaml
 service/milvus-etcd-headless created
 service/milvus-etcd created
 statefulset.apps/milvus-etcd created
+
+➤ kubectl apply -f milvus-standalone-minio.yaml 
 service/milvus-minio created
 persistentvolumeclaim/minio-pvc created
 deployment.apps/milvus-minio created
-neaj@neaj-pc:~/g/s/g/N/y/milvus|main⚡*?
-➤ kubectl apply -f milvus-standalone.yaml 
+
+➤ kubectl apply -f milvus-standalone.yaml
 service/milvus-standalone-service created
 deployment.apps/milvus-standalone created
 ```
 
+
 This will create all the defined resources in the `milvus-standalone` namespace.
 
-#### **Step 3: Verify the Deployment**
+#### **Step 2: Verify the Deployment**
 
 Check that all the pods are up and running. It might take a minute or two for the images to pull and the containers to start.
 
@@ -46,40 +40,40 @@ You should see an output similar to this, with all pods eventually reaching `Run
 
 
 ```
-Every 2.0s: kubectl get all,pvc,secrets,cm -n milvus-standalone                                                             neaj-pc: Tue Sep 16 12:04:42 2025
+Every 2.0s: kubectl get all,pvc,secrets,cm -n milvus-standalone                                                          
 
 NAME                                     READY   STATUS    RESTARTS   AGE
-pod/milvus-etcd-0                        1/1     Running   0          9m37s
-pod/milvus-minio-8fcf5bbd5-qm8nv         1/1     Running   0          9m37s
-pod/milvus-standalone-565fcb777d-4w5xn   1/1     Running   0          6m5s
+pod/milvus-etcd-0                        1/1     Running   0          4h35m
+pod/milvus-minio-8fcf5bbd5-vcrc6         1/1     Running   0          4m19s
+pod/milvus-standalone-565fcb777d-qxhf8   1/1     Running   0          3m27s
 
-NAME                                TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)             AGE
-service/milvus-etcd                 ClusterIP   10.96.130.66   <none>        2379/TCP            9m38s
-service/milvus-etcd-headless        ClusterIP   None           <none>        2379/TCP            9m38s
-service/milvus-minio                ClusterIP   10.96.6.203    <none>        9000/TCP,9001/TCP   9m37s
-service/milvus-standalone-service   ClusterIP   10.96.184.41   <none>        19530/TCP           6m5s
+NAME                                TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)             AGE
+service/milvus-etcd                 ClusterIP   10.96.102.248   <none>        2379/TCP            4h35m
+service/milvus-etcd-headless        ClusterIP   None            <none>        2379/TCP            4h35m
+service/milvus-minio                ClusterIP   10.96.152.220   <none>        9000/TCP,9001/TCP   4m19s
+service/milvus-standalone-service   ClusterIP   10.96.249.245   <none>        19530/TCP           3m27s
 
 NAME                                READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/milvus-minio        1/1     1            1           9m37s
-deployment.apps/milvus-standalone   1/1     1            1           6m5s
+deployment.apps/milvus-minio        1/1     1            1           4m19s
+deployment.apps/milvus-standalone   1/1     1            1           3m27s
 
 NAME                                           DESIRED   CURRENT   READY   AGE
-replicaset.apps/milvus-minio-8fcf5bbd5         1         1         1       9m37s
-replicaset.apps/milvus-standalone-565fcb777d   1         1         1       6m5s
+replicaset.apps/milvus-minio-8fcf5bbd5         1         1         1       4m19s
+replicaset.apps/milvus-standalone-565fcb777d   1         1         1       3m27s
 
 NAME                           READY   AGE
-statefulset.apps/milvus-etcd   1/1     9m37s
+statefulset.apps/milvus-etcd   1/1     4h35m
 
 NAME                                            STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTES
 CLASS   AGE
 persistentvolumeclaim/etcd-data-milvus-etcd-0   Bound    pvc-a29027dc-5aa0-4ed4-9d22-42c253334400   10Gi       RWO            standard       <unset>
-        9m37s
-persistentvolumeclaim/minio-pvc                 Bound    pvc-7787ba74-5208-4aff-a83b-7bc10ebf2456   50Gi       RWO            standard       <unset>
-        9m37s
+        17d
+persistentvolumeclaim/minio-pvc                 Bound    pvc-c80cdf9a-da54-4e98-9b83-93ba9e6c4389   50Gi       RWO            standard       <unset>
+        4m19s
 
 NAME                         DATA   AGE
-configmap/kube-root-ca.crt   1      27m
-configmap/milvus-config      1      9m44s
+configmap/milvus-config      1      4h35m
+
 ```
 
 
@@ -140,7 +134,8 @@ To delete everything you've created:
 
 1.  **Delete all resources from the manifest file:**
     ```bash
-    kubectl delete -f milvus-standalone-dependencies.yaml 
+    kubectl delete -f milvus-standalone-etcd.yaml 
+    kubectl delete -f milvus-standalone-minio.yaml 
     kubectl delete -f milvus-standalone.yaml
     kubectl delete -f milvus-standalone-config.yaml
     ```
