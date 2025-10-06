@@ -1,4 +1,4 @@
-todo: follow helm chart way
+Follow the official helm chart:
 Standalone:
 - use pvc for milvus standalone pod
 - update etcd image to helm chart image: docker.io/milvusdb/etcd:3.5.5-r2
@@ -9,14 +9,10 @@ cluster:
 ➤ kubectl get sts my-milvus-cluster-pulsar-zookeeper -oyaml | grep image
         image: apachepulsar/pulsar:2.8.2
 
-
  ok image: milvusdb/milvus:v2.2.13
  image: quay.io/coreos/etcd:v3.5.5    #  helm chart image: docker.io/milvusdb/etcd:3.5.5-r2
  ok image: minio/minio:RELEASE.2023-03-20T20-16-18Z   # helm chart image: minio/minio:RELEASE.2023-03-20T20-16-18Z   https://hub.docker.com/r/minio/minio
 
-
-
-use pvc for milvus standalone pod
 
 use secrets for authentication stuff: 
 ➤ kubectl view-secret my-milvus-minio -a
@@ -137,12 +133,6 @@ metadata:
   namespace: default
   resourceVersion: "5439"
   uid: b05ac587-31fe-487c-b285-370349502449
-
-
-
-
-
-
 
 
 
