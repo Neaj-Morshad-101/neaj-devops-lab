@@ -142,6 +142,74 @@ metadata:
 
 
 All milvus components of Distributed Milvus
+8
+NAME                                           READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/my-milvus-cluster-datacoord    1/1     1            1           12m
+deployment.apps/my-milvus-cluster-datanode     1/1     1            1           12m
+deployment.apps/my-milvus-cluster-indexcoord   1/1     1            1           12m
+deployment.apps/my-milvus-cluster-indexnode    1/1     1            1           12m
+deployment.apps/my-milvus-cluster-proxy        1/1     1            1           12m
+deployment.apps/my-milvus-cluster-querycoord   1/1     1            1           12m
+deployment.apps/my-milvus-cluster-querynode    2/2     2            2           12m
+deployment.apps/my-milvus-cluster-rootcoord    1/1     1            1           12m
+
+➤ kubectl get deploy -oyaml | grep image: 
+          image: milvusdb/milvus:v2.2.13
+          image: milvusdb/milvus-config-tool:v0.1.1
+          image: milvusdb/milvus:v2.2.13
+          image: milvusdb/milvus-config-tool:v0.1.1
+          image: milvusdb/milvus:v2.2.13
+          image: milvusdb/milvus-config-tool:v0.1.1
+          image: milvusdb/milvus:v2.2.13
+          image: milvusdb/milvus-config-tool:v0.1.1
+          image: milvusdb/milvus:v2.2.13
+          image: milvusdb/milvus-config-tool:v0.1.1
+          image: milvusdb/milvus:v2.2.13
+          image: milvusdb/milvus-config-tool:v0.1.1
+          image: milvusdb/milvus:v2.2.13
+          image: milvusdb/milvus-config-tool:v0.1.1
+          image: milvusdb/milvus:v2.2.13
+          image: milvusdb/milvus-config-tool:v0.1.1
+
+For all type of milvus node's container, the image: milvusdb/milvus:v2.2.13.
+For all init-containers the image: milvusdb/milvus-config-tool:v0.1.1
+
+
+7
+NAME                                                  READY   AGE
+statefulset.apps/my-milvus-cluster-etcd     image: docker.io/milvusdb/etcd:3.5.5-r2
+statefulset.apps/my-milvus-cluster-minio    image: minio/minio:RELEASE.2023-03-20T20-16-18Z
+statefulset.apps/my-milvus-cluster-pulsar-bookie      3/3     12m
+statefulset.apps/my-milvus-cluster-pulsar-broker      1/1     12m
+statefulset.apps/my-milvus-cluster-pulsar-proxy       1/1     12m
+statefulset.apps/my-milvus-cluster-pulsar-recovery    1/1     12m
+statefulset.apps/my-milvus-cluster-pulsar-zookeeper   3/3     12m
+
+➤ kubectl get sts -oyaml | grep image:
+          image: docker.io/milvusdb/etcd:3.5.5-r2
+          image: minio/minio:RELEASE.2023-03-20T20-16-18Z
+          11
+          image: apachepulsar/pulsar:2.8.2
+          image: apachepulsar/pulsar:2.8.2
+          image: apachepulsar/pulsar:2.8.2
+          image: apachepulsar/pulsar:2.8.2
+          image: apachepulsar/pulsar:2.8.2
+          image: apachepulsar/pulsar:2.8.2
+          image: apachepulsar/pulsar:2.8.2
+          image: apachepulsar/pulsar:2.8.2
+          image: apachepulsar/pulsar:2.8.2
+          image: apachepulsar/pulsar:2.8.2
+          image: apachepulsar/pulsar:2.8.2
+
+For all type of pulsur node's container and all init-containers, the image: apachepulsar/pulsar:2.8.2
+
+
+
+
+
+
+
+
 
 Every 2.0s: kubectl get all,pvc,secrets,cm
 
