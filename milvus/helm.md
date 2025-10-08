@@ -241,10 +241,12 @@ Load and Search: Find the most similar books to a given query.
 
 Create a new Python file (e.g., milvus-cluster-python-client.py) in the same directory where you set up your virtual environment.
 
+neaj@neaj-pc:~/g/s/g/N/y/milvus|main✓
+➤ bash
+neaj@neaj-pc:~/go/src/github.com/Neaj-Morshad-101/yamls/milvus$ source venv/bin/activate
 
 
-
-(venv) neaj@neaj-pc:~/go/src/github.com/Neaj-Morshad-101/yamls/milvus$ python milvus-cluster-python-client.py 
+(venv) neaj@neaj-pc:~/go/src/github.com/Neaj-Morshad-101/yamls/milvus$ python milvus-python-client.py 
 ✅ Successfully connected to Milvus at localhost:19530
 Creating collection: book_recommendations...
 ✅ Collection created successfully.
@@ -277,7 +279,7 @@ Releasing collection from memory...
 
 
 
-To upgrade your deployment after changing values.yaml:
+# To upgrade your deployment after changing values.yaml:
 helm upgrade my-milvus-cluster milvus/milvus -f values.yaml
 
 
@@ -287,10 +289,6 @@ Uninstall:
 helm uninstall my-milvus # Or my-milvus-cluster
 kubectl get pvc
 kubectl delete pvc <pvc-name-for-etcd> <pvc-name-for-minio>
-
-
-
-
 
 
 ```
