@@ -1,3 +1,4 @@
+```bash 
 helm repo add milvus https://milvus-io.github.io/milvus-helm/
 helm repo update
 
@@ -43,6 +44,7 @@ NAME                                           DATA   AGE
 configmap/my-milvus                            2      114s
 configmap/my-milvus-minio                      1      114s
 
+```
 
 
 
@@ -54,9 +56,7 @@ configmap/my-milvus-minio                      1      114s
 
 
 
-
-
-
+```bash
 Cluster:
 helm show values milvus/milvus > values.yaml
 
@@ -217,21 +217,20 @@ configmap/my-milvus-cluster-pulsar-broker      22     12m
 configmap/my-milvus-cluster-pulsar-proxy       9      12m
 configmap/my-milvus-cluster-pulsar-recovery    7      12m
 configmap/my-milvus-cluster-pulsar-zookeeper   5      12m
+```
 
 
 
 
 
-Connect to the Cluster from Your Local Machine: 
 
+## Connect to the Cluster from Your Local Machine: 
+```bash
 kubectl port-forward service/my-milvus-cluster 19530:19530
 
 
 
 We will build a tiny "book recommendation" engine.
-
-
-
 
 Create a Collection: Like a table in a SQL database.
 Insert Data: We'll insert vectors (representing book summaries) and their metadata (book title, year).
@@ -294,7 +293,7 @@ kubectl delete pvc <pvc-name-for-etcd> <pvc-name-for-minio>
 
 
 
-
+```
 
 
 
