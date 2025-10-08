@@ -1,3 +1,8 @@
+# Deploying a Milvus cluster manually is a significant leap in complexity from the standalone version. A full cluster involves over a dozen microservices and three separate, distributed dependencies (Etcd, MinIO, and Pulsar). A single, hand-crafted YAML file for this would be thousands of lines long, incredibly error-prone, and would become outdated very quickly.
+
+# Get a working set of manifests generated from the official source of truth (the Helm chart).
+# Now You have the raw YAML file. You can inspect it, modify it, and manage it with kubectl as you see fit.
+
 ---
 # Source: milvus/charts/minio/templates/serviceaccount.yaml
 
