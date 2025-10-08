@@ -1,0 +1,19 @@
+replicaCount: 3  # number of etcd nodes
+
+auth:
+  rbac:
+    create: true
+  rootPassword: "P@55w0rd!"
+
+persistence:
+  enabled: true
+  size: 5Gi
+  storageClass: standard
+
+networkPolicy:
+  enabled: false
+
+# TLS settings (if you want secure etcd)
+tls:
+  enabled: false
+  # existingSecret: etcd-tls-secret  # if you already have certs
