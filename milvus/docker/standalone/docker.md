@@ -157,6 +157,17 @@ de897a9b52e9   minio/minio:RELEASE.2024-12-18T13-15-44Z   "/usr/bin/docker-ent�
 ```
 
 
+```
+➤ sudo docker compose ps
+WARN[0000] /home/neaj/go/src/github.com/Neaj-Morshad-101/yamls/milvus/docker/standalone/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+NAME                IMAGE                                      COMMAND                  SERVICE      CREATED         STATUS                   PORTS
+milvus-etcd         quay.io/coreos/etcd:v3.5.18                "etcd -advertise-cli…"   etcd         2 minutes ago   Up 2 minutes (healthy)   2379-2380/tcp
+milvus-minio        minio/minio:RELEASE.2024-12-18T13-15-44Z   "/usr/bin/docker-ent…"   minio        2 minutes ago   Up 2 minutes (healthy)   0.0.0.0:9000-9001->9000-9001/tcp, [::]:9000-9001->9000-9001/tcp
+milvus-standalone   milvusdb/milvus:v2.6.2                     "/tini -- milvus run…"   standalone   2 minutes ago   Up 2 minutes (healthy)   0.0.0.0:9091->9091/tcp, [::]:9091->9091/tcp, 0.0.0.0:19530->19530/tcp, [::]:19530->19530/tcp
+warning: could not open directory 'milvus/docker/standalone/volumes/etcd/member/': Permission denied
+
+```
+
 
 After starting up Milvus,
 
@@ -199,11 +210,14 @@ docker restart milvus-standalone
 
 
 ## Connect 
+```
+neaj@neaj-pc:~/g/s/g/N/y/m/d/standalone|main⚡✚?
+➤ bash 
+neaj@neaj-pc:~/go/src/github.com/Neaj-Morshad-101/yamls/milvus/docker/standalone$ cd ../
+neaj@neaj-pc:~/go/src/github.com/Neaj-Morshad-101/yamls/milvus/docker$ ls
+cluster  standalone
+neaj@neaj-pc:~/go/src/github.com/Neaj-Morshad-101/yamls/milvus/docker$ cd ..
 neaj@neaj-pc:~/go/src/github.com/Neaj-Morshad-101/yamls/milvus$ source venv/bin/activate
-(venv) neaj@neaj-pc:~/go/src/github.com/Neaj-Morshad-101/yamls/milvus$ python python-client.py 
-✅ Successfully connected to Milvus!
-✅ Milvus server version: 2.6.0
-🔌 Disconnected from Milvus.
 (venv) neaj@neaj-pc:~/go/src/github.com/Neaj-Morshad-101/yamls/milvus$ python milvus-python-client.py 
 ✅ Successfully connected to Milvus at localhost:19530
 Creating collection: book_recommendations...
@@ -219,16 +233,17 @@ Loading collection into memory for searching...
 Performing a vector similarity search...
 
 🔍 Top 5 most similar books found:
-  - Book ID: 621, Distance: 0.1594, Title: 'Book Title 621', Year: 2003
-  - Book ID: 1, Distance: 0.2592, Title: 'Book Title 1', Year: 2009
-  - Book ID: 121, Distance: 0.2956, Title: 'Book Title 121', Year: 1997
-  - Book ID: 368, Distance: 0.3538, Title: 'Book Title 368', Year: 1997
-  - Book ID: 398, Distance: 0.3572, Title: 'Book Title 398', Year: 2015
+  - Book ID: 818, Distance: 0.1155, Title: 'Book Title 818', Year: 1981
+  - Book ID: 382, Distance: 0.2265, Title: 'Book Title 382', Year: 1996
+  - Book ID: 638, Distance: 0.2347, Title: 'Book Title 638', Year: 1993
+  - Book ID: 243, Distance: 0.3032, Title: 'Book Title 243', Year: 1995
+  - Book ID: 82, Distance: 0.3302, Title: 'Book Title 82', Year: 2015
 
 Releasing collection from memory...
 🔌 Disconnected from Milvus.
 (venv) neaj@neaj-pc:~/go/src/github.com/Neaj-Morshad-101/yamls/milvus$ 
 
+```
 
 
 
