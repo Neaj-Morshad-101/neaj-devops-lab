@@ -76,7 +76,7 @@ print(res)
 # data: [[{'id': 2, 'distance': 0.5859946012496948, 'entity': {'text': 'Born in Maida Vale, London, Turing was raised in southern England.', 'subject': 'history'}}, {'id': 1, 'distance': 0.5118255615234375, 'entity': {'text': 'Alan Turing was the first person to conduct substantial research in AI.', 'subject': 'history'}}]]
 
 
-
+# Delete Entities
 res = client.delete(
     collection_name="demo_collection",
     filter="subject == 'biology'",

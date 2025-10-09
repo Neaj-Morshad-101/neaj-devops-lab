@@ -24,6 +24,65 @@ You can access Milvus WebUI at http://127.0.0.1:9091/webui/ to learn more about 
 
 
 
+# Connect to Milvus
+
+neaj@neaj-pc:~/g/s/g/N/y/milvus|main✓
+➤ bash
+neaj@neaj-pc:~/go/src/github.com/Neaj-Morshad-101/yamls/milvus$ source venv/bin/activate
+(venv) neaj@neaj-pc:~/go/src/github.com/Neaj-Morshad-101/yamls/milvus$ python milvus-python-client.py 
+✅ Successfully connected to Milvus at localhost:19530
+🧹 Dropped existing collection: book_recommendations
+Creating collection: book_recommendations...
+✅ Collection created successfully.
+
+Preparing and inserting data...
+✅ Inserted 1000 books into the collection.
+
+Creating index for the vector field...
+✅ Index created successfully.
+
+Loading collection into memory for searching...
+Performing a vector similarity search...
+
+🔍 Top 5 most similar books found:
+  - Book ID: 488, Distance: 0.2136, Title: 'Book Title 488', Year: 1994
+  - Book ID: 92, Distance: 0.2227, Title: 'Book Title 92', Year: 2017
+  - Book ID: 353, Distance: 0.2440, Title: 'Book Title 353', Year: 2021
+  - Book ID: 918, Distance: 0.2606, Title: 'Book Title 918', Year: 2020
+  - Book ID: 905, Distance: 0.2913, Title: 'Book Title 905', Year: 2002
+
+Releasing collection from memory...
+🔌 Disconnected from Milvus.
+(venv) neaj@neaj-pc:~/go/src/github.com/Neaj-Morshad-101/yamls/milvus$ 
+
+
+
+
+
+
+
+
+ # Access Milvus from inside the container
+
+➤ docker exec -it milvus-standalone bash
+root@15e6e6c749d3:/milvus# ls /milvus/configs/
+OWNERS  advanced  cert  embedEtcd.yaml  glog.conf  hook.yaml  milvus.yaml  pgo  user.yaml
+root@15e6e6c749d3:/milvus# 
+
+root@15e6e6c749d3:/milvus# cd /var/lib/milvus
+root@15e6e6c749d3:/var/lib/milvus# ls
+data  etcd  rdb_data  rdb_data_meta_kv
+root@15e6e6c749d3:/var/lib/milvus# cd data
+root@15e6e6c749d3:/var/lib/milvus/data# ls
+cache  insert_log  stats_log
+root@15e6e6c749d3:/var/lib/milvus/data# 
+
+
+
+
+
+
+
 (Optional) Update Milvus configurations:
 cat << EOF > user.yaml
 # Extra config to override default milvus.yaml
@@ -38,7 +97,13 @@ $ bash standalone_embed.sh restart
 
 
 
-Stop and delete Milvus￼
+# Upgrade Milvus￼
+## upgrade Milvus to the latest version
+$ bash standalone_embed.sh upgrade
+
+
+
+# Stop and delete Milvus￼
 You can stop and delete this container as follows
 
 # Stop Milvus
