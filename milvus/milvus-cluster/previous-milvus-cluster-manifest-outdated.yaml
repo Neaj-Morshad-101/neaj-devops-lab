@@ -3,6 +3,8 @@
 # Get a working set of manifests generated from the official source of truth (the Helm chart).
 # Now You have the raw YAML file. You can inspect it, modify it, and manage it with kubectl as you see fit.
 
+Generate the Complete Cluster Manifest File
+
 ---
 # Source: milvus/charts/minio/templates/serviceaccount.yaml
 
