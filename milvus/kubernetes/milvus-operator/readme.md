@@ -55,7 +55,7 @@ secret/sh.helm.release.v1.milvus-operator.v1   helm.sh/release.v1   1      88m
 
 
 
-
+kubectl apply -f milvus-cluster.yaml
 
 
 
