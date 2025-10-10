@@ -10,6 +10,7 @@ spec:
   # authSecret:
   #   name: mysecret
   #   externallyManaged: true
+  #   aclRules: 
 
   # tls:
   #   issuerRef:
