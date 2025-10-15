@@ -1,4 +1,4 @@
-#!/home/neaj/go/src/github.com/Neaj-Morshad-101/yamls/milvus/venv/bin/python3
+#!/home/neaj/go/src/github.com/Neaj-Morshad-101/neaj-devops-lab/milvus/venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys

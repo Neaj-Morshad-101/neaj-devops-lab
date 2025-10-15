@@ -33,7 +33,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV /home/neaj/go/src/github.com/Neaj-Morshad-101/yamls/milvus/venv
+set -gx VIRTUAL_ENV /home/neaj/go/src/github.com/Neaj-Morshad-101/neaj-devops-lab/milvus/venv
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/"bin $PATH
