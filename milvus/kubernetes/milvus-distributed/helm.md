@@ -212,6 +212,14 @@ streamingnode:
       # You can optionally specify a StorageClass here if needed
       # storageClassName: "your-fast-ssd-storage-class"
 
+# Check this 
+messageQueue: woodpecker
+persistence:
+  mountPath: "/var/lib/milvus"
+  enabled: true
+  size: 50Gi
+
+
 # It's also best practice to manage other persistence here too
 etcd:
   persistence:
