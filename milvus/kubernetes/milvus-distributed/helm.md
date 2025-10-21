@@ -162,3 +162,89 @@ Releasing collection from memory...
 
 
 
+# How to Enable the PVC for Woodpecker Using the Helm Chart? 
+
+Enabling persistence for Woodpecker (and by extension, the Streaming Node) is a straightforward process. You simply need to set the correct values when you run helm install or helm upgrade.
+
+Method 1: Using --set Flags (The Quick Way)
+
+helm install my-release zilliztech/milvus \
+  --namespace milvus \
+  --set image.all.tag=v2.6.2 \
+  --set pulsarv3.enabled=false \
+  --set woodpecker.enabled=true \
+  --set streaming.enabled=true \
+  --set indexNode.enabled=false \
+  --set streamingnode.persistence.enabled=true \
+  --set streamingnode.persistence.volumeClaim.size=50Gi
+
+
+The Last two lines (--set streamingnode.persistence) will configure the streaming node with PVC. 
+
+
+
+
+
+Method 2: Using a values.yaml File (The Production Way)
+
+The best practice is to create a custom values.yaml file that contains all your overrides.
+1. Create a file named my-values.yaml:
+```
+# my-values.yaml
+
+# Use the new Woodpecker architecture
+pulsarv3:
+  enabled: false
+woodpecker:
+  enabled: true
+streaming:
+  enabled: true
+indexNode:
+  enabled: false
+
+# --- THIS IS THE KEY SECTION ---
+# Enable persistence for the Streaming Node
+streamingnode:
+  persistence:
+    enabled: true
+    volumeClaim:
+      size: 50Gi
+      # You can optionally specify a StorageClass here if needed
+      # storageClassName: "your-fast-ssd-storage-class"
+
+# It's also best practice to manage other persistence here too
+etcd:
+  persistence:
+    size: 20Gi
+
+minio:
+  persistence:
+    size: 100Gi # Let's give MinIO more space
+```
+
+Install or upgrade using this file:
+helm install my-release zilliztech/milvus -n milvus -f my-values.yaml
+or
+helm upgrade my-release zilliztech/milvus -n milvus -f my-values.yaml
+
+
+
+Checked first two option: no PVC attached to streamming node. 
+
+
+The Last Option:
+
+Manually attach a PVC via volumes/volumeMounts. The Helm chart supports adding custom volumes globally. You can define a PVC and mount it at /var/lib/milvus by using the volumes and volumeMounts fields in your values. For example, add to your values.yaml:
+```
+volumes:
+- name: woodpecker
+  persistentVolumeClaim:
+    claimName: <your-pvc-name>
+volumeMounts:
+- name: woodpecker
+  mountPath: /var/lib/milvus
+```
+This will override the default emptyDir and use your PVC for the Woodpecker directory. (Make sure your PVC has at least 50Gi and uses ReadWriteOnce storage.) This approach effectively “inserts” your PV into the streaming node pod.
+Chart version or custom chart. If you prefer a built-in solution, note that newer Helm chart versions may expose more persistence settings. You might consider upgrading to a later chart or filing a patch/issue. As of 5.0.4, the streaming node PVC isn’t auto-created by any dedicated flag, so custom volumes are the workaround.
+In summary, the Milvus Helm chart defaults to ephemeral WAL storage for the streaming node. To get a persistent volume, you must explicitly configure it – either by ensuring the messageQueue.persistence setting takes effect or by manually mounting a PVC to /var/lib/milvus. This will guarantee the streaming node’s WAL survives pod restarts, as recommended for production deployments.
+.

@@ -1,0 +1,30 @@
+# my-values.yaml
+
+# Use the new Woodpecker architecture
+pulsarv3:
+  enabled: false
+woodpecker:
+  enabled: true
+streaming:
+  enabled: true
+indexNode:
+  enabled: false
+
+# --- THIS IS THE KEY SECTION ---
+# Enable persistence for the Streaming Node
+streamingnode:
+  persistence:
+    enabled: true
+    volumeClaim:
+      size: 50Gi
+      # You can optionally specify a StorageClass here if needed
+      # storageClassName: "your-fast-ssd-storage-class"
+
+# It's also best practice to manage other persistence here too
+etcd:
+  persistence:
+    size: 20Gi
+
+minio:
+  persistence:
+    size: 100Gi # Let's give MinIO more space
