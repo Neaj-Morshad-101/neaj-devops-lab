@@ -143,11 +143,6 @@ metadata:
     app.kubernetes.io/version: "2.6.3"
     app.kubernetes.io/managed-by: Helm
     component: "datanode"
-
-    
-  annotations:
-    
-
 spec:
   replicas: 1
   selector:
@@ -167,15 +162,11 @@ spec:
         
     spec:
       serviceAccountName: default
-      initContainers:
       containers:
       - name: datanode
         image: "milvusdb/milvus:v2.6.2"
         imagePullPolicy: IfNotPresent
-        
-        
         args: [ "milvus", "run", "datanode" ]
-        env:
         ports:
           - name: datanode
             containerPort: 21124
@@ -233,10 +224,6 @@ metadata:
     app.kubernetes.io/version: "2.6.3"
     app.kubernetes.io/managed-by: Helm
     component: "mixcoord"
-    
-  annotations:
-    
-
 spec:
   replicas: 1
   strategy:
@@ -251,11 +238,9 @@ spec:
       labels:
         app.kubernetes.io/name: milvus
         app.kubernetes.io/instance: my-release
-        
         component: "mixcoord"
       annotations:
         checksum/config: 3586f8aef7d589d46d8d5967d3261926643189fa9a40f490d8d5c10596b10d0e
-        
     spec:
       serviceAccountName: default
       initContainers:
@@ -263,10 +248,7 @@ spec:
       - name: mixcoord
         image: "milvusdb/milvus:v2.6.2"
         imagePullPolicy: IfNotPresent
-        
-        
         args: [ "milvus", "run", "mixture", "-rootcoord", "-querycoord", "-datacoord", "-indexcoord" ]
-        env:
         ports:
           - name: metrics
             containerPort: 9091
@@ -301,7 +283,6 @@ spec:
           readOnly: true
         - mountPath: /milvus/tools
           name: tools
-
       volumes:
       - name: milvus-config
         configMap:
@@ -322,11 +303,6 @@ metadata:
     app.kubernetes.io/version: "2.6.3"
     app.kubernetes.io/managed-by: Helm
     component: "proxy"
-
-    
-  annotations:
-    
-
 spec:
   replicas: 1
   selector:
@@ -340,21 +316,15 @@ spec:
         app.kubernetes.io/name: milvus
         app.kubernetes.io/instance: my-release
         component: "proxy"
-        
       annotations:
         checksum/config: 3586f8aef7d589d46d8d5967d3261926643189fa9a40f490d8d5c10596b10d0e
-        
     spec:
       serviceAccountName: default
-      initContainers:
       containers:
       - name: proxy
         image: "milvusdb/milvus:v2.6.2"
         imagePullPolicy: IfNotPresent
-        
-        
         args: [ "milvus", "run", "proxy" ]
-        env:
         ports:
           - name: milvus
             containerPort: 19530
@@ -392,7 +362,6 @@ spec:
           readOnly: true
         - mountPath: /milvus/tools
           name: tools
-
       volumes:
       - name: milvus-config
         configMap:
@@ -413,10 +382,6 @@ metadata:
     app.kubernetes.io/version: "2.6.3"
     app.kubernetes.io/managed-by: Helm
     component: "querynode"
-    
-  annotations:
-    
-
 spec:
   replicas: 1
   selector:
@@ -430,10 +395,8 @@ spec:
         app.kubernetes.io/name: milvus
         app.kubernetes.io/instance: my-release
         component: "querynode"
-        
       annotations:
         checksum/config: 3586f8aef7d589d46d8d5967d3261926643189fa9a40f490d8d5c10596b10d0e
-        
     spec:
       serviceAccountName: default
       initContainers:
@@ -441,10 +404,7 @@ spec:
       - name: querynode
         image: "milvusdb/milvus:v2.6.2"
         imagePullPolicy: IfNotPresent
-        
-        
         args: [ "milvus", "run", "querynode" ]
-        env:
         ports:
           - name: querynode
             containerPort: 21123
@@ -484,7 +444,6 @@ spec:
           name: tools
         - mountPath: /var/lib/milvus/data
           name: disk
-
       volumes:
       - name: milvus-config
         configMap:
@@ -507,11 +466,6 @@ metadata:
     app.kubernetes.io/version: "2.6.3"
     app.kubernetes.io/managed-by: Helm
     component: "streamingnode"
-
-    
-  annotations:
-    
-
 spec:
   replicas: 1
   selector:
@@ -525,10 +479,8 @@ spec:
         app.kubernetes.io/name: milvus
         app.kubernetes.io/instance: my-release
         component: "streamingnode"
-        
       annotations:
         checksum/config: 3586f8aef7d589d46d8d5967d3261926643189fa9a40f490d8d5c10596b10d0e
-        
     spec:
       serviceAccountName: default
       initContainers:
@@ -536,10 +488,7 @@ spec:
       - name: streamingnode
         image: "milvusdb/milvus:v2.6.2"
         imagePullPolicy: IfNotPresent
-        
-        
         args: [ "milvus", "run", "streamingnode" ]
-        env:
         ports:
           - name: streamingnode
             containerPort: 22222
@@ -587,5 +536,4 @@ spec:
         emptyDir: {}
       - name: woodpecker
         emptyDir: {}
----
 
