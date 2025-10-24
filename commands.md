@@ -12,6 +12,7 @@ git restore --staged .
 # Kubernetes 
 pod logs:
 `kubectl logs <db-pod-0> -n <db-namespace> --all-containers=true`
+kubectl get datastore -A
 
 
 # Docker 
