@@ -39,10 +39,6 @@ deployment.apps/etcd-operator-controller-manager   1/1     1            1       
 NAME                                                          DESIRED   CURRENT   READY   AGE
 replicaset.apps/etcd-operator-controller-manager-77c7974d6b   1         1         1       8h
 
-NAME                         DATA   AGE
-configmap/kube-root-ca.crt   1      8h
-
-
 
 
 Apply and Create Etcd Cluster: 
