@@ -4,7 +4,7 @@ metadata:
   name: rd-cluster
   namespace: demo
 spec:
-  version: 7.4.1
+  version: 8.2.2
   mode: Cluster
   # tls:
   #   issuerRef:

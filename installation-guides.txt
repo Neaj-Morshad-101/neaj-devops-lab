@@ -78,7 +78,11 @@ kubectl get crd -o name | grep kubedb.com | xargs kubectl delete
 
 
 
-
+Install Petset:
+helm repo add appscode https://charts.appscode.com/stable/
+helm repo update
+helm search repo appscode/petset --version=v2025.8.31
+helm install petset appscode/petset -n kubeops --create-namespace --version=v2025.8.31
 
 
 
