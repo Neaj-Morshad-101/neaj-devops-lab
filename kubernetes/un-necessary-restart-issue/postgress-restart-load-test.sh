@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -eu
 
-# redis-restart-uid-count.sh
+# postgres-restart-uid-count.sh
 # Count pod creations using Pod UID (minimal snapshots, no full yamls, no operator logs)
 #
 # Usage:
-#   ./redis-restart-uid-count.sh
+#   ./postgres-restart-uid-count.sh
 # Environment overrides:
 #   N, NAMESPACE, DB_NAME, POD_PREFIX, OPS_KIND, OPS_API_VERSION
 #   OPS_TIMEOUT, WAIT_BETWEEN, SNAP_INTERVAL
@@ -21,7 +21,7 @@ WAIT_BETWEEN="${WAIT_BETWEEN:-0}" # seconds to sleep after each OpsRequest
 SNAP_INTERVAL="${SNAP_INTERVAL:-2}"  # seconds between continuous pod snapshots
 
 
-OUTDIR="./redis-restart-uid-output"
+OUTDIR="./postgres-restart-uid-output"
 mkdir -p "$OUTDIR/snapshots"
 
 
@@ -35,7 +35,7 @@ echo "Minimal snapshots will be saved to: $OUTDIR/snapshots"
 
 # take a minimal snapshot (CSV lines: name,uid)
 take_snapshot() {
-  local label="$1"   # e.g. iter-0 or ops-redisops-restart-5-<epoch>
+  local label="$1"   # e.g. iter-0 or ops-postgresops-restart-5-<epoch>
   local out="$OUTDIR/snapshots/$label.csv"
   kubectl get pods -n "$NAMESPACE" -o json \
     | jq -r --arg prefix "$POD_PREFIX" '.items
@@ -83,7 +83,7 @@ take_snapshot "iter-0-$(date +%s)"
 for i in $(seq 1 "$N"); do
 
 
-  opsname="redisops-restart-$i"
+  opsname="postgresops-restart-$i"
   echo "[$i/$N] preparing $opsname"
 
   # --- Take snapshot BEFORE creating OpsRequest ---
