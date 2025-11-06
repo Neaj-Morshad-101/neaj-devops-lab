@@ -1,0 +1,344 @@
+All OpsRequests applied. Aggregating UID counts...
+Pod creations (unique UIDs per pod):
+rd-cluster-shard0-0  101: 
+rd-cluster-shard0-1  101: 
+rd-cluster-shard1-0  101: 
+rd-cluster-shard1-1  101: 
+rd-cluster-shard2-0  101: 
+rd-cluster-shard2-1  101: 
+
+Expected creations per pod (if one recreation per OpsRequest): 101
+
+Results saved to: ./redis-restart-uid-output (snapshots and ./redis-restart-uid-output/pod-uid-aggregate.txt)
+Done.
+
+
+
+
+
+
+neaj@neaj-pc:~/g/s/g/N/n/k/un-necessary-restart-issue|main⚡*
+➤ ./redis-restart-load-test.sh
+Config: N=100 NAMESPACE=demo DB_NAME=rd-cluster POD_PREFIX=rd-cluster
+Minimal snapshots will be saved to: ./redis-restart-uid-output/snapshots
+[1/100] preparing redisops-restart-1
+[1/100] creating redisops-restart-1
+redisopsrequest.ops.kubedb.com/redisops-restart-1 created
+[2/100] preparing redisops-restart-2
+[2/100] creating redisops-restart-2
+redisopsrequest.ops.kubedb.com/redisops-restart-2 created
+[3/100] preparing redisops-restart-3
+[3/100] creating redisops-restart-3
+redisopsrequest.ops.kubedb.com/redisops-restart-3 created
+[4/100] preparing redisops-restart-4
+[4/100] creating redisops-restart-4
+redisopsrequest.ops.kubedb.com/redisops-restart-4 created
+[5/100] preparing redisops-restart-5
+[5/100] creating redisops-restart-5
+redisopsrequest.ops.kubedb.com/redisops-restart-5 created
+[6/100] preparing redisops-restart-6
+[6/100] creating redisops-restart-6
+redisopsrequest.ops.kubedb.com/redisops-restart-6 created
+Error from server: etcdserver: request timed out
+./redis-restart-load-test.sh: line 63: [: : integer expression expected
+Error from server (Timeout): the server was unable to return a response in the time allotted, but may still be processing the request (get pods)
+./redis-restart-load-test.sh: line 63: [: : integer expression expected
+
+
+
+
+[7/100] preparing redisops-restart-7
+[7/100] creating redisops-restart-7
+redisopsrequest.ops.kubedb.com/redisops-restart-7 created
+[8/100] preparing redisops-restart-8
+[8/100] creating redisops-restart-8
+redisopsrequest.ops.kubedb.com/redisops-restart-8 created
+[9/100] preparing redisops-restart-9
+[9/100] creating redisops-restart-9
+redisopsrequest.ops.kubedb.com/redisops-restart-9 created
+[10/100] preparing redisops-restart-10
+[10/100] creating redisops-restart-10
+redisopsrequest.ops.kubedb.com/redisops-restart-10 created
+[11/100] preparing redisops-restart-11
+[11/100] creating redisops-restart-11
+redisopsrequest.ops.kubedb.com/redisops-restart-11 created
+[12/100] preparing redisops-restart-12
+[12/100] creating redisops-restart-12
+redisopsrequest.ops.kubedb.com/redisops-restart-12 created
+[13/100] preparing redisops-restart-13
+[13/100] creating redisops-restart-13
+redisopsrequest.ops.kubedb.com/redisops-restart-13 created
+[14/100] preparing redisops-restart-14
+[14/100] creating redisops-restart-14
+redisopsrequest.ops.kubedb.com/redisops-restart-14 created
+[15/100] preparing redisops-restart-15
+[15/100] creating redisops-restart-15
+redisopsrequest.ops.kubedb.com/redisops-restart-15 created
+[16/100] preparing redisops-restart-16
+[16/100] creating redisops-restart-16
+redisopsrequest.ops.kubedb.com/redisops-restart-16 created
+[17/100] preparing redisops-restart-17
+[17/100] creating redisops-restart-17
+redisopsrequest.ops.kubedb.com/redisops-restart-17 created
+[18/100] preparing redisops-restart-18
+[18/100] creating redisops-restart-18
+redisopsrequest.ops.kubedb.com/redisops-restart-18 created
+[19/100] preparing redisops-restart-19
+[19/100] creating redisops-restart-19
+redisopsrequest.ops.kubedb.com/redisops-restart-19 created
+[20/100] preparing redisops-restart-20
+[20/100] creating redisops-restart-20
+redisopsrequest.ops.kubedb.com/redisops-restart-20 created
+[21/100] preparing redisops-restart-21
+[21/100] creating redisops-restart-21
+redisopsrequest.ops.kubedb.com/redisops-restart-21 created
+[22/100] preparing redisops-restart-22
+[22/100] creating redisops-restart-22
+redisopsrequest.ops.kubedb.com/redisops-restart-22 created
+[23/100] preparing redisops-restart-23
+[23/100] creating redisops-restart-23
+redisopsrequest.ops.kubedb.com/redisops-restart-23 created
+[24/100] preparing redisops-restart-24
+[24/100] creating redisops-restart-24
+redisopsrequest.ops.kubedb.com/redisops-restart-24 created
+[25/100] preparing redisops-restart-25
+[25/100] creating redisops-restart-25
+redisopsrequest.ops.kubedb.com/redisops-restart-25 created
+[26/100] preparing redisops-restart-26
+[26/100] creating redisops-restart-26
+redisopsrequest.ops.kubedb.com/redisops-restart-26 created
+[27/100] preparing redisops-restart-27
+[27/100] creating redisops-restart-27
+redisopsrequest.ops.kubedb.com/redisops-restart-27 created
+[28/100] preparing redisops-restart-28
+[28/100] creating redisops-restart-28
+redisopsrequest.ops.kubedb.com/redisops-restart-28 created
+[29/100] preparing redisops-restart-29
+[29/100] creating redisops-restart-29
+redisopsrequest.ops.kubedb.com/redisops-restart-29 created
+[30/100] preparing redisops-restart-30
+[30/100] creating redisops-restart-30
+redisopsrequest.ops.kubedb.com/redisops-restart-30 created
+[31/100] preparing redisops-restart-31
+[31/100] creating redisops-restart-31
+redisopsrequest.ops.kubedb.com/redisops-restart-31 created
+[32/100] preparing redisops-restart-32
+[32/100] creating redisops-restart-32
+redisopsrequest.ops.kubedb.com/redisops-restart-32 created
+[33/100] preparing redisops-restart-33
+[33/100] creating redisops-restart-33
+redisopsrequest.ops.kubedb.com/redisops-restart-33 created
+[34/100] preparing redisops-restart-34
+[34/100] creating redisops-restart-34
+redisopsrequest.ops.kubedb.com/redisops-restart-34 created
+[35/100] preparing redisops-restart-35
+[35/100] creating redisops-restart-35
+redisopsrequest.ops.kubedb.com/redisops-restart-35 created
+[36/100] preparing redisops-restart-36
+[36/100] creating redisops-restart-36
+redisopsrequest.ops.kubedb.com/redisops-restart-36 created
+[37/100] preparing redisops-restart-37
+[37/100] creating redisops-restart-37
+redisopsrequest.ops.kubedb.com/redisops-restart-37 created
+[38/100] preparing redisops-restart-38
+[38/100] creating redisops-restart-38
+redisopsrequest.ops.kubedb.com/redisops-restart-38 created
+[39/100] preparing redisops-restart-39
+[39/100] creating redisops-restart-39
+redisopsrequest.ops.kubedb.com/redisops-restart-39 created
+[40/100] preparing redisops-restart-40
+[40/100] creating redisops-restart-40
+redisopsrequest.ops.kubedb.com/redisops-restart-40 created
+[41/100] preparing redisops-restart-41
+[41/100] creating redisops-restart-41
+redisopsrequest.ops.kubedb.com/redisops-restart-41 created
+[42/100] preparing redisops-restart-42
+[42/100] creating redisops-restart-42
+redisopsrequest.ops.kubedb.com/redisops-restart-42 created
+[43/100] preparing redisops-restart-43
+[43/100] creating redisops-restart-43
+redisopsrequest.ops.kubedb.com/redisops-restart-43 created
+[44/100] preparing redisops-restart-44
+[44/100] creating redisops-restart-44
+redisopsrequest.ops.kubedb.com/redisops-restart-44 created
+[45/100] preparing redisops-restart-45
+[45/100] creating redisops-restart-45
+redisopsrequest.ops.kubedb.com/redisops-restart-45 created
+[46/100] preparing redisops-restart-46
+[46/100] creating redisops-restart-46
+redisopsrequest.ops.kubedb.com/redisops-restart-46 created
+[47/100] preparing redisops-restart-47
+[47/100] creating redisops-restart-47
+redisopsrequest.ops.kubedb.com/redisops-restart-47 created
+[48/100] preparing redisops-restart-48
+[48/100] creating redisops-restart-48
+redisopsrequest.ops.kubedb.com/redisops-restart-48 created
+[49/100] preparing redisops-restart-49
+[49/100] creating redisops-restart-49
+redisopsrequest.ops.kubedb.com/redisops-restart-49 created
+[50/100] preparing redisops-restart-50
+[50/100] creating redisops-restart-50
+redisopsrequest.ops.kubedb.com/redisops-restart-50 created
+[51/100] preparing redisops-restart-51
+[51/100] creating redisops-restart-51
+redisopsrequest.ops.kubedb.com/redisops-restart-51 created
+[52/100] preparing redisops-restart-52
+[52/100] creating redisops-restart-52
+redisopsrequest.ops.kubedb.com/redisops-restart-52 created
+[53/100] preparing redisops-restart-53
+[53/100] creating redisops-restart-53
+redisopsrequest.ops.kubedb.com/redisops-restart-53 created
+[54/100] preparing redisops-restart-54
+[54/100] creating redisops-restart-54
+redisopsrequest.ops.kubedb.com/redisops-restart-54 created
+[55/100] preparing redisops-restart-55
+[55/100] creating redisops-restart-55
+redisopsrequest.ops.kubedb.com/redisops-restart-55 created
+[56/100] preparing redisops-restart-56
+[56/100] creating redisops-restart-56
+redisopsrequest.ops.kubedb.com/redisops-restart-56 created
+[57/100] preparing redisops-restart-57
+[57/100] creating redisops-restart-57
+redisopsrequest.ops.kubedb.com/redisops-restart-57 created
+[58/100] preparing redisops-restart-58
+[58/100] creating redisops-restart-58
+redisopsrequest.ops.kubedb.com/redisops-restart-58 created
+[59/100] preparing redisops-restart-59
+[59/100] creating redisops-restart-59
+redisopsrequest.ops.kubedb.com/redisops-restart-59 created
+[60/100] preparing redisops-restart-60
+[60/100] creating redisops-restart-60
+redisopsrequest.ops.kubedb.com/redisops-restart-60 created
+[61/100] preparing redisops-restart-61
+[61/100] creating redisops-restart-61
+redisopsrequest.ops.kubedb.com/redisops-restart-61 created
+[62/100] preparing redisops-restart-62
+[62/100] creating redisops-restart-62
+redisopsrequest.ops.kubedb.com/redisops-restart-62 created
+[63/100] preparing redisops-restart-63
+[63/100] creating redisops-restart-63
+redisopsrequest.ops.kubedb.com/redisops-restart-63 created
+[64/100] preparing redisops-restart-64
+[64/100] creating redisops-restart-64
+redisopsrequest.ops.kubedb.com/redisops-restart-64 created
+[65/100] preparing redisops-restart-65
+[65/100] creating redisops-restart-65
+redisopsrequest.ops.kubedb.com/redisops-restart-65 created
+[66/100] preparing redisops-restart-66
+[66/100] creating redisops-restart-66
+redisopsrequest.ops.kubedb.com/redisops-restart-66 created
+[67/100] preparing redisops-restart-67
+[67/100] creating redisops-restart-67
+redisopsrequest.ops.kubedb.com/redisops-restart-67 created
+[68/100] preparing redisops-restart-68
+[68/100] creating redisops-restart-68
+redisopsrequest.ops.kubedb.com/redisops-restart-68 created
+[69/100] preparing redisops-restart-69
+[69/100] creating redisops-restart-69
+redisopsrequest.ops.kubedb.com/redisops-restart-69 created
+[70/100] preparing redisops-restart-70
+[70/100] creating redisops-restart-70
+redisopsrequest.ops.kubedb.com/redisops-restart-70 created
+[71/100] preparing redisops-restart-71
+[71/100] creating redisops-restart-71
+redisopsrequest.ops.kubedb.com/redisops-restart-71 created
+[72/100] preparing redisops-restart-72
+[72/100] creating redisops-restart-72
+redisopsrequest.ops.kubedb.com/redisops-restart-72 created
+[73/100] preparing redisops-restart-73
+[73/100] creating redisops-restart-73
+redisopsrequest.ops.kubedb.com/redisops-restart-73 created
+[74/100] preparing redisops-restart-74
+[74/100] creating redisops-restart-74
+redisopsrequest.ops.kubedb.com/redisops-restart-74 created
+[75/100] preparing redisops-restart-75
+[75/100] creating redisops-restart-75
+redisopsrequest.ops.kubedb.com/redisops-restart-75 created
+[76/100] preparing redisops-restart-76
+[76/100] creating redisops-restart-76
+redisopsrequest.ops.kubedb.com/redisops-restart-76 created
+[77/100] preparing redisops-restart-77
+[77/100] creating redisops-restart-77
+redisopsrequest.ops.kubedb.com/redisops-restart-77 created
+[78/100] preparing redisops-restart-78
+[78/100] creating redisops-restart-78
+redisopsrequest.ops.kubedb.com/redisops-restart-78 created
+[79/100] preparing redisops-restart-79
+[79/100] creating redisops-restart-79
+redisopsrequest.ops.kubedb.com/redisops-restart-79 created
+[80/100] preparing redisops-restart-80
+[80/100] creating redisops-restart-80
+redisopsrequest.ops.kubedb.com/redisops-restart-80 created
+[81/100] preparing redisops-restart-81
+[81/100] creating redisops-restart-81
+redisopsrequest.ops.kubedb.com/redisops-restart-81 created
+[82/100] preparing redisops-restart-82
+[82/100] creating redisops-restart-82
+redisopsrequest.ops.kubedb.com/redisops-restart-82 created
+[83/100] preparing redisops-restart-83
+[83/100] creating redisops-restart-83
+redisopsrequest.ops.kubedb.com/redisops-restart-83 created
+[84/100] preparing redisops-restart-84
+[84/100] creating redisops-restart-84
+redisopsrequest.ops.kubedb.com/redisops-restart-84 created
+[85/100] preparing redisops-restart-85
+[85/100] creating redisops-restart-85
+redisopsrequest.ops.kubedb.com/redisops-restart-85 created
+[86/100] preparing redisops-restart-86
+[86/100] creating redisops-restart-86
+redisopsrequest.ops.kubedb.com/redisops-restart-86 created
+[87/100] preparing redisops-restart-87
+[87/100] creating redisops-restart-87
+redisopsrequest.ops.kubedb.com/redisops-restart-87 created
+[88/100] preparing redisops-restart-88
+[88/100] creating redisops-restart-88
+redisopsrequest.ops.kubedb.com/redisops-restart-88 created
+[89/100] preparing redisops-restart-89
+[89/100] creating redisops-restart-89
+redisopsrequest.ops.kubedb.com/redisops-restart-89 created
+[90/100] preparing redisops-restart-90
+[90/100] creating redisops-restart-90
+redisopsrequest.ops.kubedb.com/redisops-restart-90 created
+[91/100] preparing redisops-restart-91
+[91/100] creating redisops-restart-91
+redisopsrequest.ops.kubedb.com/redisops-restart-91 created
+[92/100] preparing redisops-restart-92
+[92/100] creating redisops-restart-92
+redisopsrequest.ops.kubedb.com/redisops-restart-92 created
+[93/100] preparing redisops-restart-93
+[93/100] creating redisops-restart-93
+redisopsrequest.ops.kubedb.com/redisops-restart-93 created
+[94/100] preparing redisops-restart-94
+[94/100] creating redisops-restart-94
+redisopsrequest.ops.kubedb.com/redisops-restart-94 created
+[95/100] preparing redisops-restart-95
+[95/100] creating redisops-restart-95
+redisopsrequest.ops.kubedb.com/redisops-restart-95 created
+[96/100] preparing redisops-restart-96
+[96/100] creating redisops-restart-96
+redisopsrequest.ops.kubedb.com/redisops-restart-96 created
+[97/100] preparing redisops-restart-97
+[97/100] creating redisops-restart-97
+redisopsrequest.ops.kubedb.com/redisops-restart-97 created
+[98/100] preparing redisops-restart-98
+[98/100] creating redisops-restart-98
+redisopsrequest.ops.kubedb.com/redisops-restart-98 created
+[99/100] preparing redisops-restart-99
+[99/100] creating redisops-restart-99
+redisopsrequest.ops.kubedb.com/redisops-restart-99 created
+[100/100] preparing redisops-restart-100
+[100/100] creating redisops-restart-100
+redisopsrequest.ops.kubedb.com/redisops-restart-100 created
+All OpsRequests applied. Aggregating UID counts...
+Pod creations (unique UIDs per pod):
+rd-cluster-shard0-0  101: 
+rd-cluster-shard0-1  101: 
+rd-cluster-shard1-0  101: 
+rd-cluster-shard1-1  101: 
+rd-cluster-shard2-0  101: 
+rd-cluster-shard2-1  101: 
+
+Expected creations per pod (if one recreation per OpsRequest): 101
+
+Results saved to: ./redis-restart-uid-output (snapshots and ./redis-restart-uid-output/pod-uid-aggregate.txt)
+Done.

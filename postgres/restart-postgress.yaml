@@ -1,0 +1,11 @@
+apiVersion: ops.kubedb.com/v1alpha1
+kind: PostgresOpsRequest
+metadata:
+ name: restart-postgres
+ namespace: demo
+spec:
+ type: Restart
+ databaseRef:
+  name: pg-cluster
+  timeout: 3m
+  apply: IfReady

@@ -1,0 +1,24 @@
+apiVersion: kubedb.com/v1
+kind: Postgres
+metadata:
+  name: pg-clsuter
+  namespace: demo
+spec:
+  version: "17.5"
+  replicas: 3
+  standbyMode: Hot
+  storageType: Durable
+  storage:
+    # storageClassName: "linode-block-storage" #"standard"
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+  # monitor:
+  #   agent: prometheus.io/operator
+  #   prometheus:
+  #     serviceMonitor:
+  #       labels:
+  #         release: prometheus
+  #       interval: 10s
