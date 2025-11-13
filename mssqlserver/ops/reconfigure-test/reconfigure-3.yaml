@@ -1,0 +1,14 @@
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MSSQLServerOpsRequest
+metadata:
+  name: reconfigure-3-only-config
+  namespace: demo
+spec:
+  type: Reconfigure
+  databaseRef:
+    name: standalone
+  configuration:
+      configSecret:
+        name: ms-new-custom-config
+  timeout: 5m
+  apply: IfReady

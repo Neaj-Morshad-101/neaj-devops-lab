@@ -1,0 +1,16 @@
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MSSQLServerOpsRequest
+metadata:
+  name: reconfigure-2-only-apply
+  namespace: demo
+spec:
+  type: Reconfigure
+  databaseRef:
+    name: standalone
+  configuration:
+    applyConfig:
+      mssql.conf: |-
+        [network]
+        tcpport = 1433
+  timeout: 5m
+  apply: IfReady

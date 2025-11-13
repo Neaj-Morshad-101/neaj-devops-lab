@@ -1,0 +1,15 @@
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MSSQLServerOpsRequest
+metadata:
+  name: reconfigure-7-remove-and-config
+  namespace: demo
+spec:
+  type: Reconfigure
+  databaseRef:
+    name: standalone
+  configuration:
+    removeCustomConfig: true
+    configSecret:
+      name: ms-new-custom-config
+  timeout: 5m
+  apply: IfReady

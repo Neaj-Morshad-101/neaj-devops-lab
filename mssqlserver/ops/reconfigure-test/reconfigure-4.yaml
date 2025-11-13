@@ -1,0 +1,18 @@
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MSSQLServerOpsRequest
+metadata:
+  name: reconfigure-4-config-and-apply
+  namespace: demo
+spec:
+  type: Reconfigure
+  databaseRef:
+    name: standalone
+  configuration:
+    configSecret:
+      name: ms-new-custom-config2
+    applyConfig:
+      mssql.conf: |-
+        [memory]
+        memorylimitmb = 4096
+  timeout: 5m
+  apply: IfReady

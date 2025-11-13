@@ -190,6 +190,9 @@ kubectl -n longhorn-system edit settings.longhorn.io deleting-confirmation-flag
 helm uninstall longhorn -n longhorn-system
 
 
+Common Utitilities:
+kubectl krew install view-secret
+
 
 Miscellaneous:
 

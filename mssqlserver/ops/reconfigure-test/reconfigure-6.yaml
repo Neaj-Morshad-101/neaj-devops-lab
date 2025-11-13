@@ -1,0 +1,17 @@
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MSSQLServerOpsRequest
+metadata:
+  name: reconfigure-6-remove-apply
+  namespace: demo
+spec:
+  type: Reconfigure
+  databaseRef:
+    name: standalone
+  configuration:
+    removeCustomConfig: true
+    applyConfig:
+      mssql.conf: |-
+        [memory]
+        memorylimitmb = 4096
+  timeout: 5m
+  apply: IfReady

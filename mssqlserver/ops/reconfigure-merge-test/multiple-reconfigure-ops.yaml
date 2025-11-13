@@ -1,0 +1,142 @@
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MSSQLServerOpsRequest
+metadata:
+  name: configure-1-only-apply
+  namespace: demo
+spec:
+  type: Reconfigure
+  databaseRef:
+    name: standalone
+  configuration:
+    applyConfig:
+      mssql.conf: |-
+        [sqlconnector]
+        logginglevel = 0
+  timeout: 5m
+  apply: IfReady
+---
+
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MSSQLServerOpsRequest
+metadata:
+  name: configure-2-only-config
+  namespace: demo
+spec:
+  type: Reconfigure
+  databaseRef:
+    name: standalone
+  configuration:
+      configSecret:
+        name: ms-new-custom-config
+  timeout: 5m
+  apply: IfReady
+
+# ➤ kubectl view-secret -n demo ms-new-custom-config -a
+# mssql.conf='[sqlagent]
+# enabled = true'
+
+---
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MSSQLServerOpsRequest
+metadata:
+  name: configure-3-remove-apply
+  namespace: demo
+spec:
+  type: Reconfigure
+  databaseRef:
+    name: standalone
+  configuration:
+    removeCustomConfig: true
+    applyConfig:
+      mssql.conf: |-
+        [memory]
+        memorylimitmb = 2096
+  timeout: 5m
+  apply: IfReady
+
+# only apply:
+# mssql.conf: |-
+#   [memory]
+#   memorylimitmb = 2096
+---
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MSSQLServerOpsRequest
+metadata:
+  name: configure-4-config-and-apply
+  namespace: demo
+spec:
+  type: Reconfigure
+  databaseRef:
+    name: standalone
+  configuration:
+    configSecret:
+      name: ms-new-custom-config2
+    applyConfig:
+      mssql.conf: |-
+        [network]
+        tcpport = 1433
+  timeout: 5m
+  apply: IfReady
+
+# ➤ kubectl view-secret -n demo ms-new-custom-config2 -a
+# mssql.conf='[memory]
+# memorylimitmb = 3096
+# [sqlagent]
+# enabled = false
+# '
+
+# config:
+# [memory]
+# memorylimitmb = 3096
+# [sqlagent]
+# enabled = false
+# apply:
+#   [memory]
+#   memorylimitmb = 2096
+#   [network]
+#   tcpport = 1433
+---
+
+
+apiVersion: ops.kubedb.com/v1alpha1
+kind: MSSQLServerOpsRequest
+metadata:
+  name: configure-5-only-apply
+  namespace: demo
+spec:
+  type: Reconfigure
+  databaseRef:
+    name: standalone
+  configuration:
+    applyConfig:
+      mssql.conf: |-
+        [sqlconnector]
+        logginglevel = 1
+  timeout: 5m
+  apply: IfReady
+
+
+# config:
+# [memory]
+# memorylimitmb = 3096
+# [sqlagent]
+# enabled = false
+# apply:
+#   [memory]
+#   memorylimitmb = 2096
+#   [network]
+#   tcpport = 1433
+#   [sqlconnector]
+#   logginglevel = 1
+
+
+# final config:
+# [memory]
+# memorylimitmb = 2096
+# [sqlagent]
+# enabled = false
+# [network]
+# tcpport = 1433
+# [sqlconnector]
+# logginglevel = 1
+---

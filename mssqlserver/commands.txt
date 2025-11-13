@@ -82,7 +82,46 @@ lcid = 1033
 France ---------- 
 [language]
 lcid = 1036
+[network]
+tcpport = 1433
+[sqlagent]
+enabled = true
+[sqlconnector]
+logginglevel = 1
 
+These configuration can not be updated without restart. 
+Check command found for memorylimitmb and language and encryptionopton 
+
+$ kubectl exec -it mssql-custom-config-0 -n demo -c mssql -- bash
+mssql@mssql-custom-config-0:/$ cat /var/opt/mssql/mssql.conf
+[language]
+lcid = 1036
+[network]
+tlsprotocols = 1.2
+forceencryption = 1
+[memory]
+memorylimitmb = 2304
+mssql@mssql-custom-config-0:/$ /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P AqRe6WIuqwKXLaWc
+1> SELECT encrypt_option FROM sys.dm_exec_connections WHERE session_id = @@SPID;
+2> go
+encrypt_option                          
+----------------------------------------
+TRUE                                    
+
+(1 rows affected)
+1> SELECT default_language_name FROM sys.server_principals WHERE name = 'sa';
+2> go
+default_language_name                                                                                                           
+-----------------------------------------------------------
+Français                                                                                                                        
+
+(1 rows affected)
+1> SELECT physical_memory_kb / 1024 AS physical_memory_mb FROM sys.dm_os_sys_info;
+2> go
+physical_memory_mb  
+--------------------
+2304
+(1 rows affected)
 
 
 

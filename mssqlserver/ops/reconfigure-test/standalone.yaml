@@ -1,0 +1,34 @@
+# kubectl create secret generic -n demo ms-custom-config --from-file=./mssql.conf
+apiVersion: kubedb.com/v1alpha2
+kind: MSSQLServer
+metadata:
+  name: standalone
+  namespace: demo
+spec:
+  version: "2022-cu19"
+  storageType: Durable
+  configSecret:
+    name: ms-custom-config
+  tls:
+    issuerRef:
+      name: mssqlserver-ca-issuer
+      kind: Issuer
+      apiGroup: "cert-manager.io"
+    clientTLS: false
+  podTemplate:
+    spec:
+      containers:
+      - name: mssql
+        env:
+        - name: ACCEPT_EULA
+          value: "Y"
+        - name: MSSQL_PID
+          value: Evaluation
+  storage:
+    # storageClassName: "longhorn"
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+  deletionPolicy: WipeOut
