@@ -10,7 +10,7 @@ set -eu
 #   N, NAMESPACE, DB_NAME, POD_PREFIX, OPS_KIND, OPS_API_VERSION
 #   OPS_TIMEOUT, WAIT_BETWEEN, SNAP_INTERVAL
 
-N="${N:-5}"     # number of OpsRequests to run
+N="${N:-100}"     # number of OpsRequests to run
 NAMESPACE="${NAMESPACE:-demo}"
 DB_NAME="${DB_NAME:-pg-cluster}" # Name of DB database CR
 POD_PREFIX="${POD_PREFIX:-${DB_NAME}}"

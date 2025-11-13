@@ -1,0 +1,34 @@
+pg-cluster-0,74
+pg-cluster-1,74
+pg-cluster-2,72
+
+
+
+
+
+
+➤ kubectl get pgops -n demo | grep -i Successful | wc -lc
+     66    3501
+neaj@neaj-pc:~/g/s/k/postgres|master✓
+➤ kubectl get pgops -n demo | grep -i skipped | wc -lc
+     33    1754
+
+
+
+
+
+neaj@neaj-pc:~/g/s/g/N/n/k/un-necessary-restart-issue|main⚡*?
+➤ chmod +x result.sh 
+neaj@neaj-pc:~/g/s/g/N/n/k/un-necessary-restart-issue|main⚡*?
+➤ ./result.sh 
+Pod creations (unique UIDs per pod):
+pg-cluster-0  74: 
+pg-cluster-1  74: 
+pg-cluster-2  72: 
+
+Expected creations per pod (if one recreation per OpsRequest): 101
+
+Results saved to: ./postgres-restart-uid-output (snapshots and ./postgres-restart-uid-output/pod-uid-aggregate.txt)
+Done.
+neaj@neaj-pc:~/g/s/g/N/n/k/un-necessary-restart-issue|main⚡*?
+➤ 

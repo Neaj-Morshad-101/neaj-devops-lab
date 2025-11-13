@@ -1,7 +1,7 @@
 apiVersion: kubedb.com/v1
 kind: Postgres
 metadata:
-  name: pg-clsuter
+  name: pg-cluster
   namespace: demo
 spec:
   version: "17.5"
