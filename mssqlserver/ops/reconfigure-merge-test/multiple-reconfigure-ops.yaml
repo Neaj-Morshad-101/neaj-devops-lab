@@ -59,6 +59,10 @@ spec:
 #   [memory]
 #   memorylimitmb = 2096
 ---
+
+
+
+
 apiVersion: ops.kubedb.com/v1alpha1
 kind: MSSQLServerOpsRequest
 metadata:
@@ -80,19 +84,17 @@ spec:
 
 # ➤ kubectl view-secret -n demo ms-new-custom-config2 -a
 # mssql.conf='[memory]
-# memorylimitmb = 3096
+# memorylimitmb = 4096
 # [sqlagent]
 # enabled = false
 # '
 
 # config:
 # [memory]
-# memorylimitmb = 3096
+# memorylimitmb = 4096
 # [sqlagent]
 # enabled = false
 # apply:
-#   [memory]
-#   memorylimitmb = 2096
 #   [network]
 #   tcpport = 1433
 ---
@@ -112,22 +114,24 @@ spec:
       mssql.conf: |-
         [sqlconnector]
         logginglevel = 1
+        [memory]
+        memorylimitmb = 2096
   timeout: 5m
   apply: IfReady
 
 
 # config:
 # [memory]
-# memorylimitmb = 3096
+# memorylimitmb = 4096
 # [sqlagent]
 # enabled = false
 # apply:
-#   [memory]
-#   memorylimitmb = 2096
 #   [network]
 #   tcpport = 1433
 #   [sqlconnector]
 #   logginglevel = 1
+#   [memory]
+#   memorylimitmb = 2096
 
 
 # final config:
